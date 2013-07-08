@@ -1,0 +1,8 @@
+indexes:
+
+- kind: Like
+  ancestor: no
+  properties:
+  - name: page
+  - name: user
+  - name: value

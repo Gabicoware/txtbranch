@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block additional_header %}
+
+{% endblock %}
+
+
+{% block content %}
+    
+{% block name_header %}
+    {% if user_info %}
+    <h4>{{user_info.username}}</h4>
+    {% else %}
+    <h4>Anonymous</h4>
+    {% endif %}
+{% endblock %}
+
+    <h4>Pages</h4>
+    {% for page in pages %}
+    <div class="branch_link">
+        <a href="{{ page.url()| safe }}">{{ page.link }}</a> ( {{page.score()}} )<br />
+    </div>
+    {% endfor %}
+
+
+{% endblock %}

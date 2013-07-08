@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block additional_header %}
+    
+    <style>
+        div.add_page_inactive {display:none;}
+        div.add_page_active {display:block;}
+        div.title {display:block;}
+        div.no_links{color:#888888;font-style:italic}
+        .chars_left{font-size:90%; text-align:right; width:100%; max-width:600px;}
+        input.invalid{background-color:#FF8888}
+        textarea.invalid{background-color:#FF8888}
+        #link, #content{ margin-bottom:2px; width:100%; max-width:600px;}
+        a.vote:hover {text-decoration:none;}
+        
+        div.invalid{background-color:#FF8888}
+        
+        div.vote{
+            display:inline-block;
+            width:16px;
+            height:20px;
+            cursor:pointer;
+        }
+        div.like_inactive{
+            background-image:url("/assets/img/up_arrow_gray.png");
+        }
+        div.unlike_inactive{
+            background-image:url("/assets/img/down_arrow_gray.png");
+        }
+        div.like_active{
+            background-image:url("/assets/img/up_arrow_green.png");
+        }
+        div.unlike_active{
+            background-image:url("/assets/img/down_arrow_red.png");
+        }
+        div.stats{
+            display:inline-block;
+            height:20px;
+        }
+    </style>
+    <script>
+        function showAddPageLink(){
+            $('#add_page_div').addClass('add_page_active');
+            $('#add_page_div').removeClass('add_page_inactive');
+            $('#add_page_link').addClass('add_page_inactive');
+            $('#add_page_link').removeClass('add_page_active');
+        }
+        {% if page.key %}
+        var page_key = "{{page.key.urlsafe()}}";
+        {% else %}
+        var page_key = "";
+        {% endif %}
+        
+        var like_value = {{like_value}};
+        var base_like_count = {{like_count}};
+        var base_unlike_count = {{unlike_count}};
+        
+        function toggleLike(param_value){
+            if(like_value == param_value){
+                param_value = 0;
+            }
+            
+            $.get('/api/v1/like?page_key='+page_key+'&value='+param_value, function(data) {
+                if(data == 'OK'){
+                    like_value = param_value;
+                    updateLikeInfo(like_value);
+                }
+            });
+        }
+        
+        function updateLikeInfo(value){
+            var like_div = $('#like_div');
+            var like_count_span = $('#like_count_span');
+            if(value == 1){
+                like_div.addClass("like_active");
+                like_div.removeClass("like_inactive");
+                like_count_span.text(base_like_count + 1);
+            }else{
+                like_div.removeClass("like_active");
+                like_div.addClass("like_inactive");
+                like_count_span.text(base_like_count);
+            }
+
+            var unlike_div = $('#unlike_div');
+            var unlike_count_span = $('#unlike_count_span');
+            if(value == -1){
+                unlike_div.addClass("unlike_active");
+                unlike_div.removeClass("unlike_inactive");
+                unlike_count_span.text(base_unlike_count + 1);
+            }else{
+                unlike_div.removeClass("unlike_active");
+                unlike_div.addClass("unlike_inactive");
+                unlike_count_span.text(base_unlike_count);
+            }
+            
+        }
+        
+        
+    </script>
+{% endblock %}
+
+{% block content %}
+        
+        {% if identical_link %}
+        <div class="invalid">The page could not be added. A page with an identical link already exists.</div>
+        {% endif %}
+        
+        {% if parent_page %}
+        <h5><a href="{{ parent_href| safe }}">{{ parent_page.link }}</a></h4>
+        <!--<div class="page">{{parent_page.content}}</div>-->
+        {% endif %}
+        <div>
+            <h4 style="display:inline-block">
+                <a href="{{ page_href| safe }}">{{ page.link }}</a>          
+            </h4>
+            <div style="display:inline-block">
+                <div id="like_div" class="vote" onclick="toggleLike(1);" >&nbsp;</div>
+                <div id="unlike_div" class="vote" onclick="toggleLike(-1);" >&nbsp;</div>
+                <div class="stats"> 
+                    ( <span id="page_count_span">{{child_count}}</span> / <span id="like_count_span">0</span> / <span id="unlike_count_span">0</span> ) 
+                </div>
+                {% if author_name %}
+                by <a href="{{ author_href| safe }}">{{author_name}}</a>
+                {% else %}
+                by Anonymous
+                {% endif %}
+
+            </div>
+        </div>
+        <br />
+        <pre>{{page.content}}</pre>
+        <br />
+        {% if has_pages %}
+            {% for page in pages %}
+        <div class="branch_link">
+            <a href="{{ page.url()| safe }}">{{ page.link }}</a> ( {{page.score()}} )<br />
+        </div>
+            {% endfor %}
+        {% else %}
+        <div class="no_links">
+        This page does not have any branches yet. You should add one!<br />
+        </div>
+        {% endif %}
+        <div class="branch_link" id="add_page_link">
+        <br/>
+        <a href="javascript:void(0)" onclick="showAddPageLink();">+ Add a Branch</a>
+        </div>
+        <hr />
+        <div id="add_page_div" class="add_page_inactive">
+            {% if session_info.user_key %}
+            <b>Add a Branch</b>
+            <form id="add_page_form" action="{{add_page_url}}" method="post">
+                <div>
+                    <label for="link">Link</label>
+                </div>
+                <div>
+                    <input id="link" name="link" rows="1" type="text" />
+                </div>
+                <br />
+                <div>
+                    <label for="content">Content</label>
+                </div>
+                <div>
+                    <textarea id="content" name="content" rows="3" cols="60"></textarea>
+                    
+                </div>
+                <br />
+                <div><input type="submit" value="Add Page"></div>
+            </form>
+            <script>
+ 
+                $("#add_page_form").submit(function() {
+                    
+                    var hasValidLink = 0 < $('#link').val().length && $('#link').val().length < {{link_max}};
+                    var hasValidContent = 0 < $('#content').val().length && $('#content').val().length < {{content_max}};
+                    
+                    if(!hasValidLink){
+                        $('#link').addClass('invalid');
+                    }
+                    if(!hasValidContent){
+                        $('#content').addClass('invalid');
+                    }
+                    return hasValidLink && hasValidContent;
+                });
+                textareas=[{
+                    textareaId:'#link',
+                    maxCharacters: {{link_max}}, // Characters limit  
+                    statusClass: "chars_left", // The class on the status div 
+                    notificationClass: "invalid", 
+                    statusText: "", // The status text 
+                },{
+                    textareaId:'#content',
+                    maxCharacters: {{content_max}}, // Characters limit  
+                    statusClass: "chars_left", // The class on the status div 
+                    notificationClass: "invalid", 
+                    statusText: "", // The status text 
+                }];
+            </script>
+        {% else %}
+            <div class="no_links">You must <a href="{{ session_info.url|safe }}">{{ session_info.linktext }}</a> to add a Page.</div>
+        {% endif %}
+        </div>
+        <script>
+            updateLikeInfo(like_value);
+        </script>
+{% endblock %}

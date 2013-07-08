@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+        <h3>{{story.name}}</h3>
+        
+        <h5>Introduction</h5>
+        <p><pre >{{story.introduction}}</pre></p>
+        
+        <hr />
+        <br />
+        <h4><a href="{{ root_page_href | safe }}">{{ root_page_link }}</a></h4>
+        <br />
+        <br />
+        <hr />
+        <h5>Story Conventions</h5>
+        <p><pre >{{story.conventions}}</pre></p>
+{% endblock %}

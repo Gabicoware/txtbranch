@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block additional_header %}
+    
+    <style>
+        #story_name, #root_page_link, textarea{ margin-bottom:2px; width:100%; max-width:600px;}
+        label{color:#124E94; margin-top:10px}
+        .chars_left{font-size:90%; text-align:right; width:100%; max-width:600px;}
+        input.invalid{background-color:#FF8888}
+        textarea.invalid{background-color:#FF8888}
+        div.invalid_message{ color:#FF8888; font-size:90%; }
+    </style>
+    <script>
+        function showAddPageLink(){
+            document.getElementById('add_page_div').className='add_page_active';
+            document.getElementById('add_page_link').className='add_page_inactive';
+        }
+    </script>
+
+{% endblock %}
+
+
+{% block content %}
+    
+    <div id="add_story_div">
+    {% if session_info.user_key %}
+        <b>Add a Story</b>
+        <form id="new_story_form" action="{{new_story_endpoint}}" method="post">
+            <div>
+                <label for="story_name">Story Name <b>*</b></label>
+            </div>
+            <div>
+                <input type="text" {% if errors['story_exists'] %} class="invalid" {% endif %} id="story_name" name="story_name" value="{{story_name}}" />
+            </div>
+            {% if errors['story_exists'] %}
+            <div class="invalid_message">
+                A story with this name already exists.
+            </div>
+            {% endif %}
+            <div>
+                <label for="introduction">Introduction</label>
+            </div>
+            <div>
+                <textarea id="introduction" name="introduction" rows="4" >{{introduction}}</textarea>
+            </div>
+            <div>
+                <label for="root_page_link">Root Link <b>*</b></label>
+            </div>
+            <div>
+                <input type="text" {% if errors['empty_root_page_link'] %} class="invalid" {% endif %} id="root_page_link" name="root_page_link" value="{{root_page_link}}" />
+            </div>
+            {% if errors['empty_root_page_link'] %}
+            <div class="invalid_message">
+                A root link is required.
+            </div>
+            {% endif %}
+            <div>
+                <label for="root_page_content">Root Content <b>*</b></label>
+            </div>
+            <div>
+                <textarea {% if errors['empty_root_page_content'] %} class="invalid" {% endif %} id="root_page_content" name="root_page_content" rows="3" >{{root_page_content}}</textarea>
+            </div>
+            {% if errors['empty_root_page_content'] %}
+            <div class="invalid_message">
+                A root content is required.
+            </div>
+            {% endif %}
+            <div>
+                <label for="conventions">Story Conventions</label>
+            </div>
+            <div>
+                <textarea id="conventions" name="conventions" rows="6" >{{conventions}}</textarea>
+            </div>
+            <br />
+            <div>Once added, you may only edit the introduction and conventions of a story.</div>
+            <div><b>*</b> Required</div>
+            
+            <br />
+            <div><input type="submit" value="Add Story"></div>
+        </form>
+        <script>
+            
+            $("#new_story_form").submit(function() {
+                
+                var hasValidLink = 0 < $('#root_page_link').val().length && $('#root_page_link').val().length < {{link_max}};
+                var hasValidContent = 0 < $('#root_page_content').val().length && $('#root_page_content').val().length < {{content_max}};
+                
+                if(!hasValidLink){
+                    $('#root_page_link').addClass('invalid');
+                }
+                if(!hasValidContent){
+                    $('#root_page_content').addClass('invalid');
+                }
+                
+                return hasValidLink && hasValidContent;
+            });
+            var textareas=[{
+                textareaId:'#root_page_link',
+                maxCharacters: {{link_max}}, // Characters limit  
+                statusClass: "chars_left", // The class on the status div 
+                notificationClass: "invalid", 
+                statusText: "", // The status text 
+            },{
+                textareaId:'#root_page_content',
+                maxCharacters: {{content_max}}, // Characters limit  
+                statusClass: "chars_left", // The class on the status div 
+                notificationClass: "invalid", 
+                statusText: "", // The status text 
+            }];
+        </script>
+    {% else %}
+        <div class="no_links">You must <a href="{{ session_info.url|safe }}">{{ session_info.linktext }}</a> to add a Story.</div>
+    {% endif %}
+    </div>
+
+    
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block additional_header %}
+
+{% endblock %}
+
+
+{% block content %}
+    {% for href, name in story_links %}
+    <a href="{{ href|safe }}">{{ name }}</a><br />
+    {% endfor %}
+    
+    <div class="branch_link" id="add_story_link">
+    <br/>
+    <a href="/story?action=create">+ Add a Story</a>
+    </div>
+    <hr />
+
+    
+{% endblock %}

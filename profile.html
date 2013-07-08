@@ -1,0 +1,24 @@
+{% extends "user.html" %}
+
+{% block name_header %}
+    <input id="username_textfield" style="font-size:200%; height:32px; width:300px" type="text" value="{{session_info.profile_text}}" />
+    <input id="username_button" type="button" value="Update"/>
+    <div id="username_message">Providing a name allows users to see your profile and the pages you have contributed.</div>
+    <script>
+    $("#username_button").click(function() {
+    
+      var username = $("#username_textfield").val();
+      
+      $.get('/api/v1/userinfo?username='+encodeURIComponent(username), function(data) {
+            if(data == 'OK'){
+                $("#username_message").text("saved")
+            }else if(data == 'UNAUTHENTICATED'){
+                $("#username_message").text("Your session has expired.")
+            }else{
+                $("#username_message").text(data)
+            }
+        });
+      
+    });
+    </script>
+{% endblock %}
