@@ -100,13 +100,25 @@
 {% endblock %}
 
 {% block content %}
+        <div id="errorMessageDiv" class="invalid"></div>
+        <script>
+        	var messages = {
+        		'has_authored_page':'The page could not be added. You have already created a branch for this page.',
+        		'has_identical_link':'The page could not be added. A page with an identical link already exists.',
+        		'unauthenticated':'The page could not be added. You are not logged in.',
+        	}
+        	
+        	for (var key in messages){
+        		if( 0 <= location.href.indexOf(key)){
+                	$("#errorMessageDiv").text(messages[key]);
+            	}
+        	}
+        	
+        </script>
         
-        {% if identical_link %}
-        <div class="invalid">The page could not be added. A page with an identical link already exists.</div>
-        {% endif %}
         
         {% if parent_page %}
-        <h5><a href="{{ parent_href| safe }}">{{ parent_page.link }}</a></h4>
+        <h5><a href="{{ parent_href| safe }}">{{ parent_page.link }}</a></h5>
         <!--<div class="page">{{parent_page.content}}</div>-->
         {% endif %}
         <div>
@@ -161,7 +173,7 @@
                     <label for="content">Content</label>
                 </div>
                 <div>
-                    <textarea id="content" name="content" rows="3" cols="60"></textarea>
+                    <textarea id="content" name="content" rows="3" cols="60" ></textarea>
                     
                 </div>
                 <br />

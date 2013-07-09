@@ -176,9 +176,8 @@ class UserInfo(ndb.Model):
     @classmethod
     def get_current_key(cls):
         
-        logging.info(users.get_current_user().email())
-        
         if users.get_current_user():
+            logging.info(users.get_current_user().email())
             return ndb.Key('UserInfo',users.get_current_user().user_id())
         return None
     
