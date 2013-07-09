@@ -47,7 +47,7 @@ def string_validator(property, value):
     
     
 def page_url(story_name, page_key):
-    query_params = {'page_key': page_key.urlsafe(), 'story_name': story_name}
+    query_params = {'page_key': page_key.urlsafe()}
     return '/page?%s' % (urllib.urlencode(query_params))
 
 def user_url(user_info_key):
@@ -65,7 +65,9 @@ class Story(ndb.Model):
     def create_key(cls, story_name=DEFAULT_STORY_NAME):
         """Constructs a Datastore key for a Game entity with story_name."""
         return ndb.Key('Story', story_name)
-        
+    
+    #we store the root page with an id equali to the name of the story
+    #all other pages are stored with random integer ids
     def get_root_page(self):
         return ndb.Key('Page',self.name).get()
         
