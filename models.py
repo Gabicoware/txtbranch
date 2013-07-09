@@ -5,7 +5,7 @@ from google.appengine.api import users
 from google.appengine.ext import ndb
 from google.appengine.api import memcache
 
-from defaulttext import *
+from defaulttext import DEFAULT_STORY_NAME
 
 from HTMLParser import HTMLParser
 
@@ -177,7 +177,6 @@ class UserInfo(ndb.Model):
     def get_current_key(cls):
         
         if users.get_current_user():
-            logging.info(users.get_current_user().email())
             return ndb.Key('UserInfo',users.get_current_user().user_id())
         return None
     
