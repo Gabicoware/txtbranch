@@ -57,7 +57,7 @@ def user_url(user_info_key):
 class Story(ndb.Model):
     """Models an individual Story"""
     moderator_info = ndb.KeyProperty(kind='UserInfo',indexed=True)
-    name = ndb.StringProperty(indexed=False)
+    name = ndb.StringProperty(indexed=False,validator=string_validator)
     introduction = ndb.TextProperty(validator=string_validator)
     conventions = ndb.TextProperty(validator=string_validator)
     
