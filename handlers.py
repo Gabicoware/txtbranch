@@ -14,6 +14,7 @@ import os
 import logging
 import webapp2
 import threading
+import json
 
 from defaulttext import *
 from models import *
@@ -95,7 +96,7 @@ class CreateStoryHandler(webapp2.RequestHandler):
             'new_story_endpoint' : self.request.uri,
             'link_max' : config["pages"]["link_max"],
             'content_max' : config["pages"]["content_max"],
-            'errors' : errors,
+            'errors' : json.dumps(errors),
         }
         self.response.write(template.render(template_values))
         

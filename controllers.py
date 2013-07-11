@@ -1,6 +1,7 @@
 import threading
 
 from models import *
+import re
 
 class PageController:
     @classmethod
@@ -74,6 +75,13 @@ class StoryController:
         if empty_name:
             errors['empty_name'] = False
         
+        match = re.search(r'^[\d\w_\-]+$', story_name)
+        
+        isvalid = match and 4 <= len(story_name) and len(story_name) <= 20;
+        
+        if not isvalid:
+            errors['invalid_name'] = True
+        
         page = Page(id=story_name)
         page.author_info = UserInfo.get_current_key()
         page.link = root_page_link
@@ -109,3 +117,50 @@ class StoryController:
         else:
             return False, errors
 
+class UserInfoController:
+    
+    _update_user_lock = threading.Lock()
+    
+    @classmethod
+    def update(cls,username):
+        user_info_key = UserInfo.get_current_key()
+        
+        if user_info_key is None:
+            return False, { 'unauthenticated':True}
+        
+        errors = {}
+                
+        match = re.search(r'^[\d\w_\-]+$', username)
+        
+        isvalid = match and 4 <= len(username) and len(username) <= 20;
+        
+        if not isvalid:
+            errors['invalid_name'] = True
+        
+        user_info = user_info_key.get()
+        
+        #It's not necessarily an application error to have identical usernames
+        #BUT it should be sufficiently rare that this won't become an issue
+        #will evaluate if we ever get more than ~1000 users
+        with UserInfoController._update_user_lock:
+            
+            if user_info and user_info.username == username:
+                errors['has_name'] = True
+            else:
+                other_user_info = UserInfo.query(UserInfo.username==username).fetch()
+                if 0 < len(other_user_info):
+                    errors['other_has_name'] = True
+                
+            if len(errors.keys()) == 0:
+                
+                if user_info is None:
+                    user_info = UserInfo(id=user_info_key.string_id())
+                
+                user_info.username = username
+                
+                user_info.put()
+                
+        if len(errors.keys()) == 0:
+            return True, user_info
+        else:
+            return False, errors

@@ -1,18 +1,18 @@
 
 from google.appengine.ext import ndb
-from google.appengine.api import memcache
 
 import webapp2
+import json
 
 from models import Like
 from models import UserInfo
-
+from controllers import UserInfoController
+                
 class LikeHandler(webapp2.RequestHandler):
     
     def get(self):
         page_urlsafe_key = self.request.get('page_key')
         like_value = self.request.get('value','0')
-        hasParams = page_urlsafe_key is not None
         
         if page_urlsafe_key is None or page_urlsafe_key == '':
             self.response.write('NO PAGE KEY SPECIFIED')
@@ -38,23 +38,14 @@ class UserInfoHandler(webapp2.RequestHandler):
     
     def get(self):
         
+        username = self.request.get('username')
+            
+        success, object = UserInfoController.update(username)        
         
-        user_info_key = UserInfo.get_current_key()
-        
-        if user_info_key:
-            
-            user_info = user_info_key.get()
-            
-            if user_info is None:
-                user_info = UserInfo(id=user_info_key.string_id())
-            
-            user_info.username = self.request.get('username')
-            
-            user_info.put()
-            
+        if success:
             self.response.write('OK')
         else:
-            self.response.write('UNAUTHENTICATED')
+            self.response.write(json.dumps(object))
 
 handlers = [
     ('/api/v1/like', LikeHandler),

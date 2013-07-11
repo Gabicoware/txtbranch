@@ -1,23 +1,77 @@
 {% extends "user.html" %}
 
+{% block additional_header %}
+<style>
+    div.invalid{background-color:#FF8888}
+</style>
+{% endblock %}
+
 {% block name_header %}
     <input id="username_textfield" style="font-size:200%; height:32px; width:300px" type="text" value="{{session_info.profile_text}}" />
     <input id="username_button" type="button" value="Update"/>
     <div id="username_message">Providing a name allows users to see your profile and the pages you have contributed.</div>
     <script>
+    
+    var messages = {
+    	'unauthenticated':"Your session has expired.",
+    	'valid_username':"Names must be between 4 and 20 characters, and contain only numbers, letters, dashes, and underscores.",
+    	'invalid_name':"Names must be between 4 and 20 characters, and contain only numbers, letters, dashes, and underscores.",
+    	'has_name':"This is already your name.",
+    	'other_has_name':"That name is taken."
+    }
+    
+    $("#username_textfield").focus(function() {
+    
+        $("#username_message").text(messages['valid_username'])
+      	if($("#username_textfield").val() == "Anonymous"){
+      		$("#username_textfield").val("")
+      	}
+    });
+    
+
+    $("#username_textfield").focusout(function() {
+    
+      	if($("#username_textfield").val() == ""){
+      		$("#username_textfield").val("Anonymous")
+      	}
+    });
+    
     $("#username_button").click(function() {
     
-      var username = $("#username_textfield").val();
-      
-      $.get('/api/v1/userinfo?username='+encodeURIComponent(username), function(data) {
-            if(data == 'OK'){
-                $("#username_message").text("saved")
-            }else if(data == 'UNAUTHENTICATED'){
-                $("#username_message").text("Your session has expired.")
-            }else{
-                $("#username_message").text(data)
-            }
-        });
+		var username = $("#username_textfield").val();
+  
+		var isvalid = /^[\d\w_\-]+$/.test(username) && 4 <= username.length && username.length <= 20;
+		
+		if(isvalid){
+			$.get('/api/v1/userinfo?username='+encodeURIComponent(username), function(data) {
+			    if(data == 'OK'){
+			        $("#username_message").removeClass("invalid");
+			        $("#username_message").text("saved")
+			    }else{
+			    	
+			    	//get the errors from JSON
+			    	var errors = {};
+			    	eval("errors ="+data+";");
+			    	var message = "";
+			    	
+			    	var keys = ['has_name','other_has_name','invalid_name','unauthenticated'];
+			    	
+		        	for (var index = 0; index < keys.length; index++){
+		        		var key = keys[index];
+		        		if( errors[key] ){
+		                	message = messages[key];
+		            	}
+		        	}
+			    	
+			        $("#username_message").addClass("invalid");
+			        $("#username_message").text( message );
+			    }
+			    
+			});
+		}else{
+	        $("#username_message").text(messages['valid_username'])
+	        $("#username_message").addClass("invalid");
+		}
       
     });
     </script>

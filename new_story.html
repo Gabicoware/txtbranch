@@ -9,6 +9,7 @@
         input.invalid{background-color:#FF8888}
         textarea.invalid{background-color:#FF8888}
         div.invalid_message{ color:#FF8888; font-size:90%; }
+        div.message{ font-size:90%; color:#888888;}
     </style>
     <script>
         function showAddPageLink(){
@@ -30,13 +31,11 @@
                 <label for="story_name">Story Name <b>*</b></label>
             </div>
             <div>
-                <input type="text" {% if errors['story_exists'] %} class="invalid" {% endif %} id="story_name" name="story_name" value="{{story_name}}" />
+                <input type="text" id="story_name" name="story_name" value="{{story_name}}" />
             </div>
-            {% if errors['story_exists'] %}
-            <div class="invalid_message">
-                A story with this name already exists.
+            <div id="story_name_message" class="message">
             </div>
-            {% endif %}
+            
             <div>
                 <label for="introduction">Introduction</label>
             </div>
@@ -47,7 +46,7 @@
                 <label for="root_page_link">Root Link <b>*</b></label>
             </div>
             <div>
-                <input type="text" {% if errors['empty_root_page_link'] %} class="invalid" {% endif %} id="root_page_link" name="root_page_link" value="{{root_page_link}}" />
+                <input type="text"  id="root_page_link" name="root_page_link" value="{{root_page_link}}" />
             </div>
             {% if errors['empty_root_page_link'] %}
             <div class="invalid_message">
@@ -58,7 +57,7 @@
                 <label for="root_page_content">Root Content <b>*</b></label>
             </div>
             <div>
-                <textarea {% if errors['empty_root_page_content'] %} class="invalid" {% endif %} id="root_page_content" name="root_page_content" rows="3" >{{root_page_content}}</textarea>
+                <textarea id="root_page_content" name="root_page_content" rows="3" >{{root_page_content}}</textarea>
             </div>
             {% if errors['empty_root_page_content'] %}
             <div class="invalid_message">
@@ -78,8 +77,47 @@
             <br />
             <div><input type="submit" value="Add Story"></div>
         </form>
-        <script>
-            
+		<script>
+		    
+		    {% if errors %}
+        	var errors = {{errors}};
+		    {% else %}
+        	var errors = {};
+		    {% endif %}
+			
+			if( errors['empty_root_page_content'] != null){
+	        	$("#root_page_content").addClass('invalid')
+        	}
+			if( errors['empty_root_page_link'] != null){
+	        	$("#root_page_link").addClass('invalid')
+        	}
+			
+        	var messages = {
+		    	'valid_story_name':"Names must be between 4 and 20 characters, and contain only numbers, letters, dashes, and underscores.",
+		    	'invalid_name':"Names must be between 4 and 20 characters, and contain only numbers, letters, dashes, and underscores.",
+		    	'story_exists':"There is already a story with this name."
+		    }
+		    
+		    $("#story_name").focus(function() {
+		        $("#story_name_message").text(messages['valid_story_name'])
+		        $("#story_name_message").removeClass('invalid_message')
+		        $("#story_name_message").addClass('message')
+		        $("#story_name").removeClass('invalid')
+		    });
+			
+			var message = messages['valid_story_name']
+			
+        	for (var key in messages){
+        		if( errors[key] != null){
+                	message = messages[key];
+		        	$("#story_name_message").addClass('invalid_message')
+			        $("#story_name_message").removeClass('message')
+	        		$("#story_name").addClass('invalid')
+            	}
+        	}
+        	
+            $("#story_name_message").text(message);
+        	
             $("#new_story_form").submit(function() {
                 
                 var hasValidLink = 0 < $('#root_page_link').val().length && $('#root_page_link').val().length < {{link_max}};
