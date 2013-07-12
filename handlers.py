@@ -159,6 +159,7 @@ class PageHandler(webapp2.RequestHandler):
             
             pages = page.children()
             
+            
             add_query_params = urllib.urlencode({'parent_page_key': page_key_urlsafe, 'story_name': story_name})
             add_page_url = '/page?%s' % (add_query_params)
             
@@ -174,11 +175,16 @@ class PageHandler(webapp2.RequestHandler):
             
             like_value = 0
             
+            has_added_branch = False
+            
             if UserInfo.get_current_key():
                 like_key = Like.create_key(page)
                 like = like_key.get();
                 if like:
                     like_value = like.value
+                for child_page in pages:
+                    if child_page.author_info == UserInfo.get_current_key():
+                        has_added_branch = True
             
             child_count = page.child_count()
             like_count = page.like_count()
@@ -204,7 +210,8 @@ class PageHandler(webapp2.RequestHandler):
                 'content_max' : config["pages"]["content_max"],
                 'add_page_url': add_page_url,
                 'session_info': UserInfo.session_info(self.request.uri),
-                'has_pages':len(pages) > 0
+                'has_pages':len(pages) > 0,
+                'has_added_branch':has_added_branch
             }
             
             author_info = page.author_info.get();

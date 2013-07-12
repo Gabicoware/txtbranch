@@ -50,8 +50,7 @@
 			    }else{
 			    	
 			    	//get the errors from JSON
-			    	var errors = {};
-			    	eval("errors ="+data+";");
+			    	var errors = $.parseJSON(data);
 			    	var message = "";
 			    	
 			    	var keys = ['has_name','other_has_name','invalid_name','unauthenticated'];

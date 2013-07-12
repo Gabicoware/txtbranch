@@ -159,7 +159,9 @@
         </div>
         <hr />
         <div id="add_page_div" class="add_page_inactive">
-            {% if session_info.user_key %}
+        {% if has_added_branch %}
+    	    <div class="no_links">You have already added a branch to this page.</div>
+        {% elif session_info.user_key %}
             <b>Add a Branch</b>
             <form id="add_page_form" action="{{add_page_url}}" method="post">
                 <div>
