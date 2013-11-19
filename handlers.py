@@ -175,7 +175,7 @@ class PageHandler(webapp2.RequestHandler):
             
             like_value = 0
             
-            has_added_branch = False
+            added_branch_count = 0
             
             if UserInfo.get_current_key():
                 like_key = Like.create_key(page)
@@ -184,7 +184,7 @@ class PageHandler(webapp2.RequestHandler):
                     like_value = like.value
                 for child_page in pages:
                     if child_page.author_info == UserInfo.get_current_key():
-                        has_added_branch = True
+                        added_branch_count = added_branch_count + 1
             
             child_count = page.child_count()
             like_count = page.like_count()
@@ -211,7 +211,7 @@ class PageHandler(webapp2.RequestHandler):
                 'add_page_url': add_page_url,
                 'session_info': UserInfo.session_info(self.request.uri),
                 'has_pages':len(pages) > 0,
-                'has_added_branch':has_added_branch
+                'has_two_branches':(2 <= added_branch_count)
             }
             
             author_info = page.author_info.get();

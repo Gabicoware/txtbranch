@@ -1,6 +1,6 @@
 import webapp2
 
-from handlers import *
+from handlers import CreateStoryHandler
 
 handlers = [
     ('/admin/story/new', CreateStoryHandler),

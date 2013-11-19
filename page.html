@@ -100,13 +100,13 @@
 {% endblock %}
 
 {% block content %}
-        <div id="errorMessageDiv" class="invalid"></div>
+        <div id="errorMessageDiv" class="invalid"> </div>
         <script>
         	var messages = {
-        		'has_authored_page':'The page could not be added. You have already created a branch for this page.',
+        		'has_two_branches':'The page could not be added. You have already created two branches for this page.',
         		'has_identical_link':'The page could not be added. A page with an identical link already exists.',
         		'unauthenticated':'The page could not be added. You are not logged in.',
-        	}
+        	};
         	
         	for (var key in messages){
         		if( 0 <= location.href.indexOf(key)){
@@ -159,7 +159,7 @@
         </div>
         <hr />
         <div id="add_page_div" class="add_page_inactive">
-        {% if has_added_branch %}
+        {% if has_two_branches %}
     	    <div class="no_links">You have already added a branch to this page.</div>
         {% elif session_info.user_key %}
             <b>Add a Branch</b>
@@ -182,7 +182,7 @@
                 <div><input type="submit" value="Add Page"></div>
             </form>
             <script>
- 
+            
                 $("#add_page_form").submit(function() {
                     
                     var hasValidLink = 0 < $('#link').val().length && $('#link').val().length < {{link_max}};

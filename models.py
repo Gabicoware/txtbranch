@@ -1,9 +1,8 @@
 import urllib
 import logging
 
-from google.appengine.api import users
+from google.appengine.api import users, memcache
 from google.appengine.ext import ndb
-from google.appengine.api import memcache
 
 from defaulttext import DEFAULT_STORY_NAME
 
@@ -30,14 +29,14 @@ class MLStripper(HTMLParser):
     def get_data(self):
         return ''.join(self.fed)
 
-def string_validator(property, value):
+def string_validator(prop, value):
     stripper = MLStripper()
     stripper.feed(value)
     value = stripper.get_data()
     max_chars = 10000
-    if property._name == 'link':
+    if prop._name == 'link':
         max_chars = config['pages']['link_max']
-    elif property._name == 'content':
+    elif prop._name == 'content':
         max_chars = config['pages']['content_max']
     
     if max_chars < len(value):

@@ -1,7 +1,8 @@
 import threading
-
-from models import *
 import re
+
+from models import Page, UserInfo, Story
+from google.appengine.ext import ndb
 
 class PageController:
     @classmethod
@@ -35,15 +36,18 @@ class PageController:
 #Isn't an application error, just an annoyance for the user. So we allow this to occur
 #without a lock in place
         
-        has_identical_link = False
-        
+        authored_branch_count = 0
+                
         pages = parent_page.children()
         
         for branch_page in pages:
             if branch_page.link == page.link:
                 errors['has_identical_link'] = True
             if branch_page.author_info == user_info_key:
-                errors['has_authored_page'] = True
+                authored_branch_count += 1
+        
+        if 2 <= authored_branch_count:
+            errors['has_two_branches'] = True
         
         if len(errors.keys()) == 0:
             page.parent_page = parent_key
