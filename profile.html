@@ -43,7 +43,7 @@
 		var isvalid = /^[\d\w_\-]+$/.test(username) && 4 <= username.length && username.length <= 20;
 		
 		if(isvalid){
-			$.get('/api/v1/userinfo?username='+encodeURIComponent(username), function(data) {
+			$.get('/api/v1/userinfos?username='+encodeURIComponent(username), function(data) {
 			    if(data == 'OK'){
 			        $("#username_message").removeClass("invalid");
 			        $("#username_message").text("saved")

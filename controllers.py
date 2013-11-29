@@ -47,7 +47,7 @@ class PageController:
                 authored_branch_count += 1
         
         if 2 <= authored_branch_count:
-            errors['has_two_branches'] = True
+            errors['has_branches'] = True
         
         if len(errors.keys()) == 0:
             page.parent_page = parent_key

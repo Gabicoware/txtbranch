@@ -8,19 +8,14 @@
 #TODO: user_id instead of UserProperty
 #TODO: Ranking algorithm
 
-import cgi
-import urllib
 import os
-import logging
 import webapp2
-import threading
 import json
 
 from defaulttext import *
 from models import *
 from controllers import *
 import jinja2
-import uuid
 
 
 JINJA_ENVIRONMENT = jinja2.Environment(
@@ -54,9 +49,9 @@ class MainHandler(webapp2.RequestHandler):
 class DefaultRedirectHandler(webapp2.RequestHandler):
     
     def get(self):
-       query_params = {'story_name': config["stories"]["default_name"]}
-       redirect_url = '/story?%s' % (urllib.urlencode(query_params))
-       self.redirect(redirect_url)
+        query_params = {'story_name': config["stories"]["default_name"]}
+        redirect_url = '/story?%s' % (urllib.urlencode(query_params))
+        self.redirect(redirect_url)
 
 class CreateStoryHandler(webapp2.RequestHandler):
     
@@ -68,7 +63,7 @@ class CreateStoryHandler(webapp2.RequestHandler):
     def post(self):
         story_name = self.request.get('story_name',DEFAULT_STORY_NAME)
         
-        success, object = StoryController.save_story(story_name,
+        success, story = StoryController.save_story(story_name,
           self.request.get('introduction', DEFAULT_INTRODUCTION),
           self.request.get('conventions', DEFAULT_CONVENTIONS),
           self.request.get('root_page_link',''),
@@ -80,7 +75,7 @@ class CreateStoryHandler(webapp2.RequestHandler):
         
             self.redirect(redirect_url)
         else:
-            self.render_create_story_form(object)
+            self.render_create_story_form(story)
     
     def render_create_story_form(self,errors=None):
         template = JINJA_ENVIRONMENT.get_template('new_story.html')
@@ -141,116 +136,19 @@ class StoryHandler(webapp2.RequestHandler):
             self.response.write(template.render(template_values))
         
 
-class PageHandler(webapp2.RequestHandler):
+class HtmlPageHandler(webapp2.RequestHandler):
 
     def get(self):
-    
-        page_key_urlsafe = self.request.get('page_key')
-        story_name = self.request.get('story_name',DEFAULT_STORY_NAME)
         
-        page = None
-        page_key = None
+        template_values = {
+            'session_info': UserInfo.session_info(self.request.uri),
+            'link_max' : config["pages"]["link_max"],
+            'content_max' : config["pages"]["content_max"],
+        }
         
-        if page_key_urlsafe:
-            page_key = ndb.Key(urlsafe=page_key_urlsafe)
-            page = page_key.get()
+        template = JINJA_ENVIRONMENT.get_template('page.html')
+        self.response.write(template.render(template_values))
         
-        if page:
-            
-            pages = page.children()
-            
-            
-            add_query_params = urllib.urlencode({'parent_page_key': page_key_urlsafe, 'story_name': story_name})
-            add_page_url = '/page?%s' % (add_query_params)
-            
-            parent_href = None
-            
-            parent_page = None
-            
-            if page.parent_page:
-                parent_page = page.parent_page.get()
-                parent_href = page_url(story_name,page.parent_page)
-            
-            page_href = page_url(story_name,page_key)
-            
-            like_value = 0
-            
-            added_branch_count = 0
-            
-            if UserInfo.get_current_key():
-                like_key = Like.create_key(page)
-                like = like_key.get();
-                if like:
-                    like_value = like.value
-                for child_page in pages:
-                    if child_page.author_info == UserInfo.get_current_key():
-                        added_branch_count = added_branch_count + 1
-            
-            child_count = page.child_count()
-            like_count = page.like_count()
-            unlike_count = page.unlike_count()
-            
-            #adjust the like count based on the like value
-            if like_value == 1:
-                like_count -= 1
-            if like_value == -1:
-                unlike_count -= 1
-            
-            template_values = {
-                'parent_href': parent_href,
-                'parent_page': parent_page,
-                'page_href': page_href,
-                'page': page,
-                'child_count': child_count,
-                'like_value': like_value,
-                'like_count': like_count,
-                'unlike_count': unlike_count,
-                'pages': pages,
-                'link_max' : config["pages"]["link_max"],
-                'content_max' : config["pages"]["content_max"],
-                'add_page_url': add_page_url,
-                'session_info': UserInfo.session_info(self.request.uri),
-                'has_pages':len(pages) > 0,
-                'has_two_branches':(2 <= added_branch_count)
-            }
-            
-            author_info = page.author_info.get();
-            if author_info and author_info.username:
-                template_values['author_name'] = author_info.username
-                template_values['author_href'] = user_url(page.author_info)
-            
-            template = JINJA_ENVIRONMENT.get_template('page.html')
-            self.response.write(template.render(template_values))
-        else:
-            template_values = {
-                'session_info': UserInfo.session_info(self.request.uri),
-            }
-            template = JINJA_ENVIRONMENT.get_template('page_not_found.html')
-            self.response.status = 404
-            self.response.write(template.render(template_values))
-            
-
-    def post(self):
-        parent_urlsafe_key = self.request.get('parent_page_key')
-        
-        success, object = PageController.save_page(
-          parent_urlsafe_key,
-          self.request.get('link',''),
-          self.request.get('content',''))
-        
-        query_params = {'page_key': parent_urlsafe_key}
-        
-        if success:
-            query_params['success'] = '1'
-        else:
-            query_params['success'] = '0'
-            for key in object.keys():
-                query_params[key] = '1'
-        
-        redirect_url = '/page?' + urllib.urlencode(query_params)
-        
-        self.redirect(redirect_url)
-
 class AboutHandler(webapp2.RequestHandler):
 
     def get(self):

@@ -4,7 +4,7 @@ from handlers import *
 
 handlers = [
     ('/user', UserHandler),
-    ('/page', PageHandler),
+    ('/page', HtmlPageHandler),
     ('/story', StoryHandler),
     ('/about', AboutHandler),
     ('/admin/story/new', CreateStoryHandler),

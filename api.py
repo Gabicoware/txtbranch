@@ -4,9 +4,21 @@ from google.appengine.ext import ndb
 import webapp2
 import json
 
-from models import Like
-from models import UserInfo
-from controllers import UserInfoController
+import logging
+
+from json import JSONEncoder
+
+from models import Like, UserInfo, Page
+from controllers import UserInfoController, PageController
+
+class ModelEncoder(JSONEncoder):
+#TODO make non models passthrough objects
+    def default(self,o):
+        if isinstance(o,ndb.Model):
+            return o.to_dict()
+        elif isinstance(o,ndb.Key):
+            return o.urlsafe()
+        return str(o);
                 
 class LikeHandler(webapp2.RequestHandler):
     
@@ -40,16 +52,115 @@ class UserInfoHandler(webapp2.RequestHandler):
         
         username = self.request.get('username')
             
-        success, object = UserInfoController.update(username)        
+        success, userinfo = UserInfoController.update(username)        
         
         if success:
             self.response.write('OK')
         else:
-            self.response.write(json.dumps(object))
+            self.response.write(json.dumps(userinfo))
+
+class PageHandler(webapp2.RequestHandler):
+
+    def get(self):
+    
+        items = self.request.GET.getall('page_key')
+        
+        if len(items) == 0:
+            parent_page_key_urlsafe = self.request.get('parent_page_key')
+            if parent_page_key_urlsafe:
+                parent_page_key = ndb.Key(urlsafe=parent_page_key_urlsafe)
+                parent_page = parent_page_key.get()
+                items = parent_page.children()
+        
+        pages = []
+        
+        for item in items:
+            
+            logging.info(str(item))
+            
+            page = None
+            
+            if isinstance(item,Page):
+                page = item
+            else:
+                page_key = ndb.Key(urlsafe=str(item))
+                page = page_key.get()
+                
+            if page:
+                page_dict = self.expanded_page(page)
+                pages.append(page_dict)
+        
+        self.response.write(ModelEncoder().encode({'status':'OK','result':pages}))
+            
+
+    def expanded_page(self,page):
+        
+        like_value = 0
+        
+        if UserInfo.get_current_key():
+            like_key = Like.create_key(page)
+            like = like_key.get();
+            if like:
+                like_value = like.value
+        
+        child_count = page.child_count()
+        like_count = page.like_count()
+        unlike_count = page.unlike_count()
+        
+        #adjust the like count based on the like value
+        if like_value == 1:
+            like_count -= 1
+        if like_value == -1:
+            unlike_count -= 1
+        
+        page_dict = page.to_dict();
+        
+        page_dict['child_count'] = child_count
+        page_dict['like_value'] = like_value
+        page_dict['like_count'] = like_count
+        page_dict['unlike_count'] = unlike_count
+        
+        page_dict['key'] = page.key.urlsafe()
+        
+        author_info = page.author_info.get()
+        if author_info and author_info.username:
+            page_dict['author_name'] = author_info.username
+        return page_dict
+
+    def post(self):
+        parent_urlsafe_key = self.request.get('parent_page_key')
+        
+        success, result = PageController.save_page(
+          parent_urlsafe_key,
+          self.request.get('link',''),
+          self.request.get('content',''))
+        
+        query_params = {'page_key': parent_urlsafe_key}
+        
+        if success:
+            query_params['success'] = '1'
+        else:
+            query_params['success'] = '0'
+            for key in result.keys():
+                query_params[key] = '1'
+        
+        if success:
+            self.response.write(ModelEncoder().encode({'status':'OK','result':result}))
+        else:
+            self.response.write(json.dumps({'status':'ERROR','result':result}))
+        
+#        redirect_url = '/page?' + urllib.urlencode(query_params)
+        
+#        self.redirect(redirect_url)
+
+
+
+
 
 handlers = [
-    ('/api/v1/like', LikeHandler),
-    ('/api/v1/userinfo', UserInfoHandler),
+    ('/api/v1/likes', LikeHandler),
+    ('/api/v1/pages', PageHandler),
+    ('/api/v1/userinfos', UserInfoHandler),
 ]
 
 application = webapp2.WSGIApplication(handlers, debug=True)
