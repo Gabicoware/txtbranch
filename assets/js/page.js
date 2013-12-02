@@ -11,6 +11,7 @@ function getParameterByName(name){
 
 var active_page_key = null;
 var page_cache = {};
+var child_key_cache = {};
 
 function toggleLike(page_key,param_value){
     
@@ -69,22 +70,48 @@ function openPage(page_key){
     updateBranchLinks(page_key);
 }
 function updateBranchLinks(page_key){
-    $("#link_container").empty();
+    
+    var child_keys = child_key_cache[page_key];
+    if(child_keys!= null && 0 < child_keys.length){
+        var child_pages = [];
+        for(var i = 0; i < child_keys.length; i++){
+            child_pages[i] = page_cache[child_keys[i]];
+        }
+        displayBranchLinks(child_pages);
+    }else{
+        $("#link_container").empty();
+    }
 
     $.get('/api/v1/pages?parent_page_key='+page_key, function(data,textStatus,xhr) {
         var jsondata = JSON.parse(data);
+        
         if(0 < jsondata.result.length){
-            for(var i =0; i < jsondata.result.length; i++){
-                var child_page = jsondata["result"][i];
-                page_cache[child_page.key] = child_page;
-                appendLink(child_page);
-            }
-        }else{
-            var template = $("#no_links_template").html();
-            $("#link_container").append(template);
             
+            var child_keys = [];
+            
+            for(var i =0; i < jsondata.result.length; i++){
+                var child_page = jsondata.result[i];
+                child_keys[i] = child_page.key;
+                page_cache[child_page.key] = child_page;
+            }
+            child_key_cache[page_key] = child_keys;
         }
+        
+        displayBranchLinks(jsondata.result);
     });
+}
+
+function displayBranchLinks(links){
+    $("#link_container").empty();
+    if(0 < links.length){
+        for(var i =0; i < links.length; i++){
+            appendLink(links[i]);
+        }
+    }else{
+        var template = $("#no_links_template").html();
+        $("#link_container").append(template);
+        
+    }
 }
 
 
@@ -129,12 +156,16 @@ function appendLink(page){
     branch_link = branch_link.replace(/##page\.score##/g,(page.child_count + page.like_count - page.unlike_count));
     $("#link_container").append(branch_link);
 }
+function returnToPage(page_key){
+    resetToPage(page_key);
+    showAddPageLink();
+}
 function resetToPage(page_key){
     active_page_key = page_key;
     $('#'+page_key+'_page_div').nextAll('div').remove();
     updateBranchLinks(page_key);
 }
-function hideAddPageLink(){
+function showAddPageLink(){
     
     $('#add_page_link').addClass('add_page_active');
     $('#add_page_link').removeClass('add_page_inactive');
@@ -144,7 +175,7 @@ function hideAddPageLink(){
     
     $("#add_page_div").empty();
 }
-function showAddPageLink(){
+function showAddPageForm(){
     
     var page = page_cache[active_page_key];
     
@@ -163,14 +194,14 @@ function showAddPageLink(){
     $("#add_page_div").append(template);
     
     
-    var form = $("#"+page.key+"_child_add_page_form")
+    var form = $("#"+page.key+"_child_add_page_form");
     
     form.ajaxForm({
         type : 'post',
         success : function(data, status, xhr){
             var response = JSON.parse(data);
             if(response.status == "OK"){
-                hideAddPageLink();
+                showAddPageLink();
                 
                 var added_page = response.result;
                 

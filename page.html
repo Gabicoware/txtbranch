@@ -65,7 +65,7 @@
     	<div id="##page_div_id##">
 	    	<div>
 	            <div class="page_link" >
-	                <a href="javascript:resetToPage('##page.key##')">##page.link##</a>
+	                <a href="javascript:void(0)" onclick="returnToPage('##page.key##')">##page.link##</a>
 	            </div>
 	            <div class="page_info">
 	                <div id="##like_div_id##" class="like_div vote" onclick="toggleLike('##page.key##',1);" > </div>
@@ -82,7 +82,7 @@
     </script>
     <script id="branch_link_template" type="text/template">
         <div class="branch_link">
-            <a href="javascript:openPage('##page.key##')">##page.link##</a> <span>( ##page.score## )</span><br />
+            <a href="javascript:void(0)" onclick="openPage('##page.key##')">##page.link##</a> <span>( ##page.score## )</span><br />
         </div>
     </script>
     <script id="no_links_template" type="text/template">
@@ -112,7 +112,7 @@
             </div>
             <br />
             <div>
-            	<input type="button" value="Cancel" onclick="hideAddPageLink()"> 
+            	<input type="button" value="Cancel" onclick="showAddPageLink()"> 
             	&nbsp; 
             	<input type="submit" value="Add Page"></div>
         </form>
@@ -129,7 +129,7 @@
         <div id="link_container">&nbsp;</div>
         <br />
         <div class="branch_link" id="add_page_link">
-	        <a href="javascript:void(0)" onclick="showAddPageLink();">+ Add a Branch</a>
+	        <a href="javascript:void(0)" onclick="showAddPageForm();">+ Add a Branch</a>
         </div>
         <div id="add_page_div" class="add_page_inactive">&nbsp;</div>
         <script>
