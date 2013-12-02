@@ -4,13 +4,11 @@ import logging
 from google.appengine.api import users, memcache
 from google.appengine.ext import ndb
 
-from defaulttext import DEFAULT_STORY_NAME
-
 from HTMLParser import HTMLParser
 
 config = {
     "stories": {
-        "default_name": "default",
+        "default_name": "default_story",
         "custom_enabled": False,
     },
     "pages": {
@@ -61,7 +59,7 @@ class Story(ndb.Model):
     conventions = ndb.TextProperty(validator=string_validator)
     
     @classmethod
-    def create_key(cls, story_name=DEFAULT_STORY_NAME):
+    def create_key(cls, story_name=config['stories']['default_name']):
         """Constructs a Datastore key for a Game entity with story_name."""
         return ndb.Key('Story', story_name)
     
@@ -104,7 +102,7 @@ class Page(ndb.Model):
     def url(self):
         if self.key:
             query_params = {'page_key': self.key.urlsafe()}
-            return '/page?%s' % (urllib.urlencode(query_params))
+            return '/page#%s' % (urllib.urlencode(query_params))
         return None
     
     def like_count(self):
@@ -130,18 +128,18 @@ class Page(ndb.Model):
     
     def children(self):
         memcache_key = self.children_key()
-        data = memcache.get(memcache_key)
+        data = memcache.get(memcache_key)  # @UndefinedVariable
         if data is None:
             pages_query = Page.query( Page.parent_page==self.key)
             data = pages_query.fetch(64)
             self._child_count = len(data)
-            if not memcache.add(key=memcache_key, value=data, time=60):
+            if not memcache.add(key=memcache_key, value=data, time=60):  # @UndefinedVariable
                 logging.error('get_children - memcache add failed.')
         return sorted(data, key=lambda page: page.score(), reverse=True)
     
     def append_child(self,child):
         memcache_key = self.children_key()
-        data = memcache.get(memcache_key)
+        data = memcache.get(memcache_key)  # @UndefinedVariable
         
         if self._child_count is not None:
             self._child_count += 1
@@ -151,7 +149,7 @@ class Page(ndb.Model):
             data = self.get_children()
         if child not in data:
             data.append(child)
-            if not memcache.replace(key=memcache_key, value=data, time=60):
+            if not memcache.replace(key=memcache_key, value=data, time=60):  # @UndefinedVariable
                 logging.error('append_child - memcache replace failed.')
             else:
                 logging.info('append_child - replace succeeded')

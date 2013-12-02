@@ -1,5 +1,3 @@
-DEFAULT_STORY_NAME = 'default_story'
-
 DEFAULT_INTRODUCTION = """This is a story being written using the Branch Engine. Make sure you read the stories conventions if you want to contribute. 
 
 Welcome, and click the link below to get started."""

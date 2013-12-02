@@ -61,7 +61,7 @@ class CreateStoryHandler(webapp2.RequestHandler):
         self.render_create_story_form()
         
     def post(self):
-        story_name = self.request.get('story_name',DEFAULT_STORY_NAME)
+        story_name = self.request.get('story_name',config['stories']['default_name'])
         
         success, story = StoryController.save_story(story_name,
           self.request.get('introduction', DEFAULT_INTRODUCTION),
@@ -98,7 +98,7 @@ class CreateStoryHandler(webapp2.RequestHandler):
         
 class StoryHandler(webapp2.RequestHandler):
     def get(self):
-        story_name = self.request.get('story_name',DEFAULT_STORY_NAME)
+        story_name = self.request.get('story_name',config['stories']['default_name'])
         
         key = Story.create_key(story_name)
         

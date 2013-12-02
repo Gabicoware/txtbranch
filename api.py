@@ -90,7 +90,7 @@ class PageHandler(webapp2.RequestHandler):
                 page_dict = self.expanded_page(page)
                 pages.append(page_dict)
         
-        self.response.write(ModelEncoder().encode({'status':'OK','result':pages}))
+        self.response.write(json.dumps({'status':'OK','result':pages}, cls=ModelEncoder))
             
 
     def expanded_page(self,page):
@@ -134,18 +134,19 @@ class PageHandler(webapp2.RequestHandler):
           parent_urlsafe_key,
           self.request.get('link',''),
           self.request.get('content',''))
-        
-        query_params = {'page_key': parent_urlsafe_key}
-        
+         
         if success:
-            query_params['success'] = '1'
-        else:
-            query_params['success'] = '0'
-            for key in result.keys():
-                query_params[key] = '1'
-        
-        if success:
-            self.response.write(ModelEncoder().encode({'status':'OK','result':result}))
+            page_dict = result.to_dict()
+            page_dict['key'] = result.key.urlsafe();
+            page_dict['child_count'] = 0
+            page_dict['like_value'] = 0
+            page_dict['like_count'] = 0
+            page_dict['unlike_count'] = 0
+            author_info = result.author_info.get()
+            if author_info and author_info.username:
+                page_dict['author_name'] = author_info.username
+    
+            self.response.write(json.dumps({'status':'OK','result':page_dict},cls=ModelEncoder))
         else:
             self.response.write(json.dumps({'status':'ERROR','result':result}))
         
