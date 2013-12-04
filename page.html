@@ -2,58 +2,6 @@
 
 {% block additional_header %}
     
-    <style>
-        div.add_page_inactive {display:none;}
-        div.add_page_active {display:block;}
-        div.title {display:block;}
-        div.no_links{color:#888888;font-style:italic}
-        .chars_left{font-size:90%; text-align:right; width:100%; max-width:600px;}
-        input.invalid{background-color:#FF8888}
-        textarea.invalid{background-color:#FF8888}
-        .form_link, .form_content{ margin-bottom:2px; width:100%; max-width:600px;}
-        a.vote:hover {text-decoration:none;}
-        
-        div.invalid{background-color:#FF8888}
-        
-        div.vote{
-            display:inline-block;
-            width:8px;
-            height:10px;
-            cursor:pointer;
-            background-size:contain;
-        }
-        div.like_inactive{
-            background-image:url("/assets/img/up_arrow_gray.png");
-        }
-        div.unlike_inactive{
-            background-image:url("/assets/img/down_arrow_gray.png");
-        }
-        div.like_active{
-            background-image:url("/assets/img/up_arrow_green.png");
-        }
-        div.unlike_active{
-            background-image:url("/assets/img/down_arrow_red.png");
-        }
-        div.stats{
-            display:inline-block;
-            height:20px;
-        }
-        div.page_link{
-        	display:inline-block;
-        }
-        div.page_link a{
-        	color:#000088;
-        	font-size:larger;
-        }
-        div.branch_link span{
-        	font-size:smaller;
-        }
-        div.page_info{
-        	 display:inline-block;
-        	font-size:smaller;
-        }
-        
-    </style>
     <script type="text/javascript">
     	var config = {
     		'link_max' : parseInt('{{link_max}}'),

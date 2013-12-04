@@ -89,7 +89,7 @@ class Like(ndb.Model):
 class Page(ndb.Model):
     """Models an individual Guestbook entry with author, content, and date."""
     author_info = ndb.KeyProperty(kind='UserInfo',indexed=True)
-    story = ndb.KeyProperty(kind='Story',indexed=True)
+    story_name = ndb.StringProperty(indexed=True)
     content = ndb.StringProperty(indexed=False, validator=string_validator)
     link = ndb.StringProperty(indexed=False, validator=string_validator)
     date = ndb.DateTimeProperty(auto_now_add=True)
@@ -156,6 +156,29 @@ class Page(ndb.Model):
         else:
             logging.info('append_child - child exists')
 
+def main_pagedata():
+        memcache_key = 'main_pages_key'
+        data = memcache.get(memcache_key)  # @UndefinedVariable
+        if data is None:
+            pages_query = Page.query()
+            pages = pages_query.fetch(64)
+            pagedatas = []
+            for page in pages:
+                pagedata = page.to_dict()
+                pagedata['time_ago'] = format_time_ago('1 day ago')
+                pagedata['page_key'] = page.key.urlsafe()
+                pagedata['score'] = page.score()
+                pagedata['author_name'] = page.author_info.get().username
+                pagedata['author_info_key'] = page.author_info.urlsafe()
+                pagedata['story_name'] = page.story_name
+                pagedatas.append(pagedata)
+            data = sorted(pagedatas, key=lambda pagedata: pagedata['date'], reverse=True)
+            if not memcache.add(key=memcache_key, value=data, time=60):  # @UndefinedVariable
+                logging.error('main_pages - memcache add failed.')
+        return data
+
+def format_time_ago(datetime):
+    return '0 clicks ago'
 #Container for the user data
 #Needs:
 #1. follow a link to the user, regardless of state

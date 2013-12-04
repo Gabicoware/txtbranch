@@ -25,19 +25,16 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 class MainHandler(webapp2.RequestHandler):
     
     def get(self):
+        
         stories_query = Story.query()
         stories = stories_query.fetch(10)
         
-        story_links = []
-        
-        for story in stories:
-            query_params = {'story_name': story.name}
-            href = '/story?%s' % (urllib.urlencode(query_params))
-            story_links.append(( href, story.name ))
+        pagedatas = main_pagedata();
         
         template_values = {
             'is_home': True,
-            'story_links': story_links,
+            'pagedatas': pagedatas,
+            'stories': stories,
             'user_key': UserInfo.get_current_key(),
             'session_info': UserInfo.session_info(self.request.uri),
         }
@@ -45,13 +42,6 @@ class MainHandler(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('main.html')
         self.response.write(template.render(template_values))
         # Write the submission form and the footer of the page
-
-class DefaultRedirectHandler(webapp2.RequestHandler):
-    
-    def get(self):
-        query_params = {'story_name': config["stories"]["default_name"]}
-        redirect_url = '/story?%s' % (urllib.urlencode(query_params))
-        self.redirect(redirect_url)
 
 class CreateStoryHandler(webapp2.RequestHandler):
     

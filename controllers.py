@@ -23,7 +23,7 @@ class PageController:
         parent_key = ndb.Key(urlsafe=parent_urlsafe_key)
         parent_page = parent_key.get()
         
-        page.story = parent_page.story
+        page.story_name = parent_page.story_name
         
         if len(page.link) == 0:
             errors['empty_page_link'] = True
@@ -95,6 +95,7 @@ class StoryController:
         page.author_info = UserInfo.get_current_key()
         page.link = root_page_link
         page.content = root_page_content
+        page.story_name = story_name
         
         if len(page.link) == 0:
             errors['empty_root_page_link'] = True

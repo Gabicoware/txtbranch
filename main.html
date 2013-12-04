@@ -6,15 +6,20 @@
 
 
 {% block content %}
-    {% for href, name in story_links %}
-    <a href="{{ href|safe }}">{{ name }}</a><br />
+	<h5>Stories</h5>
+    {% for story in stories %}
+	<a href="/story?story_name={{story.name}}">{{story.name}}</a>
     {% endfor %}
-    
-    <div class="branch_link" id="add_story_link">
-    <br/>
-    <a href="/story?action=create">+ Add a Story</a>
+	<h5>Recent Pages</h5>
+    {% for pagedata in pagedatas %}
+    <div class="page_link">
+    <a href="/page#page_key={{pagedata['page_key']}}">{{pagedata['link']}}</a> ({{pagedata['score']}})<br />
     </div>
-    <hr />
-
-    
+    <br />
+    <div style="font-size: smaller">
+    	branched {{pagedata['time_ago']}} by 
+    	<a href="/user?user_key={{pagedata['author_info_key']}}">{{pagedata['author_name']}}</a> to 
+    	<a href="/story?story_name={{pagedata['story_name']}}">{{pagedata['story_name']}}</a>
+    </div>
+    {% endfor %}
 {% endblock %}

@@ -8,12 +8,10 @@ handlers = [
     ('/story', StoryHandler),
     ('/about', AboutHandler),
     ('/admin/story/new', CreateStoryHandler),
+    ('/', MainHandler),
 ]
 
 if config["stories"]["custom_enabled"]:
     handlers.append(('/story/new', CreateStoryHandler))
-    handlers.append(('/', MainHandler))
-else:
-    handlers.append(('/', DefaultRedirectHandler))
 
 application = webapp2.WSGIApplication(handlers, debug=True)
