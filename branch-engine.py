@@ -3,7 +3,9 @@ import webapp2
 from handlers import *
 
 handlers = [
-    ('/user', UserHandler),
+    (r'/user/([\d\w_\-]+)', UserHandler),
+    ('/post_login', PostLoginHandler),
+    ('/post_logout', PostLogoutHandler),
     ('/page', HtmlPageHandler),
     ('/story', StoryHandler),
     ('/about', AboutHandler),

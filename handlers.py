@@ -5,12 +5,12 @@
 #TODO: Make adding a page an in page experience
 #TODO: figure out limits to branch count
 
-#TODO: user_id instead of UserProperty
 #TODO: Ranking algorithm
 
 import os
 import webapp2
 import json
+import datetime
 
 from defaulttext import *
 from models import *
@@ -29,13 +29,13 @@ class MainHandler(webapp2.RequestHandler):
         stories_query = Story.query()
         stories = stories_query.fetch(10)
         
-        pagedatas = main_pagedata();
+        pagedatas = Page.main_pagedata();
         
         template_values = {
             'is_home': True,
             'pagedatas': pagedatas,
             'stories': stories,
-            'user_key': UserInfo.get_current_key(),
+            'user_key': UserInfo.current_get(),
             'session_info': UserInfo.session_info(self.request.uri),
         }
         
@@ -152,11 +152,10 @@ class AboutHandler(webapp2.RequestHandler):
 
 class UserHandler(webapp2.RequestHandler):
     
-    def get(self):
+    def get(self,username):
         
         
-        user_urlsafe_key = self.request.get('user_key')
-        user_info_key = ndb.Key(urlsafe=user_urlsafe_key)
+        user_info_key = ndb.Key('UserInfo',username)
         
         user_info = user_info_key.get()
         
@@ -171,9 +170,32 @@ class UserHandler(webapp2.RequestHandler):
             'user_info' : user_info,
             'session_info': UserInfo.session_info(self.request.uri),
         }
-        if user_info_key == UserInfo.get_current_key():
-            template = JINJA_ENVIRONMENT.get_template('profile.html')
-        else:
-            template = JINJA_ENVIRONMENT.get_template('user.html')
+        template = JINJA_ENVIRONMENT.get_template('user.html')
         
         self.response.write(template.render(template_values))
+        
+class PostLoginHandler(webapp2.RequestHandler):
+    
+    def get(self):
+        user_info = UserInfo.current_get()
+        if user_info is None:
+            template = JINJA_ENVIRONMENT.get_template('post_login.html')
+            
+            self.response.write(template.render({'cancel_link':users.create_logout_url('/')}))
+        else:
+            #don't worry about redirects for now
+            
+            now = datetime.datetime.now()
+            delta = datetime.timedelta(days=28)
+            then = delta + now
+            
+            self.response.set_cookie('username',value=user_info.username,expires=then)
+            
+            self.redirect('/')
+
+class PostLogoutHandler(webapp2.RequestHandler):
+    
+    def get(self):
+        self.redirect('/')
+        self.response.delete_cookie('username')
+        

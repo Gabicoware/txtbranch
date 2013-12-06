@@ -47,13 +47,12 @@ def page_url(story_name, page_key):
     query_params = {'page_key': page_key.urlsafe()}
     return '/page?%s' % (urllib.urlencode(query_params))
 
-def user_url(user_info_key):
-    query_params = {'user_key': user_info_key.urlsafe()}
-    return '/user?%s' % (urllib.urlencode(query_params))
+def user_url(username):
+    return '/user/'+username
 
 class Story(ndb.Model):
     """Models an individual Story"""
-    moderator_info = ndb.KeyProperty(kind='UserInfo',indexed=True)
+    moderator_name = ndb.StringProperty(indexed=True)
     name = ndb.StringProperty(indexed=False,validator=string_validator)
     introduction = ndb.TextProperty(validator=string_validator)
     conventions = ndb.TextProperty(validator=string_validator)
@@ -80,15 +79,14 @@ class Like(ndb.Model):
     #assumes that the 
     @classmethod
     def create_key(cls, page):
-        user_info_key = UserInfo.get_current_key()
+        user_info_key = UserInfo.current_get()
         if user_info_key:
             return ndb.Key('Like', user_info_key.string_id()+"_"+str(page.key.integer_id()))
         return None
     
     
 class Page(ndb.Model):
-    """Models an individual Guestbook entry with author, content, and date."""
-    author_info = ndb.KeyProperty(kind='UserInfo',indexed=True)
+    author_name = ndb.StringProperty(indexed=True)
     story_name = ndb.StringProperty(indexed=True)
     content = ndb.StringProperty(indexed=False, validator=string_validator)
     link = ndb.StringProperty(indexed=False, validator=string_validator)
@@ -155,79 +153,87 @@ class Page(ndb.Model):
                 logging.info('append_child - replace succeeded')
         else:
             logging.info('append_child - child exists')
-
-def main_pagedata():
-        memcache_key = 'main_pages_key'
-        data = memcache.get(memcache_key)  # @UndefinedVariable
-        if data is None:
-            pages_query = Page.query()
-            pages = pages_query.fetch(64)
-            pagedatas = []
-            for page in pages:
-                pagedata = page.to_dict()
-                pagedata['time_ago'] = format_time_ago('1 day ago')
-                pagedata['page_key'] = page.key.urlsafe()
-                pagedata['score'] = page.score()
-                pagedata['author_name'] = page.author_info.get().username
-                pagedata['author_info_key'] = page.author_info.urlsafe()
-                pagedata['story_name'] = page.story_name
-                pagedatas.append(pagedata)
-            data = sorted(pagedatas, key=lambda pagedata: pagedata['date'], reverse=True)
-            if not memcache.add(key=memcache_key, value=data, time=60):  # @UndefinedVariable
-                logging.error('main_pages - memcache add failed.')
-        return data
-
-def format_time_ago(datetime):
-    return '0 clicks ago'
+            
+    @classmethod
+    def main_pagedata(cls):
+            memcache_key = 'main_pages_key'
+            data = memcache.get(memcache_key)  # @UndefinedVariable
+            if data is None:
+                pages_query = Page.query()
+                pages = pages_query.fetch(64)
+                pagedatas = []
+                for page in pages:
+                    pagedata = page.to_dict()
+                    pagedata['time_ago'] = Page.format_time_ago('1 day ago')
+                    pagedata['page_key'] = page.key.urlsafe()
+                    pagedata['score'] = page.score()
+                    pagedatas.append(pagedata)
+                data = sorted(pagedatas, key=lambda pagedata: pagedata['date'], reverse=True)
+                if not memcache.add(key=memcache_key, value=data, time=60):  # @UndefinedVariable
+                    logging.error('main_pages - memcache add failed.')
+            return data
+    
+    @classmethod
+    def format_time_ago(datetime):
+        return '0 clicks ago'
 #Container for the user data
 #Needs:
 #1. follow a link to the user, regardless of state
 #2. lookup the userInfo without a query
-#3. All users are Anonymous until they choose a display name
 
 class UserInfo(ndb.Model):
     username = ndb.StringProperty(validator=string_validator)
     google_user = ndb.UserProperty(indexed=True)
     
-    #uniquely identify the username via the user
+    def is_current(self):
+        return self.google_user == users.get_current_user()
+    
     @classmethod
-    def get_id(cls, user):
-        
-        return user.user_id()
-        
+    def put_new(cls,username):
+        user_info = UserInfo(id=username)
+                
+        user_info.username = username
+        user_info.google_user = users.get_current_user()
+        user_info.put()
+        return user_info
+            
     @classmethod
-    def get_current_key(cls):
+    def username_get(cls,username):
         
-        if users.get_current_user():
-            return ndb.Key('UserInfo',users.get_current_user().user_id())
+        if username:
+            return ndb.Key('UserInfo',username).get()
         return None
     
+    @classmethod
+    def current_get(cls):
+        """Gets the current user. This involves a query. Its more efficient to perform 
+        lookups with the username and verify that the user_info is current."""
+        
+        users_query = UserInfo.query( UserInfo.google_user==users.get_current_user())
+        return users_query.get()
+        
     @classmethod
     def session_info(cls, uri):
         result = SessionInfo()
         if users.get_current_user():
-            result.url = users.create_logout_url(uri)
+            result.url = users.create_logout_url('/post_logout')
             result.link_text = 'Logout'
         else:
-            result.url = users.create_login_url(uri)
+            result.url = users.create_login_url('/post_login')
             result.link_text = 'Login'
         
-        user_info_key = UserInfo.get_current_key()
+        user_info = UserInfo.current_get()
         
-        result.user_key = user_info_key
         
-        if user_info_key:
-            result.profile_url = user_url(user_info_key)
-            user_info = user_info_key.get()
-            if user_info and user_info.username:
-                result.profile_text = user_info.username
-            else:
-                result.profile_text = 'Anonymous'
+        if user_info:
+            result.user_key = user_info.key
+            result.profile_url = user_url(user_info.username)
+            result.profile_text = user_info.username
         
         return result
         
     def pages(self):
-        data = Page.query(Page.author_info == self.key)
+        data = Page.query(Page.author_name == self.username)
         return sorted(data, key=lambda page: page.score(), reverse=True)
         
 class SessionInfo:

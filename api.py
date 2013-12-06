@@ -3,6 +3,7 @@ from google.appengine.ext import ndb
 
 import webapp2
 import json
+import datetime
 
 import logging
 
@@ -28,7 +29,7 @@ class LikeHandler(webapp2.RequestHandler):
         
         if page_urlsafe_key is None or page_urlsafe_key == '':
             self.response.write('NO PAGE KEY SPECIFIED')
-        elif UserInfo.get_current_key:
+        elif UserInfo.current_get():
             
             page_key = ndb.Key(urlsafe=page_urlsafe_key)
              
@@ -36,7 +37,7 @@ class LikeHandler(webapp2.RequestHandler):
             like = like_key.get();
             
             if like is None:
-                like = Like(id=like_key.string_id(),user_info=UserInfo.get_current_key(),page=page_key)
+                like = Like(id=like_key.string_id(),user_info=UserInfo.current_get(),page=page_key)
             
             like.value = int(like_value)
             
@@ -51,14 +52,31 @@ class UserInfoHandler(webapp2.RequestHandler):
     def get(self):
         
         username = self.request.get('username')
-            
-        success, userinfo = UserInfoController.update(username)        
+        if username:
+            user_info = UserInfo.username_get(username)
+        else:
+            user_info = UserInfo.current_get()
+        
+        if user_info is not None:
+            self.response.write(json.dumps({'status':'OK','result':user_info.to_dict()},cls=ModelEncoder))
+        else:
+            self.response.write(json.dumps({'status':'ERROR','result':None}))
+
+    def post(self):
+        username = self.request.get('username')
+        success, result = UserInfoController.set_username(username)
         
         if success:
-            self.response.write('OK')
+            now = datetime.datetime.now()
+            delta = datetime.timedelta(days=28)
+            then = delta + now
+            
+            self.response.set_cookie('username',value=result.username,expires=then)
+            
+            self.response.write(json.dumps({'status':'OK','result':result.to_dict()},cls=ModelEncoder))
         else:
-            self.response.write(json.dumps(userinfo))
-
+            self.response.write(json.dumps({'status':'ERROR','result':result}))
+    
 class PageHandler(webapp2.RequestHandler):
 
     def get(self):
@@ -97,7 +115,7 @@ class PageHandler(webapp2.RequestHandler):
         
         like_value = 0
         
-        if UserInfo.get_current_key():
+        if UserInfo.current_get():
             like_key = Like.create_key(page)
             like = like_key.get();
             if like:

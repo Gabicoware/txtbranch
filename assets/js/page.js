@@ -123,16 +123,10 @@ function appendPage(page){
     template = template.replace(/##page\.key##/g,page.key);
     template = template.replace(/##page\.child_count##/g,page.child_count);
     
-    var author_info;
     
-    if(page["author_name"] != null){
+    var href = "javascript:window.open('/user/" +page["author_name"]+ "', '_blank');";
         
-        var href = "javascript:window.open('/user?user_key=" +page["author_info"]+ "', '_blank');";
-        
-        author_info = "by <a href=\""+href+"\">"+page["author_name"]+"</a>";
-    }else{
-        author_info = "by Anonymous";
-    }
+    var author_info = "by <a href=\""+href+"\">"+page["author_name"]+"</a>";
     
     template = template.replace("##author_info##",author_info);
     

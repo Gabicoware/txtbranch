@@ -9,7 +9,7 @@ class PageController:
     @classmethod
     def save_page(cls,parent_urlsafe_key,link,content):
         
-        user_info_key = UserInfo.get_current_key()
+        user_info_key = UserInfo.current_get()
         
         if user_info_key is None:
             return False, { 'unauthenticated':True}
@@ -52,7 +52,7 @@ class PageController:
         
         if len(errors.keys()) == 0:
             page.parent_page = parent_key
-            page.author_info = UserInfo.get_current_key()
+            page.author_info = UserInfo.current_get()
             page_key = page.put()
             
             logging.info(page_key)
@@ -72,8 +72,11 @@ class StoryController:
     @classmethod
     def save_story(cls,story_name,introduction,conventions,root_page_link,root_page_content):
         
-        if UserInfo.get_current_key() is None:
+        if UserInfo.current_get() is None:
             return False, { 'unauthenticated':True}
+        
+        if UserInfo.current_get().get().name is None:
+            return False, { 'invalid_user':True}
         
         story_key = Story.create_key(story_name)
         
@@ -92,7 +95,7 @@ class StoryController:
             errors['invalid_name'] = True
         
         page = Page(id=story_name)
-        page.author_info = UserInfo.get_current_key()
+        page.author_info = UserInfo.current_get()
         page.link = root_page_link
         page.content = root_page_content
         page.story_name = story_name
@@ -117,7 +120,7 @@ class StoryController:
                 
                 page.put()
                 story = Story(id=story_name,name=story_name)
-                story.moderator_info = UserInfo.get_current_key()
+                story.moderator_info = UserInfo.current_get()
                 story.introduction = introduction
                 story.conventions = conventions
                 story.put()
@@ -132,12 +135,7 @@ class UserInfoController:
     _update_user_lock = threading.Lock()
     
     @classmethod
-    def update(cls,username):
-        user_info_key = UserInfo.get_current_key()
-        
-        if user_info_key is None:
-            return False, { 'unauthenticated':True}
-        
+    def set_username(cls,username):
         errors = {}
                 
         match = re.search(r'^[\d\w_\-]+$', username)
@@ -146,30 +144,21 @@ class UserInfoController:
         
         if not isvalid:
             errors['invalid_name'] = True
-        
-        user_info = user_info_key.get()
-        
-        #It's not necessarily an application error to have identical usernames
-        #BUT it should be sufficiently rare that this won't become an issue
-        #will evaluate if we ever get more than ~1000 users
-        with UserInfoController._update_user_lock:
+        else:
             
-            if user_info and user_info.username == username:
-                errors['has_name'] = True
-            else:
-                other_user_info = UserInfo.query(UserInfo.username==username).fetch()
-                if 0 < len(other_user_info):
-                    errors['other_has_name'] = True
+            user_info = UserInfo.current_get()
+            
+            if user_info is None:
+                user_info_key = ndb.Key('UserInfo',username)
                 
-            if len(errors.keys()) == 0:
-                
+                #in the circumstances of a collision whoever asked last is the winner
+                #of course if fifty 'Daniels' pile up then we have an issue
+                user_info = user_info_key.get()
                 if user_info is None:
-                    user_info = UserInfo(id=user_info_key.string_id())
-                
-                user_info.username = username
-                
-                user_info.put()
-                
+                    user_info = UserInfo.put_new(username)
+                else:
+                    errors['other_has_name'] = True
+            
         if len(errors.keys()) == 0:
             return True, user_info
         else:
