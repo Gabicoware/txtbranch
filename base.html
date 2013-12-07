@@ -28,6 +28,7 @@
     {% block additional_header %}{% endblock %}
     
     <script type="text/javascript" src="/assets/js/jquery.js"></script>
+    <script type="text/javascript" src="/assets/js/jquery.cookie.js"></script>
     <link href="/assets/css/bootstrap-responsive.css" rel="stylesheet">
     <link href="/assets/css/txtbranch.main.css" rel="stylesheet">
 
@@ -43,6 +44,11 @@
     <link rel="apple-touch-icon-precomposed" href="../assets/ico/apple-touch-icon-57-precomposed.png">
     <link rel="shortcut icon" href="../assets/ico/favicon.png">
     -->
+    <script id="user_item_template" type="text/template">
+    	<p class="navbar-text pull-right">
+              welcome back, <a href="/user/##username##" class="navbar-link">##username##</a>
+        </p>
+    </script>
   </head>
   <body>
   
@@ -56,17 +62,12 @@
             <span class="icon-bar"></span>
           </button>
           <a class="brand" href="/">txtbranch</a>
-          <div class="nav-collapse collapse">
+          <div class="nav-collapse collapse" id="navbaritems">
             <ul class="nav">
               <li {% if is_home %}class="active"{% endif %}><a href="/">Home</a></li>
               <li {% if is_about %}class="active"{% endif %}><a href="/about">About</a></li>
               <li><a href="{{ session_info.url|safe }}">{{ session_info.link_text }}</a></li>
             </ul>
-            {% if session_info.profile_url %}
-            <p class="navbar-text pull-right">
-              welcome back, <a href="{{ session_info.profile_url }}" class="navbar-link">{{ session_info.profile_text }}</a>
-            </p>
-            {% endif %}
           </div><!--/.nav-collapse -->
         </div>
       </div>
@@ -77,6 +78,12 @@
     <script type="text/javascript" src="/assets/js/jquery.form.js"></script>
     <script type="text/javascript" src="/assets/js/jquery.maxlength-min.js"></script>
     <script type="text/javascript" src="/assets/js/bootstrap-collapse.js"></script>
+    <script>
+    	var username = $.cookie("username");
+    	var template = $("#user_item_template").html();
+	    template = template.replace(/##username##/g, username);
+	    $("#navbaritems").append(template);
+    </script>
   </body>
 </html>
 {% endautoescape %}

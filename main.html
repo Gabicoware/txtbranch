@@ -8,7 +8,7 @@
 {% block content %}
 	<h5>Stories</h5>
     {% for story in stories %}
-	<a href="/story?story_name={{story.name}}">{{story.name}}</a>
+	<a href="/story/{{story.name}}">{{story.name}}</a>
     {% endfor %}
 	<h5>Recent Pages</h5>
     {% for pagedata in pagedatas %}
@@ -18,8 +18,8 @@
     <br />
     <div style="font-size: smaller">
     	branched {{pagedata['time_ago']}} by 
-    	<a href="/user/{{pagedata['author_name']}}">{{pagedata['author_name']}}</a> to 
-    	<a href="/story?story_name={{pagedata['story_name']}}">{{pagedata['story_name']}}</a>
+    	<a href="/user/{{pagedata['authorname']}}">{{pagedata['authorname']}}</a> to 
+    	<a href="/story/{{pagedata['story_name']}}">{{pagedata['story_name']}}</a>
     </div>
     {% endfor %}
 {% endblock %}

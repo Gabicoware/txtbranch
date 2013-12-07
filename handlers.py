@@ -35,8 +35,8 @@ class MainHandler(webapp2.RequestHandler):
             'is_home': True,
             'pagedatas': pagedatas,
             'stories': stories,
-            'user_key': UserInfo.current_get(),
-            'session_info': UserInfo.session_info(self.request.uri),
+            'username': self.request.cookies.get('username'),
+            'session_info': UserInfo.session_info(self.request.cookies.get('username')),
         }
         
         template = JINJA_ENVIRONMENT.get_template('main.html')
@@ -54,6 +54,7 @@ class CreateStoryHandler(webapp2.RequestHandler):
         story_name = self.request.get('story_name',config['stories']['default_name'])
         
         success, story = StoryController.save_story(story_name,
+          self.request.cookies.get('username'),
           self.request.get('introduction', DEFAULT_INTRODUCTION),
           self.request.get('conventions', DEFAULT_CONVENTIONS),
           self.request.get('root_page_link',''),
@@ -70,7 +71,7 @@ class CreateStoryHandler(webapp2.RequestHandler):
     def render_create_story_form(self,errors=None):
         template = JINJA_ENVIRONMENT.get_template('new_story.html')
         template_values = {
-            'session_info': UserInfo.session_info(self.request.uri),
+            'session_info': UserInfo.session_info(self.request.cookies.get('username')),
             'introduction' : self.request.get('introduction', DEFAULT_INTRODUCTION),
             'conventions' : self.request.get('conventions', DEFAULT_CONVENTIONS),
 
@@ -87,8 +88,7 @@ class CreateStoryHandler(webapp2.RequestHandler):
         
         
 class StoryHandler(webapp2.RequestHandler):
-    def get(self):
-        story_name = self.request.get('story_name',config['stories']['default_name'])
+    def get(self, story_name):
         
         key = Story.create_key(story_name)
         
@@ -111,7 +111,7 @@ class StoryHandler(webapp2.RequestHandler):
                 'root_page_href': root_page_href,
                 'root_page_link': root_page_link,
                 'story': story,
-                'session_info': UserInfo.session_info(self.request.uri),
+                'session_info': UserInfo.session_info(self.request.cookies.get('username')),
             }
             
             template = JINJA_ENVIRONMENT.get_template('story.html')
@@ -119,7 +119,7 @@ class StoryHandler(webapp2.RequestHandler):
         else:
             template_values = {
                 'story_name': story_name,
-                'session_info': UserInfo.session_info(self.request.uri),
+                'session_info': UserInfo.session_info(self.request.cookies.get('username')),
             }
             template = JINJA_ENVIRONMENT.get_template('story_not_found.html')
             self.response.status = 404
@@ -131,7 +131,7 @@ class HtmlPageHandler(webapp2.RequestHandler):
     def get(self):
         
         template_values = {
-            'session_info': UserInfo.session_info(self.request.uri),
+            'session_info': UserInfo.session_info(self.request.cookies.get('username')),
             'link_max' : config["pages"]["link_max"],
             'content_max' : config["pages"]["content_max"],
         }
@@ -144,7 +144,7 @@ class AboutHandler(webapp2.RequestHandler):
     def get(self):
         
         template_values = {
-            'session_info': UserInfo.session_info(self.request.uri),
+            'session_info': UserInfo.session_info(self.request.cookies.get('username')),
             'is_about': True,
         }
         template = JINJA_ENVIRONMENT.get_template('about.html')
@@ -168,7 +168,7 @@ class UserHandler(webapp2.RequestHandler):
         template_values = {
             'pages' : pages,
             'user_info' : user_info,
-            'session_info': UserInfo.session_info(self.request.uri),
+            'session_info': UserInfo.session_info(self.request.cookies.get('username')),
         }
         template = JINJA_ENVIRONMENT.get_template('user.html')
         

@@ -24,7 +24,7 @@
 {% block content %}
     
     <div id="add_story_div">
-    {% if session_info.user_key %}
+    {% if session_info.username %}
         <b>Add a Story</b>
         <form id="new_story_form" action="{{new_story_endpoint}}" method="post">
             <div>

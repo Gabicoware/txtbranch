@@ -25,19 +25,22 @@ class LikeHandler(webapp2.RequestHandler):
     
     def get(self):
         page_urlsafe_key = self.request.get('page_key')
-        like_value = self.request.get('value','0')
         
         if page_urlsafe_key is None or page_urlsafe_key == '':
-            self.response.write('NO PAGE KEY SPECIFIED')
-        elif UserInfo.current_get():
+            return self.response.write('NO PAGE KEY SPECIFIED')
+        
+        username = self.request.cookies.get('username')
+        userinfo = UserInfo.username_get(username)    
+        if userinfo and userinfo.is_current():
             
+            like_value = self.request.get('value','0')
             page_key = ndb.Key(urlsafe=page_urlsafe_key)
              
-            like_key = Like.create_key(page_key.get())
+            like_key = Like.create_key(page_key,self.request.cookies.get('username'))
             like = like_key.get();
             
             if like is None:
-                like = Like(id=like_key.string_id(),user_info=UserInfo.current_get(),page=page_key)
+                like = Like(key=like_key,username=username,page=page_key)
             
             like.value = int(like_value)
             
@@ -55,7 +58,11 @@ class UserInfoHandler(webapp2.RequestHandler):
         if username:
             user_info = UserInfo.username_get(username)
         else:
-            user_info = UserInfo.current_get()
+            username = self.request.cookies.get('username')
+            if username:
+                user_info = UserInfo.username_get(username)
+            else:
+                user_info = UserInfo.current_get()
         
         if user_info is not None:
             self.response.write(json.dumps({'status':'OK','result':user_info.to_dict()},cls=ModelEncoder))
@@ -115,8 +122,10 @@ class PageHandler(webapp2.RequestHandler):
         
         like_value = 0
         
-        if UserInfo.current_get():
-            like_key = Like.create_key(page)
+        username = self.request.cookies.get('username')
+        userinfo = UserInfo.username_get(username)    
+        if userinfo and userinfo.is_current():
+            like_key = Like.create_key(page.key,self.request.cookies.get('username'))
             like = like_key.get();
             if like:
                 like_value = like.value
@@ -140,15 +149,13 @@ class PageHandler(webapp2.RequestHandler):
         
         page_dict['key'] = page.key.urlsafe()
         
-        author_info = page.author_info.get()
-        if author_info and author_info.username:
-            page_dict['author_name'] = author_info.username
         return page_dict
 
     def post(self):
         parent_urlsafe_key = self.request.get('parent_page_key')
         
         success, result = PageController.save_page(
+          self.request.cookies.get('username'),
           parent_urlsafe_key,
           self.request.get('link',''),
           self.request.get('content',''))
@@ -160,9 +167,6 @@ class PageHandler(webapp2.RequestHandler):
             page_dict['like_value'] = 0
             page_dict['like_count'] = 0
             page_dict['unlike_count'] = 0
-            author_info = result.author_info.get()
-            if author_info and author_info.username:
-                page_dict['author_name'] = author_info.username
     
             self.response.write(json.dumps({'status':'OK','result':page_dict},cls=ModelEncoder))
         else:

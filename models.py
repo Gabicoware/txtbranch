@@ -3,6 +3,7 @@ import logging
 
 from google.appengine.api import users, memcache
 from google.appengine.ext import ndb
+from datetime import datetime
 
 from HTMLParser import HTMLParser
 
@@ -52,7 +53,7 @@ def user_url(username):
 
 class Story(ndb.Model):
     """Models an individual Story"""
-    moderator_name = ndb.StringProperty(indexed=True)
+    moderatorname = ndb.StringProperty(indexed=True)
     name = ndb.StringProperty(indexed=False,validator=string_validator)
     introduction = ndb.TextProperty(validator=string_validator)
     conventions = ndb.TextProperty(validator=string_validator)
@@ -71,22 +72,18 @@ class Story(ndb.Model):
 
 class Like(ndb.Model):
     """Models a Like on a page"""
-    user_info = ndb.KeyProperty(kind='UserInfo',indexed=True)
+    username = ndb.StringProperty(indexed=True)
     page = ndb.KeyProperty(kind='Page',indexed=True)
     date = ndb.DateTimeProperty(auto_now_add=True)
     value = ndb.IntegerProperty(indexed=True)
     
     #assumes that the 
     @classmethod
-    def create_key(cls, page):
-        user_info_key = UserInfo.current_get()
-        if user_info_key:
-            return ndb.Key('Like', user_info_key.string_id()+"_"+str(page.key.integer_id()))
-        return None
-    
+    def create_key(cls, page_key, username):
+        return ndb.Key('Like', username+"_"+page_key.urlsafe())
     
 class Page(ndb.Model):
-    author_name = ndb.StringProperty(indexed=True)
+    authorname = ndb.StringProperty(indexed=True)
     story_name = ndb.StringProperty(indexed=True)
     content = ndb.StringProperty(indexed=False, validator=string_validator)
     link = ndb.StringProperty(indexed=False, validator=string_validator)
@@ -164,7 +161,7 @@ class Page(ndb.Model):
                 pagedatas = []
                 for page in pages:
                     pagedata = page.to_dict()
-                    pagedata['time_ago'] = Page.format_time_ago('1 day ago')
+                    pagedata['time_ago'] = Page.format_time_ago(page.date)
                     pagedata['page_key'] = page.key.urlsafe()
                     pagedata['score'] = page.score()
                     pagedatas.append(pagedata)
@@ -174,8 +171,48 @@ class Page(ndb.Model):
             return data
     
     @classmethod
-    def format_time_ago(datetime):
-        return '0 clicks ago'
+    def format_time_ago(cls,time):
+        """
+        Get a datetime object or a int() Epoch timestamp and return a
+        pretty string like 'an hour ago', 'Yesterday', '3 months ago',
+        'just now', etc
+        """
+        now = datetime.now()
+        if type(time) is int:
+            diff = now - datetime.fromtimestamp(time)
+        elif isinstance(time,datetime):
+            diff = now - time 
+        elif not time:
+            diff = now - now
+        second_diff = diff.seconds
+        day_diff = diff.days
+    
+        if day_diff < 0:
+            return ''
+    
+        if day_diff == 0:
+            if second_diff < 10:
+                return "just now"
+            if second_diff < 60:
+                return str(second_diff) + " seconds ago"
+            if second_diff < 120:
+                return  "a minute ago"
+            if second_diff < 3600:
+                return str( second_diff / 60 ) + " minutes ago"
+            if second_diff < 7200:
+                return "an hour ago"
+            if second_diff < 86400:
+                return str( second_diff / 3600 ) + " hours ago"
+        if day_diff == 1:
+            return "Yesterday"
+        if day_diff < 7:
+            return str(day_diff) + " days ago"
+        if day_diff < 31:
+            return str(day_diff/7) + " weeks ago"
+        if day_diff < 365:
+            return str(day_diff/30) + " months ago"
+        return str(day_diff/365) + " years ago"
+            
 #Container for the user data
 #Needs:
 #1. follow a link to the user, regardless of state
@@ -213,7 +250,7 @@ class UserInfo(ndb.Model):
         return users_query.get()
         
     @classmethod
-    def session_info(cls, uri):
+    def session_info(cls, username):
         result = SessionInfo()
         if users.get_current_user():
             result.url = users.create_logout_url('/post_logout')
@@ -221,24 +258,14 @@ class UserInfo(ndb.Model):
         else:
             result.url = users.create_login_url('/post_login')
             result.link_text = 'Login'
-        
-        user_info = UserInfo.current_get()
-        
-        
-        if user_info:
-            result.user_key = user_info.key
-            result.profile_url = user_url(user_info.username)
-            result.profile_text = user_info.username
-        
+        result.username = username
         return result
         
     def pages(self):
-        data = Page.query(Page.author_name == self.username)
+        data = Page.query(Page.authorname == self.username)
         return sorted(data, key=lambda page: page.score(), reverse=True)
         
 class SessionInfo:
     link_text = ""
     url = "/"
-    profile_text = None
-    profile_url = None
-    user_key = None
+    username = ""

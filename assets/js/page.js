@@ -124,9 +124,9 @@ function appendPage(page){
     template = template.replace(/##page\.child_count##/g,page.child_count);
     
     
-    var href = "javascript:window.open('/user/" +page["author_name"]+ "', '_blank');";
+    var href = "javascript:window.open('/user/" +page["authorname"]+ "', '_blank');";
         
-    var author_info = "by <a href=\""+href+"\">"+page["author_name"]+"</a>";
+    var author_info = "by <a href=\""+href+"\">"+page["authorname"]+"</a>";
     
     template = template.replace("##author_info##",author_info);
     

@@ -7,12 +7,12 @@ from google.appengine.ext import ndb
 
 class PageController:
     @classmethod
-    def save_page(cls,parent_urlsafe_key,link,content):
+    def save_page(cls,authorname,parent_urlsafe_key,link,content):
         
-        user_info_key = UserInfo.current_get()
-        
-        if user_info_key is None:
-            return False, { 'unauthenticated':True}
+        userinfo = UserInfo.username_get(authorname)    
+        if userinfo is None or not userinfo.is_current():
+            
+            return False, { 'unauthenticated':True }
         
         errors = {}
         
@@ -44,7 +44,7 @@ class PageController:
         for branch_page in pages:
             if branch_page.link == page.link:
                 errors['has_identical_link'] = True
-            if branch_page.author_info == user_info_key:
+            if branch_page.authorname == authorname:
                 authored_branch_count += 1
         
         if 2 <= authored_branch_count:
@@ -52,7 +52,7 @@ class PageController:
         
         if len(errors.keys()) == 0:
             page.parent_page = parent_key
-            page.author_info = UserInfo.current_get()
+            page.authorname = authorname
             page_key = page.put()
             
             logging.info(page_key)
@@ -70,12 +70,18 @@ class StoryController:
     _create_story_lock = threading.Lock()
     
     @classmethod
-    def save_story(cls,story_name,introduction,conventions,root_page_link,root_page_content):
+    def save_story(cls,story_name,moderatorname,introduction,conventions,root_page_link,root_page_content):
         
-        if UserInfo.current_get() is None:
+        
+        if moderatorname is None:
             return False, { 'unauthenticated':True}
         
-        if UserInfo.current_get().get().name is None:
+        author_info = UserInfo.username_get(moderatorname)
+        
+        if author_info is None or not author_info.is_current():
+            return False, { 'unauthenticated':True}
+        
+        if author_info.username is None:
             return False, { 'invalid_user':True}
         
         story_key = Story.create_key(story_name)
@@ -95,7 +101,7 @@ class StoryController:
             errors['invalid_name'] = True
         
         page = Page(id=story_name)
-        page.author_info = UserInfo.current_get()
+        page.authorname = moderatorname
         page.link = root_page_link
         page.content = root_page_content
         page.story_name = story_name
@@ -120,7 +126,7 @@ class StoryController:
                 
                 page.put()
                 story = Story(id=story_name,name=story_name)
-                story.moderator_info = UserInfo.current_get()
+                story.moderatorname = moderatorname
                 story.introduction = introduction
                 story.conventions = conventions
                 story.put()
