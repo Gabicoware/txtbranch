@@ -84,7 +84,7 @@ function openParentPage(parent_page_key){
 function loadParent(page){
     
     if(page["parent_page"] == null){
-        $("#parent_container").hide("slow");
+        $("#parent_container").hide();
     }else{
         
         var div_id = page.parent_page+"_page_div";
@@ -114,7 +114,6 @@ function showParent(parent_page){
     var parentPageHTML = prepareParentPageHTML(parent_page);
     $("#parent_container").empty();
     $("#parent_container").append(parentPageHTML);
-    $("#parent_container").show("slow");
 }
 
 function updateBranchLinks(page_key){
