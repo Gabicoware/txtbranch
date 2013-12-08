@@ -10,7 +10,8 @@
 import os
 import webapp2
 import json
-import datetime
+from datetime import datetime
+from datetime import timedelta
 
 from defaulttext import *
 from models import *
@@ -32,7 +33,6 @@ class MainHandler(webapp2.RequestHandler):
         pagedatas = Page.main_pagedata();
         
         template_values = {
-            'is_home': True,
             'pagedatas': pagedatas,
             'stories': stories,
             'username': self.request.cookies.get('username'),
@@ -61,9 +61,7 @@ class CreateStoryHandler(webapp2.RequestHandler):
           self.request.get('root_page_content',''))
         
         if success:
-            query_params = {'story_name': story_name}
-            redirect_url = '/story?' + urllib.urlencode(query_params)
-        
+            redirect_url = '/story/' + story_name
             self.redirect(redirect_url)
         else:
             self.render_create_story_form(story)
@@ -145,7 +143,6 @@ class AboutHandler(webapp2.RequestHandler):
         
         template_values = {
             'session_info': UserInfo.session_info(self.request.cookies.get('username')),
-            'is_about': True,
         }
         template = JINJA_ENVIRONMENT.get_template('about.html')
         self.response.write(template.render(template_values))
@@ -185,8 +182,8 @@ class PostLoginHandler(webapp2.RequestHandler):
         else:
             #don't worry about redirects for now
             
-            now = datetime.datetime.now()
-            delta = datetime.timedelta(days=28)
+            now = datetime.now()
+            delta = timedelta(days=28)
             then = delta + now
             
             self.response.set_cookie('username',value=user_info.username,expires=then)

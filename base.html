@@ -64,11 +64,30 @@
           <a class="brand" href="/">txtbranch</a>
           <div class="nav-collapse collapse" id="navbaritems">
             <ul class="nav">
-              <li {% if is_home %}class="active"{% endif %}><a href="/">Home</a></li>
-              <li {% if is_about %}class="active"{% endif %}><a href="/about">About</a></li>
+              <li id="home_li"><a href="/">Home</a></li>
+              <li id="about_li"><a href="/about">About</a></li>
               <li><a href="{{ session_info.url|safe }}">{{ session_info.link_text }}</a></li>
             </ul>
           </div><!--/.nav-collapse -->
+		  <script>
+		    function updateNavBarItems(){
+				
+				var username = $.cookie("username");
+				
+				if(username != null && username != ""){
+			    	var template = $("#user_item_template").html();
+				    template = template.replace(/##username##/g, username);
+				    $("#navbaritems").append(template);
+				}
+				
+				if(location.pathname == "/"){
+					$("#home_li").addClass("active");
+				}
+				if(location.pathname == "/about"){
+					$("#about_li").addClass("active");
+				}
+		    }
+		  </script>
         </div>
       </div>
     </div>
@@ -79,10 +98,7 @@
     <script type="text/javascript" src="/assets/js/jquery.maxlength-min.js"></script>
     <script type="text/javascript" src="/assets/js/bootstrap-collapse.js"></script>
     <script>
-    	var username = $.cookie("username");
-    	var template = $("#user_item_template").html();
-	    template = template.replace(/##username##/g, username);
-	    $("#navbaritems").append(template);
+    	updateNavBarItems();
     </script>
   </body>
 </html>
