@@ -68,7 +68,55 @@ function openPage(page_key){
     appendPage(page);
     
     updateBranchLinks(page_key);
+    
+    loadParent(page);
 }
+
+function openParentPage(parent_page_key){
+    
+    var page = page_cache[parent_page_key];
+    
+    prependPage(page);
+    
+    loadParent(page);
+}
+
+function loadParent(page){
+    
+    if(page["parent_page"] == null){
+        $("#parent_container").hide("slow");
+    }else{
+        
+        var div_id = page.parent_page+"_page_div";
+        
+        if(0 == $("#"+div_id).length){
+            
+            var parent_page = page_cache[page.parent_page];
+            
+            if(parent_page == null){
+                $.get('/api/v1/pages?page_key='+page.parent_page, function(data,textStatus,xhr) {
+                    var jsondata = JSON.parse(data);
+                    
+                    if(0 < jsondata.result.length){
+                        var parent_page = jsondata.result[0];
+                        page_cache[parent_page.key] = parent_page;
+                        showParent(parent_page);
+                    }
+                });
+            }else{
+                showParent(parent_page);
+            }
+        }
+    }
+}
+
+function showParent(parent_page){
+    var parentPageHTML = prepareParentPageHTML(parent_page);
+    $("#parent_container").empty();
+    $("#parent_container").append(parentPageHTML);
+    $("#parent_container").show("slow");
+}
+
 function updateBranchLinks(page_key){
     
     var child_keys = child_key_cache[page_key];
@@ -77,7 +125,7 @@ function updateBranchLinks(page_key){
         for(var i = 0; i < child_keys.length; i++){
             child_pages[i] = page_cache[child_keys[i]];
         }
-        displayBranchLinks(child_pages);
+        showBranchLinks(child_pages);
     }else{
         $("#link_container").empty();
     }
@@ -97,11 +145,11 @@ function updateBranchLinks(page_key){
             child_key_cache[page_key] = child_keys;
         }
         
-        displayBranchLinks(jsondata.result);
+        showBranchLinks(jsondata.result);
     });
 }
 
-function displayBranchLinks(links){
+function showBranchLinks(links){
     $("#link_container").empty();
     if(0 < links.length){
         for(var i =0; i < links.length; i++){
@@ -116,6 +164,27 @@ function displayBranchLinks(links){
 
 
 function appendPage(page){
+    var pageHTML = preparePageHTML(page);
+    $("#content_container").append(pageHTML);
+    updateLikeInfo(page.key,page.like_value);
+}
+
+function prependPage(page){
+    var pageHTML = preparePageHTML(page);
+    $("#content_container").prepend(pageHTML);
+    updateLikeInfo(page.key,page.like_value);
+}
+
+function prepareParentPageHTML(page){
+    var template = $("#parent_page_template").html();
+    
+    template = template.replace(/##page\.link##/g,page.link);
+    template = template.replace(/##page\.key##/g,page.key);
+    
+    return template;
+}
+
+function preparePageHTML(page){
     var template = $("#page_template").html();
     
     template = template.replace(/##page\.content##/g,page.content);
@@ -137,9 +206,7 @@ function appendPage(page){
     template = template.replace("##like_count_span_id##",page.key+"_like_count_span");
     template = template.replace("##unlike_count_span_id##",page.key+"_unlike_count_span");
     
-    $("#content_container").append(template);
-    
-    updateLikeInfo(page.key,page.like_value);
+    return template;
 }
 
 function appendLink(page){
