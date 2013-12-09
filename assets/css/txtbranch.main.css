@@ -8,8 +8,13 @@ textarea.invalid{background-color:#FF8888}
 .form_link, .form_content{ margin-bottom:2px; width:100%; max-width:600px;}
 a.vote:hover {text-decoration:none;}
 
-div.invalid{background-color:#FF8888}
-
+div.invalid{
+	background-color:#FF8888
+}
+span.invalid{
+	display:inline-block;
+	background-color:#FFCCCC;
+}
 div.vote{
     display:inline-block;
     width:8px;

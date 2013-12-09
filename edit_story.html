@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block additional_header %}
+    
+    <style>
+        #story_name, #root_page_link, textarea{ margin-bottom:2px; width:100%; max-width:600px;}
+        label{color:#124E94; margin-top:10px}
+        .chars_left{font-size:90%; text-align:right; width:100%; max-width:600px;}
+        input.invalid{background-color:#FF8888}
+        textarea.invalid{background-color:#FF8888}
+        div.invalid_message{ color:#FF8888; font-size:90%; }
+        div.message{ font-size:90%; color:#888888;}
+    </style>
+
+{% endblock %}
+
+
+{% block content %}
+    
+    <div id="edit_story_div">
+        <b>Edit Story</b>
+        <form id="edit_story_form" action="{{new_story_endpoint}}" method="post">
+            <div>
+                <label for="story_name">Story Name</label>
+            </div>
+            <div>
+                <input type="text" id="story_name" name="story_name" value="{{story_name}}" disabled="disabled" />
+            </div>
+            
+            <div>
+                <label for="introduction">Introduction</label>
+            </div>
+            <div>
+                <textarea id="introduction" name="introduction" rows="4" >{{introduction}}</textarea>
+            </div>
+            <div>
+                <label for="conventions">Story Conventions</label>
+            </div>
+            <div>
+                <textarea id="conventions" name="conventions" rows="6" >{{conventions}}</textarea>
+            </div>
+            <br />
+            <div>Once added, you may only edit the introduction and conventions of a story.</div>
+            
+            <br />
+            <div><input type="submit" value="Update"></div>
+        </form>
+    </div>
+
+    
+{% endblock %}

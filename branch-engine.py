@@ -10,6 +10,7 @@ handlers = [
     ('/story/([\d\w_\-]+)', StoryHandler),
     ('/about', AboutHandler),
     ('/admin/story/new', CreateStoryHandler),
+    ('/admin/edit/([\d\w_\-]+)', EditStoryHandler),
     ('/', MainHandler),
 ]
 

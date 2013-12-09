@@ -235,6 +235,28 @@ function showAddPageLink(){
     
     $("#add_page_div").empty();
 }
+
+function updateAddPageDiv(){
+    if(isLoggedIn()){
+        showAddPageForm();
+    }else{
+        showNeedLoginMessage();
+    }
+}
+
+function showNeedLoginMessage(){
+    $('#add_page_link').addClass('add_page_inactive');
+    $('#add_page_link').removeClass('add_page_active');
+    
+    $('#add_page_div').addClass('add_page_active');
+    $('#add_page_div').removeClass('add_page_inactive');
+    
+    var template = $('#must_login_template').html();
+    
+    $("#add_page_div").empty();
+    $("#add_page_div").append(template);
+}
+
 function showAddPageForm(){
     
     var page = page_cache[active_page_key];
@@ -271,10 +293,10 @@ function showAddPageForm(){
             }else{
                 resetToPage(page.key);
                 for(var key in response.result){
-                    if(response.result.hasOwnProperty(key) && messages[key] != null){
+                    if(response.result.hasOwnProperty(key) && add_branch_messages[key] != null){
                         $("#add_page_div").empty();
                         var template = $("#has_links_template").html();
-                        template = template.replace(/##message##/g,messages[key]);
+                        template = template.replace(/##message##/g,add_branch_messages[key]);
                         $("#add_page_div").append(template);
                     }
                 }
@@ -318,10 +340,14 @@ function showAddPageForm(){
     } 
     
 }
-var messages = {
+var add_branch_messages = {
     'has_branches':'The branch could not be added. You can not create any more branches for this page.',
     'has_identical_link':'The branch could not be added. A branch with an identical link already exists.',
-    'unauthenticated':'The branch could not be added. You are not logged in.',
+    'unauthenticated':'The branch could not be added. You are not logged in.'
+};
+
+var authentication_messages = {
+    'add_page':'You must be logged in to add a branch'
 };
 
 

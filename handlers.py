@@ -10,20 +10,24 @@
 import os
 import webapp2
 import json
-from datetime import datetime
-from datetime import timedelta
+import datetime
+import threading
+import jinja2
 
 from defaulttext import *
 from models import *
-from controllers import *
-import jinja2
+from controllers import StoryController
 
+
+class RequestHandler(webapp2.RequestHandler):
+    def username(self):
+        return self.request.cookies.get('username')
 
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
     extensions=['jinja2.ext.autoescape'])
 
-class MainHandler(webapp2.RequestHandler):
+class MainHandler(RequestHandler):
     
     def get(self):
         
@@ -35,15 +39,15 @@ class MainHandler(webapp2.RequestHandler):
         template_values = {
             'pagedatas': pagedatas,
             'stories': stories,
-            'username': self.request.cookies.get('username'),
-            'session_info': UserInfo.session_info(self.request.cookies.get('username')),
+            'username': self.username(),
+            'session_info': UserInfo.session_info(self.username()),
         }
         
         template = JINJA_ENVIRONMENT.get_template('main.html')
         self.response.write(template.render(template_values))
         # Write the submission form and the footer of the page
 
-class CreateStoryHandler(webapp2.RequestHandler):
+class CreateStoryHandler(RequestHandler):
     
     _create_story_lock = threading.Lock()
     
@@ -54,7 +58,7 @@ class CreateStoryHandler(webapp2.RequestHandler):
         story_name = self.request.get('story_name',config['stories']['default_name'])
         
         success, story = StoryController.save_story(story_name,
-          self.request.cookies.get('username'),
+          self.username(),
           self.request.get('introduction', DEFAULT_INTRODUCTION),
           self.request.get('conventions', DEFAULT_CONVENTIONS),
           self.request.get('root_page_link',''),
@@ -69,7 +73,7 @@ class CreateStoryHandler(webapp2.RequestHandler):
     def render_create_story_form(self,errors=None):
         template = JINJA_ENVIRONMENT.get_template('new_story.html')
         template_values = {
-            'session_info': UserInfo.session_info(self.request.cookies.get('username')),
+            'session_info': UserInfo.session_info(self.username()),
             'introduction' : self.request.get('introduction', DEFAULT_INTRODUCTION),
             'conventions' : self.request.get('conventions', DEFAULT_CONVENTIONS),
 
@@ -84,8 +88,46 @@ class CreateStoryHandler(webapp2.RequestHandler):
         }
         self.response.write(template.render(template_values))
         
+
+class EditStoryHandler(RequestHandler):
+    
+    def get(self,story_name):
+        story = Story.story_name_get(story_name)
+        if story == None:
+            return self.redirect('/')
+        elif story.moderatorname != self.username():
+            return self.redirect('/story/'+story_name)
         
-class StoryHandler(webapp2.RequestHandler):
+        self.render_edit_story_form(story)
+        
+    def post(self,story_name):
+        
+        story = Story.story_name_get(story_name)
+        
+        success, result = StoryController.update_story(
+          story,
+          self.username(),
+          self.request.get('introduction'),
+          self.request.get('conventions'))
+        
+        if success:
+            self.render_edit_story_form(story)
+        else:
+            self.render_edit_story_form(story, errors=result)
+            
+    def render_edit_story_form(self,story,errors=None):
+        template = JINJA_ENVIRONMENT.get_template('edit_story.html')
+        template_values = {
+            'session_info': UserInfo.session_info(self.username()),
+            'introduction' : self.request.get('introduction', story.introduction),
+            'conventions' : self.request.get('conventions', story.conventions),
+            'story_name' : story.name,
+            'edit_story_endpoint' : self.request.uri,
+            'errors' : json.dumps(errors),
+        }
+        self.response.write(template.render(template_values))
+         
+class StoryHandler(RequestHandler):
     def get(self, story_name):
         
         key = Story.create_key(story_name)
@@ -109,7 +151,7 @@ class StoryHandler(webapp2.RequestHandler):
                 'root_page_href': root_page_href,
                 'root_page_link': root_page_link,
                 'story': story,
-                'session_info': UserInfo.session_info(self.request.cookies.get('username')),
+                'session_info': UserInfo.session_info(self.username()),
             }
             
             template = JINJA_ENVIRONMENT.get_template('story.html')
@@ -117,19 +159,19 @@ class StoryHandler(webapp2.RequestHandler):
         else:
             template_values = {
                 'story_name': story_name,
-                'session_info': UserInfo.session_info(self.request.cookies.get('username')),
+                'session_info': UserInfo.session_info(self.username()),
             }
             template = JINJA_ENVIRONMENT.get_template('story_not_found.html')
             self.response.status = 404
             self.response.write(template.render(template_values))
         
 
-class HtmlPageHandler(webapp2.RequestHandler):
+class HtmlPageHandler(RequestHandler):
 
     def get(self):
         
         template_values = {
-            'session_info': UserInfo.session_info(self.request.cookies.get('username')),
+            'session_info': UserInfo.session_info(self.username()),
             'link_max' : config["pages"]["link_max"],
             'content_max' : config["pages"]["content_max"],
         }
@@ -137,17 +179,17 @@ class HtmlPageHandler(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('page.html')
         self.response.write(template.render(template_values))
         
-class AboutHandler(webapp2.RequestHandler):
+class AboutHandler(RequestHandler):
 
     def get(self):
         
         template_values = {
-            'session_info': UserInfo.session_info(self.request.cookies.get('username')),
+            'session_info': UserInfo.session_info(self.username()),
         }
         template = JINJA_ENVIRONMENT.get_template('about.html')
         self.response.write(template.render(template_values))
 
-class UserHandler(webapp2.RequestHandler):
+class UserHandler(RequestHandler):
     
     def get(self,username):
         
@@ -165,13 +207,13 @@ class UserHandler(webapp2.RequestHandler):
         template_values = {
             'pages' : pages,
             'user_info' : user_info,
-            'session_info': UserInfo.session_info(self.request.cookies.get('username')),
+            'session_info': UserInfo.session_info(self.username()),
         }
         template = JINJA_ENVIRONMENT.get_template('user.html')
         
         self.response.write(template.render(template_values))
         
-class PostLoginHandler(webapp2.RequestHandler):
+class PostLoginHandler(RequestHandler):
     
     def get(self):
         user_info = UserInfo.current_get()
@@ -182,15 +224,15 @@ class PostLoginHandler(webapp2.RequestHandler):
         else:
             #don't worry about redirects for now
             
-            now = datetime.now()
-            delta = timedelta(days=28)
+            now = datetime.datetime.now()
+            delta = datetime.timedelta(days=28)
             then = delta + now
             
             self.response.set_cookie('username',value=user_info.username,expires=then)
             
             self.redirect('/')
 
-class PostLogoutHandler(webapp2.RequestHandler):
+class PostLogoutHandler(RequestHandler):
     
     def get(self):
         self.redirect('/')

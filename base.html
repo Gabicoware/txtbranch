@@ -74,7 +74,7 @@
 				
 				var username = $.cookie("username");
 				
-				if(username != null && username != ""){
+				if(isLoggedIn()){
 			    	var template = $("#user_item_template").html();
 				    template = template.replace(/##username##/g, username);
 				    $("#navbaritems").append(template);
@@ -86,6 +86,11 @@
 				if(location.pathname == "/about"){
 					$("#about_li").addClass("active");
 				}
+		    }
+		    
+		    function isLoggedIn(){
+		    	var username = $.cookie("username");
+				return username != null && username != "";
 		    }
 		  </script>
         </div>

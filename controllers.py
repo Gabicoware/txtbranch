@@ -135,6 +135,31 @@ class StoryController:
             return True, story
         else:
             return False, errors
+        
+        
+    @classmethod
+    def update_story(cls,story,moderatorname,introduction,conventions):
+        
+        if story is None:
+            return False, { 'story_not_found':True}
+        
+        if moderatorname is None:
+            return False, { 'unauthenticated':True}
+        
+        author_info = UserInfo.username_get(moderatorname)
+        
+        if author_info is None or not author_info.is_current():
+            return False, { 'unauthenticated':True}
+        
+        if author_info.username is None:
+            return False, { 'invalid_user':True}
+        
+        
+        story.introduction = introduction
+        story.conventions = conventions
+        story.put()
+
+        return True, story
 
 class UserInfoController:
     

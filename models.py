@@ -63,6 +63,10 @@ class Story(ndb.Model):
         """Constructs a Datastore key for a Game entity with story_name."""
         return ndb.Key('Story', story_name)
     
+    @classmethod
+    def story_name_get(cls,story_name):
+        return Story.create_key(story_name).get()
+    
     #we store the root page with an id equali to the name of the story
     #all other pages are stored with random integer ids
     def get_root_page(self):
