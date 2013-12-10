@@ -225,6 +225,7 @@ class Page(ndb.Model):
 class UserInfo(ndb.Model):
     username = ndb.StringProperty(validator=string_validator)
     google_user = ndb.UserProperty(indexed=True)
+    date = ndb.DateTimeProperty(auto_now_add=True)
     
     def is_current(self):
         return self.google_user == users.get_current_user()
