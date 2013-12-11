@@ -3,7 +3,7 @@ import logging
 
 from google.appengine.api import users, memcache
 from google.appengine.ext import ndb
-from datetime import datetime
+import datetime
 
 from HTMLParser import HTMLParser
 
@@ -175,18 +175,18 @@ class Page(ndb.Model):
             return data
     
     @classmethod
-    def format_time_ago(cls,time):
+    def format_time_ago(cls,t):
         """
         Get a datetime object or a int() Epoch timestamp and return a
         pretty string like 'an hour ago', 'Yesterday', '3 months ago',
         'just now', etc
         """
-        now = datetime.now()
-        if type(time) is int:
-            diff = now - datetime.fromtimestamp(time)
-        elif isinstance(time,datetime):
-            diff = now - time 
-        elif not time:
+        now = datetime.datetime.now()
+        if type(t) is int:
+            diff = now - datetime.datetime.fromtimestamp(t)
+        elif isinstance(t,datetime.datetime):
+            diff = now - t 
+        elif not t:
             diff = now - now
         second_diff = diff.seconds
         day_diff = diff.days

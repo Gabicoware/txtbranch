@@ -5,7 +5,7 @@ div.no_links{color:#888888;font-style:italic}
 .chars_left{font-size:90%; text-align:right; width:100%; max-width:600px;}
 input.invalid{background-color:#FF8888}
 textarea.invalid{background-color:#FF8888}
-.form_link, .form_content{ margin-bottom:2px; width:100%; max-width:600px;}
+.form_link, .form_content, .form_conventions{ margin-bottom:2px; width:100%; max-width:600px;}
 a.vote:hover {text-decoration:none;}
 
 div.invalid{

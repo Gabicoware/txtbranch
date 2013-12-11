@@ -8,13 +8,12 @@
 {% block content %}
 	<h5>Stories</h5>
     {% for story in stories %}
-	<a href="/story/{{story.name}}">{{story.name}}</a>
-    <br />
+	<h4><a href="/story/{{story.name}}">{{story.name}}</a></h4>
     {% endfor %}
 	<h5>Recent Pages</h5>
     {% for pagedata in pagedatas %}
     <div class="page_link">
-    <a href="/page#page_key={{pagedata['page_key']}}">{{pagedata['link']}}</a> ({{pagedata['score']}})<br />
+    <a href="/story/{{pagedata['story_name']}}#page_key={{pagedata['page_key']}}">{{pagedata['link']}}</a> ({{pagedata['score']}})<br />
     </div>
     <br />
     <div style="font-size: smaller">

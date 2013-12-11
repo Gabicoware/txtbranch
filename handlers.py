@@ -138,19 +138,11 @@ class StoryHandler(RequestHandler):
         
             root_page = story.get_root_page()
             
-            root_page_href = ''
-            root_page_link = ''
-            
-            if root_page:
-                root_page_href = page_url(story_name, root_page.key)
-                root_page_link = root_page.link
-            else:
-                logging.error("root_page not found for Story(id='%s')"%story_name)
-            
             template_values = {
-                'root_page_href': root_page_href,
-                'root_page_link': root_page_link,
+                'root_page_key': root_page.key,
                 'story': story,
+                'link_max' : config["pages"]["link_max"],
+                'content_max' : config["pages"]["content_max"],
                 'session_info': UserInfo.session_info(self.username()),
             }
             
