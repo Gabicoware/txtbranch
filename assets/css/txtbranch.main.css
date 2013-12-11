@@ -42,7 +42,6 @@ div.page_link{
 	display:inline-block;
 }
 div.page_link a{
-	color:#000088;
 	font-size:larger;
 }
 div.branch_link span{
@@ -51,4 +50,34 @@ div.branch_link span{
 div.page_info{
 	 display:inline-block;
 	font-size:smaller;
+}
+div.indent{
+	margin-left:20px;
+}
+div.first_time{
+	display: block;
+	background-color: #f5f5f5;
+	border: 1px solid #ccc;
+	border: 1px solid rgba(0, 0, 0, 0.15);
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+	padding: 5px 5px 5px 5px;
+	max-width:500px;
+}
+div.story_header{
+	padding: 16px 0px 0px 0px;
+	font-weight:bolder;
+}
+
+span.story_header_name{
+	font-size:large;
+}
+span.story_header_info{
+	font-size:normal;
+}
+div.recent_pages{
+	padding:4px 0px 4px 0px;
+	font-size:smaller;
+	font-weight:bold;
 }

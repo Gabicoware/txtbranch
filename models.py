@@ -64,14 +64,21 @@ class Story(ndb.Model):
         return ndb.Key('Story', story_name)
     
     @classmethod
-    def story_name_get(cls,story_name):
+    def get_by_name(cls,story_name):
         return Story.create_key(story_name).get()
     
     #we store the root page with an id equali to the name of the story
     #all other pages are stored with random integer ids
     def get_root_page(self):
         return ndb.Key('Page',self.name).get()
-        
+    
+    @classmethod
+    def get_by_names(cls,names):
+        result = {}
+        for name in names:
+            result[name] = Story.get_by_name(name)
+        return result
+    
     
 
 class Like(ndb.Model):
@@ -156,20 +163,22 @@ class Page(ndb.Model):
             logging.info('append_child - child exists')
             
     @classmethod
-    def main_pagedata(cls):
+    def main_pagedatas(cls):
             memcache_key = 'main_pages_key'
             data = memcache.get(memcache_key)  # @UndefinedVariable
             if data is None:
                 pages_query = Page.query()
                 pages = pages_query.fetch(64)
-                pagedatas = []
+                data = {}
                 for page in pages:
                     pagedata = page.to_dict()
                     pagedata['time_ago'] = Page.format_time_ago(page.date)
                     pagedata['page_key'] = page.key.urlsafe()
                     pagedata['score'] = page.score()
-                    pagedatas.append(pagedata)
-                data = sorted(pagedatas, key=lambda pagedata: pagedata['date'], reverse=True)
+                    if pagedata['story_name'] not in data:
+                        data[pagedata['story_name']] = []
+                    story_pagedatas = data[pagedata['story_name']]
+                    story_pagedatas.append(pagedata)
                 if not memcache.add(key=memcache_key, value=data, time=60):  # @UndefinedVariable
                     logging.error('main_pages - memcache add failed.')
             return data
@@ -240,14 +249,14 @@ class UserInfo(ndb.Model):
         return user_info
             
     @classmethod
-    def username_get(cls,username):
+    def get_by_username(cls,username):
         
         if username:
             return ndb.Key('UserInfo',username).get()
         return None
     
     @classmethod
-    def current_get(cls):
+    def get_current(cls):
         """Gets the current user. This involves a query. Its more efficient to perform 
         lookups with the username and verify that the user_info is current."""
         

@@ -6,20 +6,23 @@
 
 
 {% block content %}
-	<h5>Stories</h5>
-    {% for story in stories %}
-	<h4><a href="/story/{{story.name}}">{{story.name}}</a></h4>
-    {% endfor %}
-	<h5>Recent Pages</h5>
-    {% for pagedata in pagedatas %}
-    <div class="page_link">
+	<div class="first_time">
+		First time here? Click on the title of one of the stories below to get started!
+	</div>
+    {% for story_name in pagedatas.keys() %}
+	<div class="story_header"><span class="story_header_name"><a href="/story/{{story_name}}">{{story_name}}</a></span> <span class="story_header_info">moderated by {{stories[story_name].moderatorname}}</span></div>
+	
+	<div class="recent_pages">Recent Pages</div>
+    {% for pagedata in pagedatas[story_name] %}
+    <div class="page_link indent">
     <a href="/story/{{pagedata['story_name']}}#page_key={{pagedata['page_key']}}">{{pagedata['link']}}</a> ({{pagedata['score']}})<br />
     </div>
     <br />
-    <div style="font-size: smaller">
+    <div style="font-size: smaller" class="indent">
     	branched {{pagedata['time_ago']}} by 
     	<a href="/user/{{pagedata['authorname']}}">{{pagedata['authorname']}}</a> to 
     	<a href="/story/{{pagedata['story_name']}}">{{pagedata['story_name']}}</a>
     </div>
+    {% endfor %}
     {% endfor %}
 {% endblock %}

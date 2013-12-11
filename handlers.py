@@ -31,14 +31,13 @@ class MainHandler(RequestHandler):
     
     def get(self):
         
-        stories_query = Story.query()
-        stories = stories_query.fetch(10)
+        pagedatas = Page.main_pagedatas();
         
-        pagedatas = Page.main_pagedata();
-        
+        stories = Story.get_by_names(pagedatas.keys())
+        logging.info(stories)
         template_values = {
-            'pagedatas': pagedatas,
             'stories': stories,
+            'pagedatas': pagedatas,
             'username': self.username(),
             'session_info': UserInfo.session_info(self.username()),
         }
@@ -92,7 +91,7 @@ class CreateStoryHandler(RequestHandler):
 class EditStoryHandler(RequestHandler):
     
     def get(self,story_name):
-        story = Story.story_name_get(story_name)
+        story = Story.get_by_name(story_name)
         if story == None:
             return self.redirect('/')
         elif story.moderatorname != self.username():
@@ -102,7 +101,7 @@ class EditStoryHandler(RequestHandler):
         
     def post(self,story_name):
         
-        story = Story.story_name_get(story_name)
+        story = Story.get_by_name(story_name)
         
         success, result = StoryController.update_story(
           story,
@@ -208,7 +207,7 @@ class UserHandler(RequestHandler):
 class PostLoginHandler(RequestHandler):
     
     def get(self):
-        user_info = UserInfo.current_get()
+        user_info = UserInfo.get_current()
         if user_info is None:
             template = JINJA_ENVIRONMENT.get_template('post_login.html')
             

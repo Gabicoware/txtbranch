@@ -30,7 +30,7 @@ class LikeHandler(webapp2.RequestHandler):
             return self.response.write('NO PAGE KEY SPECIFIED')
         
         username = self.request.cookies.get('username')
-        userinfo = UserInfo.username_get(username)    
+        userinfo = UserInfo.get_by_username(username)    
         if userinfo and userinfo.is_current():
             
             like_value = self.request.get('value','0')
@@ -56,13 +56,13 @@ class UserInfoHandler(webapp2.RequestHandler):
         
         username = self.request.get('username')
         if username:
-            user_info = UserInfo.username_get(username)
+            user_info = UserInfo.get_by_username(username)
         else:
             username = self.request.cookies.get('username')
             if username:
-                user_info = UserInfo.username_get(username)
+                user_info = UserInfo.get_by_username(username)
             else:
-                user_info = UserInfo.current_get()
+                user_info = UserInfo.get_current()
         
         if user_info is not None:
             self.response.write(json.dumps({'status':'OK','result':user_info.to_dict()},cls=ModelEncoder))
@@ -123,7 +123,7 @@ class PageHandler(webapp2.RequestHandler):
         like_value = 0
         
         username = self.request.cookies.get('username')
-        userinfo = UserInfo.username_get(username)    
+        userinfo = UserInfo.get_by_username(username)    
         if userinfo and userinfo.is_current():
             like_key = Like.create_key(page.key,self.request.cookies.get('username'))
             like = like_key.get();

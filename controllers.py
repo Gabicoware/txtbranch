@@ -9,7 +9,7 @@ class PageController:
     @classmethod
     def save_page(cls,authorname,parent_urlsafe_key,link,content):
         
-        userinfo = UserInfo.username_get(authorname)    
+        userinfo = UserInfo.get_by_username(authorname)    
         if userinfo is None or not userinfo.is_current():
             
             return False, { 'unauthenticated':True }
@@ -76,7 +76,7 @@ class StoryController:
         if moderatorname is None:
             return False, { 'unauthenticated':True}
         
-        author_info = UserInfo.username_get(moderatorname)
+        author_info = UserInfo.get_by_username(moderatorname)
         
         if author_info is None or not author_info.is_current():
             return False, { 'unauthenticated':True}
@@ -146,7 +146,7 @@ class StoryController:
         if moderatorname is None:
             return False, { 'unauthenticated':True}
         
-        author_info = UserInfo.username_get(moderatorname)
+        author_info = UserInfo.get_by_username(moderatorname)
         
         if author_info is None or not author_info.is_current():
             return False, { 'unauthenticated':True}
@@ -177,7 +177,7 @@ class UserInfoController:
             errors['invalid_name'] = True
         else:
             
-            user_info = UserInfo.current_get()
+            user_info = UserInfo.get_current()
             
             if user_info is None:
                 user_info_key = ndb.Key('UserInfo',username)
