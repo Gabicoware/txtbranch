@@ -6,7 +6,6 @@ handlers = [
     (r'/user/([\d\w_\-]+)', UserHandler),
     ('/post_login', PostLoginHandler),
     ('/post_logout', PostLogoutHandler),
-    ('/page', HtmlPageHandler),
     ('/story/([\d\w_\-]+)', StoryHandler),
     ('/about', AboutHandler),
     ('/admin/story/new', CreateStoryHandler),

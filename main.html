@@ -7,7 +7,7 @@
 
 {% block content %}
 	<div class="first_time">
-		First time here? Click on the title of one of the stories below to get started!
+		First time here? To get familiar, take a look at <a href="/story/OnceUponATime">OnceUponATime</a>
 	</div>
     {% for story_name in pagedatas.keys() %}
 	<div class="story_header"><span class="story_header_name"><a href="/story/{{story_name}}">{{story_name}}</a></span> <span class="story_header_info">moderated by {{stories[story_name].moderatorname}}</span></div>

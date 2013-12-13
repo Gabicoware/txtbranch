@@ -51,8 +51,11 @@
         <b>Add a Branch</b>
         <form id="##page.key##_child_add_page_form" action="/api/v1/pages" method="post">
             <input name="parent_page_key" type="hidden" value="##page.key##" />
-            <div>
-                Story Conventions <a href="javascript:void(0)" style="font-size:smaller">(hide)</a>
+            <div id="show_conventions_div">
+                <a href="javascript:void(0)" onclick="showConventions()" style="font-size:smaller">(show conventions)</a>
+            </div>
+            <div id="hide_conventions_div">
+                Story Conventions <a href="javascript:void(0)" onclick="hideConventions()" style="font-size:smaller">(hide)</a>
             </div>
             <div id="conventions_div">
 		        <pre class="form_conventions" >{{story.conventions}}</pre>
@@ -83,10 +86,6 @@
         	You must <a href="{{ session_info.url|safe }}">{{ session_info.link_text }}</a> to add a Page.
         </span>
     </script>
-        <!--
-        <h5>Introduction</h5>
-        <p><pre >{{story.introduction}}</pre></p>
--->
     
 {% endblock %}
 
@@ -94,7 +93,9 @@
         <h2>{{story.name}}</h2>
         <div id="parent_container"></div>
         <div id="content_container"></div>
-        <hr />
+        <div style="font-size:smaller" >
+            &darr; <span id="branch_count_span"></span> branches
+        </div>
         <div id="link_container"></div>
         <br />
         <div class="branch_link" id="add_page_link">

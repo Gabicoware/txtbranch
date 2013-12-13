@@ -59,6 +59,20 @@ function updateLikeInfo(page_key,value){
     
 }
 
+function showConventions(){
+    $("#show_conventions_div").hide();
+    $("#hide_conventions_div").show();
+    $("#conventions_div").show();
+    $.cookie("conventions_show_"+active_page_key,"1");
+}
+
+function hideConventions(){
+    $("#show_conventions_div").show();
+    $("#hide_conventions_div").hide();
+    $("#conventions_div").hide();
+    $.cookie("conventions_show_"+active_page_key,"0");
+}
+
 function openPage(page_key){
     
     var page = page_cache[page_key];
@@ -159,6 +173,8 @@ function showBranchLinks(links){
         $("#link_container").append(template);
         
     }
+    $("#branch_count_span").empty();
+    $("#branch_count_span").append(links.length);
 }
 
 
@@ -338,6 +354,12 @@ function showAddPageForm(){
         textarea = form_textareas[i];  
         $(textarea.textareaId).maxlength(textarea);  
     } 
+    
+    if( $.cookie("conventions_show_"+active_page_key) == "0" ){
+        hideConventions();
+    }else{
+        showConventions();
+    }
     
 }
 var add_branch_messages = {

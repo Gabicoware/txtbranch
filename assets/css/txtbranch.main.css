@@ -81,3 +81,6 @@ div.recent_pages{
 	font-size:smaller;
 	font-weight:bold;
 }
+#link_container, #add_page_link{
+	padding:0px 0px 0px 10px;
+}

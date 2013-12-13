@@ -55,7 +55,6 @@ class Story(ndb.Model):
     """Models an individual Story"""
     moderatorname = ndb.StringProperty(indexed=True)
     name = ndb.StringProperty(indexed=False,validator=string_validator)
-    introduction = ndb.TextProperty(validator=string_validator)
     conventions = ndb.TextProperty(validator=string_validator)
     
     @classmethod
@@ -65,7 +64,9 @@ class Story(ndb.Model):
     
     @classmethod
     def get_by_name(cls,story_name):
-        return Story.create_key(story_name).get()
+        if story_name:
+            return Story.create_key(story_name).get()
+        return None
     
     #we store the root page with an id equali to the name of the story
     #all other pages are stored with random integer ids

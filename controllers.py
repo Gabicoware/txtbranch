@@ -70,7 +70,7 @@ class StoryController:
     _create_story_lock = threading.Lock()
     
     @classmethod
-    def save_story(cls,story_name,moderatorname,introduction,conventions,root_page_link,root_page_content):
+    def save_story(cls,story_name,moderatorname,conventions,root_page_link,root_page_content):
         
         
         if moderatorname is None:
@@ -127,7 +127,6 @@ class StoryController:
                 page.put()
                 story = Story(id=story_name,name=story_name)
                 story.moderatorname = moderatorname
-                story.introduction = introduction
                 story.conventions = conventions
                 story.put()
         
@@ -138,7 +137,7 @@ class StoryController:
         
         
     @classmethod
-    def update_story(cls,story,moderatorname,introduction,conventions):
+    def update_story(cls,story,moderatorname,conventions):
         
         if story is None:
             return False, { 'story_not_found':True}
@@ -155,7 +154,6 @@ class StoryController:
             return False, { 'invalid_user':True}
         
         
-        story.introduction = introduction
         story.conventions = conventions
         story.put()
 

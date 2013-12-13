@@ -47,7 +47,6 @@ class PageControllerTestCase(unittest.TestCase):
         logging.info(story_name)
         
         self.story = Story(id=story_name,name=story_name)
-        self.story.introduction = ''
         self.story.conventions = ''
         self.story.put()
         
@@ -71,19 +70,19 @@ class PageControllerTestCase(unittest.TestCase):
         self.testbed.deactivate()
 
     def testEmptyPageLink(self):
-        success, object = PageController.save_page(self.parent_page.key.urlsafe(),'','some_content')
+        success, object = PageController.save_page('dummy_author',self.parent_page.key.urlsafe(),'','some_content')
         
         self.assertFalse(success)
         self.assertTrue(object['empty_page_link'])
         
     def testEmptyPageContent(self):
-        success, object = PageController.save_page(self.parent_page.key.urlsafe(),'testEmptyPageLink.unique_link','')
+        success, object = PageController.save_page('dummy_author',self.parent_page.key.urlsafe(),'testEmptyPageLink.unique_link','')
         
         self.assertFalse(success)
         self.assertTrue(object['empty_page_content'])
         
     def testIdenticalLink(self):
-        success, object = PageController.save_page(self.parent_page.key.urlsafe(),'testIdenticalLink.some_link','some_content')
+        success, object = PageController.save_page('dummy_author',self.parent_page.key.urlsafe(),'testIdenticalLink.some_link','some_content')
         
         if success == False:
             logging.info(object)
@@ -94,13 +93,13 @@ class PageControllerTestCase(unittest.TestCase):
         if success and object.key:
             self.child_pages.append(object)
         
-        success, object = PageController.save_page(self.parent_page.key.urlsafe(), 'testIdenticalLink.some_link', 'some_content')
+        success, object = PageController.save_page('dummy_author',self.parent_page.key.urlsafe(), 'testIdenticalLink.some_link', 'some_content')
         
         self.assertFalse(success)
         self.assertTrue(object['has_identical_link'])
         
     def testSavePage(self):
-        success, object = PageController.save_page( self.parent_page.key.urlsafe(), 'testPage.unique_link', 'testPage.unique_content' )
+        success, object = PageController.save_page('dummy_author', self.parent_page.key.urlsafe(), 'testPage.unique_link', 'testPage.unique_content' )
         
         if success == False:
             logging.info(object)
@@ -131,7 +130,7 @@ class StoryControllerTestCase(unittest.TestCase):
         millis = int(round(time.time() * 1000))
         story_name = 'testSaveStory.test_story' + str(millis)
         
-        success, object = StoryController.save_story( story_name,'','', 'testSaveStory.unique_link', 'testSaveStory.unique_content' )
+        success, object = StoryController.save_story( story_name,'dummy_author','', 'testSaveStory.unique_link', 'testSaveStory.unique_content' )
         
         if success == False:
             logging.info(object)
@@ -148,4 +147,5 @@ class StoryControllerTestCase(unittest.TestCase):
         
         self.testbed.deactivate()
         
-        
+if __name__ == '__main__':
+    unittest.main()

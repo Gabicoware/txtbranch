@@ -58,7 +58,6 @@ class CreateStoryHandler(RequestHandler):
         
         success, story = StoryController.save_story(story_name,
           self.username(),
-          self.request.get('introduction', DEFAULT_INTRODUCTION),
           self.request.get('conventions', DEFAULT_CONVENTIONS),
           self.request.get('root_page_link',''),
           self.request.get('root_page_content',''))
@@ -73,7 +72,6 @@ class CreateStoryHandler(RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('new_story.html')
         template_values = {
             'session_info': UserInfo.session_info(self.username()),
-            'introduction' : self.request.get('introduction', DEFAULT_INTRODUCTION),
             'conventions' : self.request.get('conventions', DEFAULT_CONVENTIONS),
 
             'story_name' : self.request.get('story_name', ''),
@@ -106,7 +104,6 @@ class EditStoryHandler(RequestHandler):
         success, result = StoryController.update_story(
           story,
           self.username(),
-          self.request.get('introduction'),
           self.request.get('conventions'))
         
         if success:
@@ -118,7 +115,6 @@ class EditStoryHandler(RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('edit_story.html')
         template_values = {
             'session_info': UserInfo.session_info(self.username()),
-            'introduction' : self.request.get('introduction', story.introduction),
             'conventions' : self.request.get('conventions', story.conventions),
             'story_name' : story.name,
             'edit_story_endpoint' : self.request.uri,
@@ -155,20 +151,6 @@ class StoryHandler(RequestHandler):
             template = JINJA_ENVIRONMENT.get_template('story_not_found.html')
             self.response.status = 404
             self.response.write(template.render(template_values))
-        
-
-class HtmlPageHandler(RequestHandler):
-
-    def get(self):
-        
-        template_values = {
-            'session_info': UserInfo.session_info(self.username()),
-            'link_max' : config["pages"]["link_max"],
-            'content_max' : config["pages"]["content_max"],
-        }
-        
-        template = JINJA_ENVIRONMENT.get_template('page.html')
-        self.response.write(template.render(template_values))
         
 class AboutHandler(RequestHandler):
 
