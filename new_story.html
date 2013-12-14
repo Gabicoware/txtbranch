@@ -37,25 +37,25 @@
             </div>
             
             <div>
-                <label for="root_page_link">Root Link <b>*</b></label>
+                <label for="root_page_link">First Page Link <b>*</b></label>
             </div>
             <div>
                 <input type="text"  id="root_page_link" name="root_page_link" value="{{root_page_link}}" />
             </div>
             {% if errors['empty_root_page_link'] %}
             <div class="invalid_message">
-                A root link is required.
+                A first page link is required.
             </div>
             {% endif %}
             <div>
-                <label for="root_page_content">Root Content <b>*</b></label>
+                <label for="root_page_content">First Page Content <b>*</b></label>
             </div>
             <div>
                 <textarea id="root_page_content" name="root_page_content" rows="3" >{{root_page_content}}</textarea>
             </div>
             {% if errors['empty_root_page_content'] %}
             <div class="invalid_message">
-                A root content is required.
+                A first page content is required.
             </div>
             {% endif %}
             <div>

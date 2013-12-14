@@ -243,29 +243,55 @@ function resetToPage(page_key){
 }
 function showAddPageLink(){
     
-    $('#add_page_link').addClass('add_page_active');
-    $('#add_page_link').removeClass('add_page_inactive');
-    
-    $('#add_page_div').addClass('add_page_inactive');
-    $('#add_page_div').removeClass('add_page_active');
-    
+    $('#add_page_div').hide();
+    $('#add_page_link').show();
+        
     $("#add_page_div").empty();
 }
 
 function updateAddPageDiv(){
-    if(isLoggedIn()){
-        showAddPageForm();
-    }else{
+    if(!isLoggedIn()){
         showNeedLoginMessage();
+    }else if(hasChildPages()){
+        showHasChildPages();
+    }else{
+        showAddPageForm();
     }
 }
 
-function showNeedLoginMessage(){
-    $('#add_page_link').addClass('add_page_inactive');
-    $('#add_page_link').removeClass('add_page_active');
+function hasChildPages(){
+
+    var child_keys = child_key_cache[active_page_key];
     
-    $('#add_page_div').addClass('add_page_active');
-    $('#add_page_div').removeClass('add_page_inactive');
+    var username = $.cookie("username");
+    
+    var page_count = 0;
+    
+    for(var i = 0; i < child_keys.length; i++){
+        var child_page = page_cache[child_keys[i]];
+        if(child_page && child_page.authorname == username){
+            page_count++;
+        }
+    }
+
+
+    return 2 <= page_count;
+}
+
+function showHasChildPages(){
+    
+    $('#add_page_link').hide();
+    $('#add_page_div').show();
+    
+    var template = $('#has_child_pages_template').html();
+    
+    $("#add_page_div").empty();
+    $("#add_page_div").append(template);
+}
+
+function showNeedLoginMessage(){
+    $('#add_page_link').hide();
+    $('#add_page_div').show();
     
     var template = $('#must_login_template').html();
     
@@ -277,11 +303,8 @@ function showAddPageForm(){
     
     var page = page_cache[active_page_key];
     
-    $('#add_page_link').addClass('add_page_inactive');
-    $('#add_page_link').removeClass('add_page_active');
-    
-    $('#add_page_div').addClass('add_page_active');
-    $('#add_page_div').removeClass('add_page_inactive');
+    $('#add_page_link').hide();
+    $('#add_page_div').show();
     
     $("#add_page_div").empty();
     

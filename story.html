@@ -86,6 +86,12 @@
         	You must <a href="{{ session_info.url|safe }}">{{ session_info.link_text }}</a> to add a Page.
         </span>
     </script>
+    <script id="has_child_pages_template" type="text/template">
+        <span class="invalid">
+        	You have already added the maximum number of child pages.
+        </span>
+    </script>
+    
     
 {% endblock %}
 
