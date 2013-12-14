@@ -72,7 +72,6 @@ class StoryController:
     @classmethod
     def save_story(cls,story_name,moderatorname,conventions,root_page_link,root_page_content):
         
-        
         if moderatorname is None:
             return False, { 'unauthenticated':True}
         
@@ -91,14 +90,12 @@ class StoryController:
         empty_name = story_name is None or len(story_name) == 0
         
         if empty_name:
-            errors['empty_name'] = False
-        
-        match = re.search(r'^[\d\w_\-]+$', story_name)
-        
-        isvalid = match and 4 <= len(story_name) and len(story_name) <= 20;
-        
-        if not isvalid:
-            errors['invalid_name'] = True
+            errors['empty_name'] = True
+        else:
+            match = re.search(r'^[\d\w_\-]+$', story_name)
+            isvalid = match and 4 <= len(story_name) and len(story_name) <= 20;
+            if not isvalid:
+                errors['invalid_name'] = True
         
         page = Page(id=story_name)
         page.authorname = moderatorname
@@ -106,15 +103,19 @@ class StoryController:
         page.content = root_page_content
         page.story_name = story_name
         
-        if len(page.link) == 0:
+        if page.link == None or len(page.link) == 0:
             errors['empty_root_page_link'] = True
         
-        if len(page.content) == 0:
+        if page.content == None or len(page.content) == 0:
             errors['empty_root_page_content'] = True
+        
+#let the user complete the other validation before trying to create the story        
+        if len(errors.keys()) != 0:
+            return False, errors
         
 #The frequency of story creation should be low enough to ensure that this won't
 #lead to any long standing locking issues
-        
+#WARNING! apparently python locks are horrible        
         with StoryController._create_story_lock:
             
             story = story_key.get();

@@ -19,6 +19,8 @@ class PageControllerTestCase(unittest.TestCase):
     
     parent_page = None
     
+    user_info = None
+    
     story = None
     
     child_pages = []
@@ -37,18 +39,21 @@ class PageControllerTestCase(unittest.TestCase):
         # Initialize the datastore stub with this policy.
         self.testbed.init_datastore_v3_stub(consistency_policy=self.policy)
         
-        self.testbed.setup_env(USER_EMAIL='usermail@example.com',USER_ID='1', USER_IS_ADMIN='0')
-        self.testbed.init_user_stub()
         
         millis = int(round(time.time() * 1000))
         
         story_name = 'test_story' + str(millis)
         
-        logging.info(story_name)
+        username = 'test_user' + str(millis)
+        
+        self.testbed.setup_env(USER_EMAIL=username+'@example.com',USER_ID='1', USER_IS_ADMIN='0')
+        self.testbed.init_user_stub()
         
         self.story = Story(id=story_name,name=story_name)
         self.story.conventions = ''
         self.story.put()
+        
+        
         
         self.parent_page = Page(id=story_name)
         
@@ -57,8 +62,7 @@ class PageControllerTestCase(unittest.TestCase):
         self.parent_page.story = self.story.key
         self.parent_page.put()
         
-        self.story.put()
-        
+        self.user_info = UserInfo.put_new(username)
     
     def tearDown(self):
         for page in self.child_pages:
@@ -70,43 +74,47 @@ class PageControllerTestCase(unittest.TestCase):
         self.testbed.deactivate()
 
     def testEmptyPageLink(self):
-        success, object = PageController.save_page('dummy_author',self.parent_page.key.urlsafe(),'','some_content')
+        success, result = PageController.save_page(self.user_info.username,self.parent_page.key.urlsafe(),'','some_content')
         
         self.assertFalse(success)
-        self.assertTrue(object['empty_page_link'])
+        self.assertTrue(result['empty_page_link'])
         
     def testEmptyPageContent(self):
-        success, object = PageController.save_page('dummy_author',self.parent_page.key.urlsafe(),'testEmptyPageLink.unique_link','')
+        success, result = PageController.save_page(self.user_info.username,self.parent_page.key.urlsafe(),'testEmptyPageLink.unique_link','')
         
         self.assertFalse(success)
-        self.assertTrue(object['empty_page_content'])
+        self.assertTrue(result['empty_page_content'])
         
     def testIdenticalLink(self):
-        success, object = PageController.save_page('dummy_author',self.parent_page.key.urlsafe(),'testIdenticalLink.some_link','some_content')
+        success, result = PageController.save_page(self.user_info.username,self.parent_page.key.urlsafe(),'testIdenticalLink.some_link','some_content')
         
         if success == False:
-            logging.info(object)
+            logging.info(result)
             
         self.assertTrue(success)
         
         
-        if success and object.key:
-            self.child_pages.append(object)
+        if success and result.key:
+            self.child_pages.append(result)
         
-        success, object = PageController.save_page('dummy_author',self.parent_page.key.urlsafe(), 'testIdenticalLink.some_link', 'some_content')
+        success, result = PageController.save_page(self.user_info.username,self.parent_page.key.urlsafe(), 'testIdenticalLink.some_link', 'some_content')
         
         self.assertFalse(success)
-        self.assertTrue(object['has_identical_link'])
+        self.assertTrue(result['has_identical_link'])
         
     def testSavePage(self):
-        success, object = PageController.save_page('dummy_author', self.parent_page.key.urlsafe(), 'testPage.unique_link', 'testPage.unique_content' )
+        success, result = PageController.save_page(self.user_info.username, self.parent_page.key.urlsafe(), 'testPage.unique_link', 'testPage.unique_content' )
         
         if success == False:
-            logging.info(object)
+            logging.info(result)
         
         self.assertTrue(success)
         
 class StoryControllerTestCase(unittest.TestCase):
+    
+    user_info = None
+    invalid_user_info = None
+    invalid_username = None
     
     def setUp(self):
         #the memcache will contain values that will break the tests
@@ -122,27 +130,85 @@ class StoryControllerTestCase(unittest.TestCase):
         # Initialize the datastore stub with this policy.
         self.testbed.init_datastore_v3_stub(consistency_policy=self.policy)
         
-        self.testbed.setup_env(USER_EMAIL='usermail@example.com',USER_ID='1', USER_IS_ADMIN='0')
+        millis = int(round(time.time() * 1000))
+        
+        username = 'test_user' + str(millis)
+        
+        self.testbed.setup_env(USER_EMAIL=username+'@example.com',USER_ID='1', USER_IS_ADMIN='0')
         self.testbed.init_user_stub()
+        
+        self.user_info = UserInfo.put_new(username)
     
-    
+        self.invalid_username = 'inv_u' + str(millis)
+        
+        self.invalid_user_info = UserInfo(id=self.invalid_username)
+        self.invalid_user_info.date = datetime.datetime.now()
+        self.invalid_user_info.put()
+        
     def testSaveStory(self):        
         millis = int(round(time.time() * 1000))
-        story_name = 'testSaveStory.test_story' + str(millis)
+        story_name = 's' + str(millis)
         
-        success, object = StoryController.save_story( story_name,'dummy_author','', 'testSaveStory.unique_link', 'testSaveStory.unique_content' )
+        success, result = StoryController.save_story( story_name,self.user_info.username,'', 'testSaveStory.unique_link', 'testSaveStory.unique_content' )
         
         if success == False:
-            logging.info(object)
+            logging.info(result)
         
         self.assertTrue(success)
         
-        self.assertFalse(object.get_root_page() is None)
+        self.assertFalse(result.get_root_page() is None)
         
-        object.get_root_page().key.delete()
+        result.get_root_page().key.delete()
         
-        object.key.delete()
+        result.key.delete()
+    
+    
+    def testErrors(self):
         
+        success, result = StoryController.save_story( 'some_name',None,'',None,None)
+        
+        self.assertFalse(success)
+        self.assertTrue(result['unauthenticated'])
+    
+        success, result = StoryController.save_story( 'some_name','DNE.','',None,None)
+        
+        self.assertFalse(success)
+        self.assertTrue(result['unauthenticated'])
+        
+        success, result = StoryController.save_story( 'some_name',self.invalid_username,'',None,None)
+        
+        self.assertFalse(success)
+        self.assertTrue(result['unauthenticated'])
+        
+        success, result = StoryController.save_story( None,self.user_info.username,'',None,None)
+        
+        self.assertFalse(success)
+        self.assertTrue(result['empty_name'])
+        
+        success, result = StoryController.save_story( '',self.user_info.username,'',None,None)
+        
+        self.assertFalse(success)
+        self.assertTrue(result['empty_name'])
+        
+        success, result = StoryController.save_story( 'q q q q q ',self.user_info.username,'',None,None)
+        
+        self.assertFalse(success)
+        self.assertTrue(result['invalid_name'])
+    
+        success, result = StoryController.save_story( 'TestStory',self.user_info.username,None,None,None)
+        
+        self.assertFalse(success)
+        self.assertTrue(result['empty_root_page_link'])
+        self.assertTrue(result['empty_root_page_content'])
+    
+    
+    
+    
+    
+    
+    
+    
+    
     def tearDown(self):
         
         self.testbed.deactivate()

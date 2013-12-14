@@ -153,7 +153,7 @@ class Page(ndb.Model):
         
         if data is None:
             logging.info('append_child - loading data from memcache')
-            data = self.get_children()
+            data = self.children()
         if child not in data:
             data.append(child)
             if not memcache.replace(key=memcache_key, value=data, time=60):  # @UndefinedVariable
