@@ -261,19 +261,20 @@ function updateAddPageDiv(){
 
 function hasChildPages(){
 
-    var child_keys = child_key_cache[active_page_key];
-    
     var username = $.cookie("username");
     
     var page_count = 0;
     
-    for(var i = 0; i < child_keys.length; i++){
-        var child_page = page_cache[child_keys[i]];
-        if(child_page && child_page.authorname == username){
-            page_count++;
+    var child_keys = child_key_cache[active_page_key];
+    
+    if (child_keys != null){
+        for(var i = 0; i < child_keys.length; i++){
+            var child_page = page_cache[child_keys[i]];
+            if(child_page && child_page.authorname == username){
+                page_count++;
+            }
         }
     }
-
 
     return 2 <= page_count;
 }
