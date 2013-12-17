@@ -270,6 +270,7 @@ class UserInfo(ndb.Model):
         if users.get_current_user():
             result.url = users.create_logout_url('/post_logout')
             result.link_text = 'Logout'
+            result.isloggedin = True
         else:
             result.url = users.create_login_url('/post_login')
             result.link_text = 'Login'
@@ -284,3 +285,4 @@ class SessionInfo:
     link_text = ""
     url = "/"
     username = ""
+    isloggedin = False

@@ -89,8 +89,13 @@
 		    }
 		    
 		    function isLoggedIn(){
+		    	{% if session_info.isloggedin %}
+		    	var is_logged_in = true;
+			    {% else %}
+		    	var is_logged_in = false;
+			    {% endif %}
 		    	var username = $.cookie("username");
-				return username != null && username != "";
+				return is_logged_in && username != null && username != "";
 		    }
 		  </script>
         </div>
