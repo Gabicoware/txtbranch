@@ -90,10 +90,6 @@ function openPage(page_key){
     }
 }
 
-function hasAddPageFormContent(){
-    return 0 < $(linkId).val().length && 0 < $(contentId).val().length;
-}
-
 function openParentPage(parent_page_key){
     
     var page = page_cache[parent_page_key];
@@ -308,6 +304,13 @@ function showNeedLoginMessage(){
     $("#add_page_div").append(template);
 }
 
+var linkId = null;
+var contentId = null;
+
+function hasAddPageFormContent(){
+    return linkId != null && contentId != null && (0 < $(linkId).val().length || 0 < $(contentId).val().length);
+}
+
 function showAddPageForm(){
     
     var page = page_cache[active_page_key];
@@ -352,8 +355,8 @@ function showAddPageForm(){
         }
     });
     
-    var linkId = "#"+page.key+"_child_link";
-    var contentId = "#"+page.key+"_child_content";
+    linkId = "#"+page.key+"_child_link";
+    contentId = "#"+page.key+"_child_content";
     
     form.submit(function() {
         
