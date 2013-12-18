@@ -40,7 +40,8 @@ class LikeHandler(webapp2.RequestHandler):
             like = like_key.get();
             
             if like is None:
-                like = Like(key=like_key,username=username,page=page_key)
+                page = page_key.get()
+                like = Like(key=like_key,username=username,page=page_key,pageauthorname=page.authorname)
             
             like.value = int(like_value)
             

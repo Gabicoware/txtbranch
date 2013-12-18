@@ -86,6 +86,8 @@ class Like(ndb.Model):
     """Models a Like on a page"""
     username = ndb.StringProperty(indexed=True)
     page = ndb.KeyProperty(kind='Page',indexed=True)
+    #denormalizing here, but will make queries much quicker
+    pageauthorname = ndb.StringProperty(indexed=True)
     date = ndb.DateTimeProperty(auto_now_add=True)
     value = ndb.IntegerProperty(indexed=True)
     

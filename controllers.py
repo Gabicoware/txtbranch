@@ -1,6 +1,5 @@
 import threading
 import re
-import logging
 
 from models import Page, UserInfo, Story
 from google.appengine.ext import ndb
@@ -53,12 +52,8 @@ class PageController:
         if len(errors.keys()) == 0:
             page.parent_page = parent_key
             page.authorname = authorname
-            page_key = page.put()
+            page.put()
             
-            logging.info(page_key)
-            logging.info(page.key)
-            logging.info(page_key.get().key)
-        
             parent_page.append_child(page)
             
             return True, page
