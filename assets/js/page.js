@@ -334,10 +334,10 @@ function showAddPageForm(){
                 resetToPage(page.key);
                 for(var key in response.result){
                     if(response.result.hasOwnProperty(key) && add_branch_messages[key] != null){
-                        $("#add_page_div").empty();
+                        //$("#add_page_div").empty();
                         var template = $("#has_links_template").html();
                         template = template.replace(/##message##/g,add_branch_messages[key]);
-                        $("#add_page_div").append(template);
+                        $("#add_page_div").prepend(template);
                     }
                 }
             }
