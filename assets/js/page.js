@@ -84,6 +84,14 @@ function openPage(page_key){
     updateBranchLinks(page_key);
     
     loadParent(page);
+    
+    if(!hasAddPageFormContent()){
+        showAddPageLink();
+    }
+}
+
+function hasAddPageFormContent(){
+    return 0 < $(linkId).val().length && 0 < $(contentId).val().length;
 }
 
 function openParentPage(parent_page_key){
