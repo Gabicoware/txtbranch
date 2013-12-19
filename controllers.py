@@ -108,23 +108,20 @@ class StoryController:
         if len(errors.keys()) != 0:
             return False, errors
         
-#The frequency of story creation should be low enough to ensure that this won't
-#lead to any long standing locking issues
-#WARNING! apparently python locks are horrible        
-        with StoryController._create_story_lock:
-            
-            story = story_key.get();
-            
-            if story:
-                errors['story_exists'] = True
-            
-            if len(errors.keys()) == 0:
-                
-                page.put()
-                story = Story(id=story_name,name=story_name)
-                story.moderatorname = moderatorname
-                story.conventions = conventions
-                story.put()
+        
+        story = story_key.get();
+        
+        if story:
+            errors['story_exists'] = True
+        
+        if len(errors.keys()) == 0:
+            #if two users enter identical information at the same time, then
+            #whoever gets it second is the winner
+            story = Story(id=story_name,name=story_name)
+            story.moderatorname = moderatorname
+            story.conventions = conventions
+            page.put()
+            story.put()
         
         if len(errors.keys()) == 0:
             return True, story
