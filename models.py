@@ -80,6 +80,16 @@ class Story(ndb.Model):
             result[name] = Story.get_by_name(name)
         return result
     
+    @classmethod
+    def main_stories(cls):
+        memcache_key = 'main_stories'
+        data = memcache.get(memcache_key)  # @UndefinedVariable
+        if data is None:
+            stories_query = Story.query()
+            data = stories_query.fetch(64)
+            if not memcache.add(key=memcache_key, value=data, time=60):  # @UndefinedVariable
+                logging.error('main_pages - memcache add failed.')
+        return data
     
 
 class Like(ndb.Model):
@@ -185,6 +195,14 @@ class Page(ndb.Model):
                 if not memcache.add(key=memcache_key, value=data, time=60):  # @UndefinedVariable
                     logging.error('main_pages - memcache add failed.')
             return data
+    
+    @classmethod
+    def get_first_pages(cls,stories):
+        result = {}
+        for story in stories:
+            result[story.name] = ndb.Key(Page,story.name).get()
+        return result
+    
     
     @classmethod
     def format_time_ago(cls,t):

@@ -31,9 +31,8 @@ class MainHandler(RequestHandler):
     
     def get(self):
         
-        pagedatas = Page.main_pagedatas();
-        
-        stories = Story.get_by_names(pagedatas.keys())
+        stories = Story.main_stories()
+        pagedatas = Page.get_first_pages(stories)
         logging.info(stories)
         template_values = {
             'stories': stories,

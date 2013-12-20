@@ -9,20 +9,13 @@
 	<div class="first_time">
 		First time here? To get familiar, take a look at <a href="/story/OnceUponATime">OnceUponATime</a>
 	</div>
-    {% for story_name in pagedatas.keys() %}
-	<div class="story_header"><span class="story_header_name"><a href="/story/{{story_name}}">{{story_name}}</a></span> <span class="story_header_info">moderated by {{stories[story_name].moderatorname}}</span></div>
-	
-	<div class="recent_pages">Recent Pages</div>
-    {% for pagedata in pagedatas[story_name] %}
+    {% for story in stories %}
+	<div class="story_header">
+		<span class="story_header_name"><a href="/story/{{story_name}}">{{story.name}}</a></span> 
+		<span class="story_header_info">moderated by <a href="/user/{{story.moderatorname}}">{{story.moderatorname}}</a></span></div>
     <div class="page_link indent">
-    <a href="/story/{{pagedata['story_name']}}#page_key={{pagedata['page_key']}}">{{pagedata['link']}}</a> ({{pagedata['score']}})<br />
+    &darr; <a href="/story/{{story.name}}">{{pagedatas[story.name]['link']}}</a><br />
     </div>
     <br />
-    <div style="font-size: smaller" class="indent">
-    	branched {{pagedata['time_ago']}} by 
-    	<a href="/user/{{pagedata['authorname']}}">{{pagedata['authorname']}}</a> to 
-    	<a href="/story/{{pagedata['story_name']}}">{{pagedata['story_name']}}</a>
-    </div>
-    {% endfor %}
     {% endfor %}
 {% endblock %}
