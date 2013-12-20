@@ -9,6 +9,7 @@ function getParameterByName(name){
     return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g," "));
 }
 
+var story_name = null;
 var active_page_key = null;
 var page_cache = {};
 var child_key_cache = {};
@@ -63,19 +64,21 @@ function showConventions(){
     $("#show_conventions_div").hide();
     $("#hide_conventions_div").show();
     $("#conventions_div").show();
-    $.cookie("conventions_show_"+active_page_key,"1");
+    $.cookie("conventions_show_"+story_name,"1");
 }
 
 function hideConventions(){
     $("#show_conventions_div").show();
     $("#hide_conventions_div").hide();
     $("#conventions_div").hide();
-    $.cookie("conventions_show_"+active_page_key,"0");
+    $.cookie("conventions_show_"+story_name,"0");
 }
 
 function openPage(page_key){
     
     var page = page_cache[page_key];
+    
+    story_name = page.story_name;
     
     active_page_key = page_key;
     
@@ -390,7 +393,7 @@ function showAddPageForm(){
         $(textarea.textareaId).maxlength(textarea);  
     } 
     
-    if( $.cookie("conventions_show_"+active_page_key) == "0" ){
+    if( $.cookie("conventions_show_"+story_name) == "0" ){
         hideConventions();
     }else{
         showConventions();
