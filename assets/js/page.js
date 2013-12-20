@@ -399,6 +399,9 @@ function showAddPageForm(){
         showConventions();
     }
     
+    $("html, body").animate({scrollTop:$(document).height()},1000);
+    
+    
 }
 var add_branch_messages = {
     'has_branches':'The branch could not be added. You can not create any more branches for this page.',
