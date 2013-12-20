@@ -46,8 +46,8 @@ div.branch_link span{
 	font-size:smaller;
 }
 div.page_info{
-	 display:inline-block;
 	font-size:smaller;
+	color:#555555;
 }
 div.indent{
 	margin-left:20px;
