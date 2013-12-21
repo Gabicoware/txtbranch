@@ -11,7 +11,7 @@
 	</div>
     {% for story in stories %}
 	<div class="story_header">
-		<span class="story_header_name"><a href="/story/{{story_name}}">{{story.name}}</a></span> 
+		<span class="story_header_name"><a href="/story/{{story.name}}">{{story.name}}</a></span> 
 		<span class="story_header_info">moderated by <a href="/user/{{story.moderatorname}}">{{story.moderatorname}}</a></span></div>
     <div class="page_link indent">
     &darr; <a href="/story/{{story.name}}">{{pagedatas[story.name]['link']}}</a><br />

@@ -113,6 +113,7 @@ class Page(ndb.Model):
     link = ndb.StringProperty(indexed=False, validator=string_validator)
     date = ndb.DateTimeProperty(auto_now_add=True)
     parent_page = ndb.KeyProperty(kind='Page',indexed=True)
+    parent_page_authorname = ndb.StringProperty(indexed=True)
     
     _like_count = None
     _unlike_count = None
@@ -300,7 +301,11 @@ class UserInfo(ndb.Model):
     def pages(self):
         data = Page.query(Page.authorname == self.username)
         return sorted(data, key=lambda page: page.score(), reverse=True)
-        
+    
+    def branch_pages(self):
+        data = Page.query(Page.authorname != self.username , Page.parent_page_authorname == self.username)
+        return sorted(data, key=lambda page: page.score(), reverse=True)
+    
 class SessionInfo:
     link_text = ""
     url = "/"

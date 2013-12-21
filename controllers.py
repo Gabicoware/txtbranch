@@ -52,6 +52,7 @@ class PageController:
         if len(errors.keys()) == 0:
             page.parent_page = parent_key
             page.authorname = authorname
+            page.parent_page_authorname = parent_page.authorname
             page.put()
             
             parent_page.append_child(page)

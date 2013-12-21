@@ -20,6 +20,12 @@ div.vote{
     cursor:pointer;
     background-size:contain;
 }
+div.page_content{
+word-break: normal;
+word-wrap: hyphenate;
+white-space: pre;
+white-space: pre-wrap;
+}
 div.like_inactive{
     background-image:url("/assets/img/up_arrow_gray.png");
 }

@@ -175,9 +175,11 @@ class UserHandler(RequestHandler):
             user_info.put()
         
         pages = user_info.pages()
+        branch_pages = user_info.branch_pages()
         
         template_values = {
             'pages' : pages,
+            'branch_pages' : branch_pages,
             'user_info' : user_info,
             'session_info': UserInfo.session_info(self.username()),
         }
