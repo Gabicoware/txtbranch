@@ -91,6 +91,7 @@ function openPage(page_key){
     if(!hasAddPageFormContent()){
         showAddPageLink();
     }
+    window.location.hash = "page_key="+page_key;
 }
 
 function openParentPage(parent_page_key){
