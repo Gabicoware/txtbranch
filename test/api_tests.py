@@ -20,7 +20,7 @@ import api
 class LikeAPITestCase(unittest.TestCase):
     
     user_info = None
-    page = None
+    branch = None
     
     def setUp(self):
         #the memcache will contain values that will break the tests
@@ -45,13 +45,13 @@ class LikeAPITestCase(unittest.TestCase):
         
         self.user_info = UserInfo.put_new(username)
         
-        self.page = Page()
-        self.page.link = "link"+strmillis
-        self.page.content = "content"+strmillis
+        self.branch = Branch()
+        self.branch.link = "link"+strmillis
+        self.branch.content = "content"+strmillis
         
-        self.page.story_name = "story_name"+strmillis
-        self.page.authorname = "pageauthorname"+strmillis
-        self.page.put()
+        self.branch.tree_name = "tree_name"+strmillis
+        self.branch.authorname = "branchauthorname"+strmillis
+        self.branch.put()
         
         
         
@@ -63,7 +63,7 @@ class LikeAPITestCase(unittest.TestCase):
         #cookie = "username=\"test_user1387317668650:False:185804764220139124118\""
         headers = [("Cookie",cookie)] 
         #"username=\""+self.user_info.username+"\"")]
-        request = webapp2.Request.blank('/api/v1/likes?value=1&page_key='+self.page.key.urlsafe(),headers=headers)
+        request = webapp2.Request.blank('/api/v1/likes?value=1&branch_key='+self.branch.key.urlsafe(),headers=headers)
         request.method = "GET"
         
         response = request.get_response(api.application)

@@ -1,10 +1,10 @@
 import webapp2
 
-from handlers import CreateStoryHandler, EditStoryHandler
+from handlers import CreateTreeHandler, EditTreeHandler
 
 handlers = [
-    ('/admin/story/new', CreateStoryHandler),
-    ('/admin/story/edit/([\d\w_\-]+)', EditStoryHandler),
+    ('/admin/tree/new', CreateTreeHandler),
+    ('/admin/tree/edit/([\d\w_\-]+)', EditTreeHandler),
 ]
 
 application = webapp2.WSGIApplication(handlers, debug=True)

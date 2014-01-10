@@ -20,7 +20,7 @@ div.vote{
     cursor:pointer;
     background-size:contain;
 }
-div.page_content{
+div.branch_content{
 word-break: normal;
 word-wrap: hyphenate;
 white-space: pre;
@@ -42,16 +42,16 @@ div.stats{
     display:inline-block;
     height:20px;
 }
-div.page_link{
+div.branch_link{
 	display:inline-block;
 }
-div.page_link a{
+div.branch_link a{
 	font-size:larger;
 }
 div.branch_link span{
 	font-size:smaller;
 }
-div.page_info{
+div.branch_info{
 	font-size:smaller;
 	color:#555555;
 }
@@ -69,22 +69,22 @@ div.first_time{
 	padding: 5px 5px 5px 5px;
 	max-width:500px;
 }
-div.story_header{
+div.tree_header{
 	padding: 16px 0px 0px 0px;
 	font-weight:bolder;
 }
 
-span.story_header_name{
+span.tree_header_name{
 	font-size:large;
 }
-span.story_header_info{
+span.tree_header_info{
 	font-size:normal;
 }
-div.recent_pages{
+div.recent_branchs{
 	padding:4px 0px 4px 0px;
 	font-size:smaller;
 	font-weight:bold;
 }
-#link_container, #add_page_link{
+#link_container, #add_branch_link{
 	padding:0px 0px 0px 10px;
 }

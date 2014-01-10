@@ -8,9 +8,9 @@ handlers = [
     ('/post_logout', PostLogoutHandler),
     ('/about', AboutHandler),
     ('/', MainHandler),
-    ('/story/new', CreateStoryHandler),
-    (r'/story/([\d\w_\-]+)/edit', EditStoryHandler),
-    (r'/story/([\d\w_\-]+)', StoryHandler),
+    ('/tree/new', CreateTreeHandler),
+    (r'/tree/([\d\w_\-]+)/edit', EditTreeHandler),
+    (r'/tree/([\d\w_\-]+)', TreeHandler),
 ]
 
 application = webapp2.WSGIApplication(handlers, debug=True)

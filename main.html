@@ -7,14 +7,14 @@
 
 {% block content %}
 	<div class="first_time">
-		First time here? To get familiar, take a look at <a href="/story/OnceUponATime">OnceUponATime</a>
+		First time here? To get familiar, take a look at <a href="/tree/OnceUponATime">OnceUponATime</a>
 	</div>
-    {% for story in stories %}
-	<div class="story_header">
-		<span class="story_header_name"><a href="/story/{{story.name}}">{{story.name}}</a></span> 
-		<span class="story_header_info">moderated by <a href="/user/{{story.moderatorname}}">{{story.moderatorname}}</a></span></div>
-    <div class="page_link indent">
-    &darr; <a href="/story/{{story.name}}">{{pagedatas[story.name]['link']}}</a><br />
+    {% for tree in trees %}
+	<div class="tree_header">
+		<span class="tree_header_name"><a href="/tree/{{tree.name}}">{{tree.name}}</a></span> 
+		<span class="tree_header_info">moderated by <a href="/user/{{tree.moderatorname}}">{{tree.moderatorname}}</a></span></div>
+    <div class="branch_link indent">
+    &darr; <a href="/tree/{{tree.name}}">{{branchdatas[tree.name]['link']}}</a><br />
     </div>
     <br />
     {% endfor %}

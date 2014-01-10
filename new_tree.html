@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block additional_header %}
+    
+    <style>
+        #tree_name, #root_branch_link, textarea{ margin-bottom:2px; width:100%; max-width:600px;}
+        label{color:#124E94; margin-top:10px}
+        .chars_left{font-size:90%; text-align:right; width:100%; max-width:600px;}
+        input.invalid{background-color:#FF8888}
+        textarea.invalid{background-color:#FF8888}
+        div.invalid_message{ color:#FF8888; font-size:90%; }
+        div.message{ font-size:90%; color:#888888;}
+    </style>
+    <script>
+        function showAddBranchLink(){
+            document.getElementById('add_branch_div').className='add_branch_active';
+            document.getElementById('add_branch_link').className='add_branch_inactive';
+        }
+    </script>
+
+{% endblock %}
+
+
+{% block content %}
+    
+    <div id="add_tree_div">
+    {% if session_info.username %}
+        <b>Add a Tree</b>
+        <form id="new_tree_form" action="{{new_tree_endpoint}}" method="post">
+            <div>
+                <label for="tree_name">Tree Name <b>*</b></label>
+            </div>
+            <div>
+                <input type="text" id="tree_name" name="tree_name" value="{{tree_name}}" />
+            </div>
+            <div id="tree_name_message" class="message">
+            </div>
+            
+            <div>
+                <label for="root_branch_link">First Branch Link <b>*</b></label>
+            </div>
+            <div>
+                <input type="text"  id="root_branch_link" name="root_branch_link" value="{{root_branch_link}}" />
+            </div>
+            {% if errors['empty_root_branch_link'] %}
+            <div class="invalid_message">
+                A first branch link is required.
+            </div>
+            {% endif %}
+            <div>
+                <label for="root_branch_content">First Branch Content <b>*</b></label>
+            </div>
+            <div>
+                <textarea id="root_branch_content" name="root_branch_content" rows="3" >{{root_branch_content}}</textarea>
+            </div>
+            {% if errors['empty_root_branch_content'] %}
+            <div class="invalid_message">
+                A first branch content is required.
+            </div>
+            {% endif %}
+            <div>
+                <label for="conventions">Tree Conventions</label>
+            </div>
+            <div>
+                <textarea id="conventions" name="conventions" rows="6" >{{conventions}}</textarea>
+            </div>
+            <br />
+            <div>Once added, you may only edit the conventions of a tree.</div>
+            <div><b>*</b> Required</div>
+            
+            <br />
+            <div><input type="submit" value="Add Tree"></div>
+        </form>
+		<script>
+		    
+		    {% if errors %}
+        	var errors = {{errors}};
+		    {% else %}
+        	var errors = {};
+		    {% endif %}
+			
+			if( errors['empty_root_branch_content'] != null){
+	        	$("#root_branch_content").addClass('invalid')
+        	}
+			if( errors['empty_root_branch_link'] != null){
+	        	$("#root_branch_link").addClass('invalid')
+        	}
+			
+        	var messages = {
+		    	'valid_tree_name':"Names must be between 4 and 20 characters, and contain only numbers, letters, dashes, and underscores.",
+		    	'invalid_name':"Names must be between 4 and 20 characters, and contain only numbers, letters, dashes, and underscores.",
+		    	'tree_exists':"There is already a tree with this name."
+		    }
+		    
+		    $("#tree_name").focus(function() {
+		        $("#tree_name_message").text(messages['valid_tree_name'])
+		        $("#tree_name_message").removeClass('invalid_message')
+		        $("#tree_name_message").addClass('message')
+		        $("#tree_name").removeClass('invalid')
+		    });
+			
+			var message = messages['valid_tree_name']
+			
+        	for (var key in messages){
+        		if( errors[key] != null){
+                	message = messages[key];
+		        	$("#tree_name_message").addClass('invalid_message')
+			        $("#tree_name_message").removeClass('message')
+	        		$("#tree_name").addClass('invalid')
+            	}
+        	}
+        	
+            $("#tree_name_message").text(message);
+        	
+            $("#new_tree_form").submit(function() {
+                
+                var hasValidLink = 0 < $('#root_branch_link').val().length && $('#root_branch_link').val().length < {{link_max}};
+                var hasValidContent = 0 < $('#root_branch_content').val().length && $('#root_branch_content').val().length < {{content_max}};
+                
+                if(!hasValidLink){
+                    $('#root_branch_link').addClass('invalid');
+                }
+                if(!hasValidContent){
+                    $('#root_branch_content').addClass('invalid');
+                }
+                
+                return hasValidLink && hasValidContent;
+            });
+            var textareas=[{
+                textareaId:'#root_branch_link',
+                maxCharacters: {{link_max}}, // Characters limit  
+                statusClass: "chars_left", // The class on the status div 
+                notificationClass: "invalid", 
+                statusText: "", // The status text 
+            },{
+                textareaId:'#root_branch_content',
+                maxCharacters: {{content_max}}, // Characters limit  
+                statusClass: "chars_left", // The class on the status div 
+                notificationClass: "invalid", 
+                statusText: "", // The status text 
+            }];
+        </script>
+    {% else %}
+        <div class="no_links">You must <a href="{{ session_info.url|safe }}">{{ session_info.link_text }}</a> to add a Tree.</div>
+    {% endif %}
+    </div>
+
+    
+{% endblock %}

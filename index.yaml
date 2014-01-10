@@ -3,6 +3,6 @@ indexes:
 - kind: Like
   ancestor: no
   properties:
-  - name: page
+  - name: branch
   - name: user
   - name: value

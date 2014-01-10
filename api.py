@@ -9,8 +9,8 @@ import logging
 
 from json import JSONEncoder
 
-from models import Like, UserInfo, Page
-from controllers import UserInfoController, PageController
+from models import Like, UserInfo, Branch
+from controllers import UserInfoController, BranchController
 
 class ModelEncoder(JSONEncoder):
 #TODO make non models passthrough objects
@@ -24,9 +24,9 @@ class ModelEncoder(JSONEncoder):
 class LikeHandler(webapp2.RequestHandler):
     
     def get(self):
-        page_urlsafe_key = self.request.get('page_key')
+        branch_urlsafe_key = self.request.get('branch_key')
         
-        if page_urlsafe_key is None or page_urlsafe_key == '':
+        if branch_urlsafe_key is None or branch_urlsafe_key == '':
             return self.response.write('NO PAGE KEY SPECIFIED')
         
         username = self.request.cookies.get('username')
@@ -34,14 +34,14 @@ class LikeHandler(webapp2.RequestHandler):
         if userinfo and userinfo.is_current():
             
             like_value = self.request.get('value','0')
-            page_key = ndb.Key(urlsafe=page_urlsafe_key)
+            branch_key = ndb.Key(urlsafe=branch_urlsafe_key)
              
-            like_key = Like.create_key(page_key,self.request.cookies.get('username'))
+            like_key = Like.create_key(branch_key,self.request.cookies.get('username'))
             like = like_key.get();
             
             if like is None:
-                page = page_key.get()
-                like = Like(key=like_key,username=username,page=page_key,pageauthorname=page.authorname)
+                branch = branch_key.get()
+                like = Like(key=like_key,username=username,branch=branch_key,branchauthorname=branch.authorname)
             
             like.value = int(like_value)
             
@@ -85,55 +85,55 @@ class UserInfoHandler(webapp2.RequestHandler):
         else:
             self.response.write(json.dumps({'status':'ERROR','result':result}))
     
-class PageHandler(webapp2.RequestHandler):
+class BranchHandler(webapp2.RequestHandler):
 
     def get(self):
     
-        items = self.request.GET.getall('page_key')
+        items = self.request.GET.getall('branch_key')
         
         if len(items) == 0:
-            parent_page_key_urlsafe = self.request.get('parent_page_key')
-            if parent_page_key_urlsafe:
-                parent_page_key = ndb.Key(urlsafe=parent_page_key_urlsafe)
-                parent_page = parent_page_key.get()
-                items = parent_page.children()
+            parent_branch_key_urlsafe = self.request.get('parent_branch_key')
+            if parent_branch_key_urlsafe:
+                parent_branch_key = ndb.Key(urlsafe=parent_branch_key_urlsafe)
+                parent_branch = parent_branch_key.get()
+                items = parent_branch.children()
         
-        pages = []
+        branchs = []
         
         for item in items:
             
             logging.info(str(item))
             
-            page = None
+            branch = None
             
-            if isinstance(item,Page):
-                page = item
+            if isinstance(item,Branch):
+                branch = item
             else:
-                page_key = ndb.Key(urlsafe=str(item))
-                page = page_key.get()
+                branch_key = ndb.Key(urlsafe=str(item))
+                branch = branch_key.get()
                 
-            if page:
-                page_dict = self.expanded_page(page)
-                pages.append(page_dict)
+            if branch:
+                branch_dict = self.expanded_branch(branch)
+                branchs.append(branch_dict)
         
-        self.response.write(json.dumps({'status':'OK','result':pages}, cls=ModelEncoder))
+        self.response.write(json.dumps({'status':'OK','result':branchs}, cls=ModelEncoder))
             
 
-    def expanded_page(self,page):
+    def expanded_branch(self,branch):
         
         like_value = 0
         
         username = self.request.cookies.get('username')
         userinfo = UserInfo.get_by_username(username)    
         if userinfo and userinfo.is_current():
-            like_key = Like.create_key(page.key,self.request.cookies.get('username'))
+            like_key = Like.create_key(branch.key,self.request.cookies.get('username'))
             like = like_key.get();
             if like:
                 like_value = like.value
         
-        child_count = page.child_count()
-        like_count = page.like_count()
-        unlike_count = page.unlike_count()
+        child_count = branch.child_count()
+        like_count = branch.like_count()
+        unlike_count = branch.unlike_count()
         
         #adjust the like count based on the like value
         if like_value == 1:
@@ -141,39 +141,39 @@ class PageHandler(webapp2.RequestHandler):
         if like_value == -1:
             unlike_count -= 1
         
-        page_dict = page.to_dict();
+        branch_dict = branch.to_dict();
         
-        page_dict['child_count'] = child_count
-        page_dict['like_value'] = like_value
-        page_dict['like_count'] = like_count
-        page_dict['unlike_count'] = unlike_count
+        branch_dict['child_count'] = child_count
+        branch_dict['like_value'] = like_value
+        branch_dict['like_count'] = like_count
+        branch_dict['unlike_count'] = unlike_count
         
-        page_dict['key'] = page.key.urlsafe()
+        branch_dict['key'] = branch.key.urlsafe()
         
-        return page_dict
+        return branch_dict
 
     def post(self):
-        parent_urlsafe_key = self.request.get('parent_page_key')
+        parent_urlsafe_key = self.request.get('parent_branch_key')
         
-        success, result = PageController.save_page(
+        success, result = BranchController.save_branch(
           self.request.cookies.get('username'),
           parent_urlsafe_key,
           self.request.get('link',''),
           self.request.get('content',''))
          
         if success:
-            page_dict = result.to_dict()
-            page_dict['key'] = result.key.urlsafe();
-            page_dict['child_count'] = 0
-            page_dict['like_value'] = 0
-            page_dict['like_count'] = 0
-            page_dict['unlike_count'] = 0
+            branch_dict = result.to_dict()
+            branch_dict['key'] = result.key.urlsafe();
+            branch_dict['child_count'] = 0
+            branch_dict['like_value'] = 0
+            branch_dict['like_count'] = 0
+            branch_dict['unlike_count'] = 0
     
-            self.response.write(json.dumps({'status':'OK','result':page_dict},cls=ModelEncoder))
+            self.response.write(json.dumps({'status':'OK','result':branch_dict},cls=ModelEncoder))
         else:
             self.response.write(json.dumps({'status':'ERROR','result':result}))
         
-#        redirect_url = '/page?' + urllib.urlencode(query_params)
+#        redirect_url = '/branch?' + urllib.urlencode(query_params)
         
 #        self.redirect(redirect_url)
 
@@ -183,7 +183,7 @@ class PageHandler(webapp2.RequestHandler):
 
 handlers = [
     ('/api/v1/likes', LikeHandler),
-    ('/api/v1/pages', PageHandler),
+    ('/api/v1/branchs', BranchHandler),
     ('/api/v1/userinfos', UserInfoHandler),
 ]
 

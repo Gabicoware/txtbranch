@@ -7,19 +7,19 @@
     <h4>{{user_info.username}}</h4>
 {% endblock %}
 
-    <h4>Response Pages</h4>
-    {% for page in branch_pages %}
+    <h4>Response Branchs</h4>
+    {% for branch in branch_branchs %}
     <div class="branch_link">
-        <a href="/story/{{ page.story_name }}#page_key={{page.key.urlsafe()}}">{{ page.link }}</a> by 
-        <a href="/user/{{page.authorname}}">{{page.authorname}}</a> in 
-        <a href="/story/{{ page.story_name }}">{{page.story_name}}</a><br />
+        <a href="/tree/{{ branch.tree_name }}#branch_key={{branch.key.urlsafe()}}">{{ branch.link }}</a> by 
+        <a href="/user/{{branch.authorname}}">{{branch.authorname}}</a> in 
+        <a href="/tree/{{ branch.tree_name }}">{{branch.tree_name}}</a><br />
     </div>
     {% endfor %}
     
-    <h4>Pages</h4>
-    {% for page in pages %}
+    <h4>Branchs</h4>
+    {% for branch in branchs %}
     <div class="branch_link">
-        <a href="/story/{{ page.story_name }}#page_key={{page.key.urlsafe()}}">{{ page.link }}</a> ( {{page.score()}} )<br />
+        <a href="/tree/{{ branch.tree_name }}#branch_key={{branch.key.urlsafe()}}">{{ branch.link }}</a> ( {{branch.score()}} )<br />
     </div>
     {% endfor %}
 

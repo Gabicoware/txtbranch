@@ -1,12 +1,12 @@
 import threading
 import re
 
-from models import Page, UserInfo, Story
+from models import Branch, UserInfo, Tree
 from google.appengine.ext import ndb
 
-class PageController:
+class BranchController:
     @classmethod
-    def save_page(cls,authorname,parent_urlsafe_key,link,content):
+    def save_branch(cls,authorname,parent_urlsafe_key,link,content):
         
         userinfo = UserInfo.get_by_username(authorname)    
         if userinfo is None or not userinfo.is_current():
@@ -15,58 +15,58 @@ class PageController:
         
         errors = {}
         
-        page = Page()
-        page.link = link
-        page.content = content
+        branch = Branch()
+        branch.link = link
+        branch.content = content
         
         parent_key = ndb.Key(urlsafe=parent_urlsafe_key)
-        parent_page = parent_key.get()
+        parent_branch = parent_key.get()
         
-        page.story_name = parent_page.story_name
+        branch.tree_name = parent_branch.tree_name
         
-        if len(page.link) == 0:
-            errors['empty_page_link'] = True
+        if len(branch.link) == 0:
+            errors['empty_branch_link'] = True
         
-        if len(page.content) == 0:
-            errors['empty_page_content'] = True
+        if len(branch.content) == 0:
+            errors['empty_branch_content'] = True
         
         
 #Comment on thread safety:
-#Page creation will be a VERY frequent operation. Multiple pages with identical links
+#Branch creation will be a VERY frequent operation. Multiple branchs with identical links
 #Isn't an application error, just an annoyance for the user. So we allow this to occur
 #without a lock in place
         
         authored_branch_count = 0
                 
-        pages = parent_page.children()
+        branchs = parent_branch.children()
         
-        for branch_page in pages:
-            if branch_page.link == page.link:
+        for branch_branch in branchs:
+            if branch_branch.link == branch.link:
                 errors['has_identical_link'] = True
-            if branch_page.authorname == authorname:
+            if branch_branch.authorname == authorname:
                 authored_branch_count += 1
         
         if 2 <= authored_branch_count:
             errors['has_branches'] = True
         
         if len(errors.keys()) == 0:
-            page.parent_page = parent_key
-            page.authorname = authorname
-            page.parent_page_authorname = parent_page.authorname
-            page.put()
+            branch.parent_branch = parent_key
+            branch.authorname = authorname
+            branch.parent_branch_authorname = parent_branch.authorname
+            branch.put()
             
-            parent_page.append_child(page)
+            parent_branch.append_child(branch)
             
-            return True, page
+            return True, branch
         else:
             return False, errors
         
-class StoryController:
+class TreeController:
     
-    _create_story_lock = threading.Lock()
+    _create_tree_lock = threading.Lock()
     
     @classmethod
-    def save_story(cls,story_name,moderatorname,conventions,root_page_link,root_page_content):
+    def save_tree(cls,tree_name,moderatorname,conventions,root_branch_link,root_branch_content):
         
         if moderatorname is None:
             return False, { 'unauthenticated':True}
@@ -79,62 +79,62 @@ class StoryController:
         if author_info.username is None:
             return False, { 'invalid_user':True}
         
-        story_key = Story.create_key(story_name)
+        tree_key = Tree.create_key(tree_name)
         
         errors = {}
         
-        empty_name = story_name is None or len(story_name) == 0
+        empty_name = tree_name is None or len(tree_name) == 0
         
         if empty_name:
             errors['empty_name'] = True
         else:
-            match = re.search(r'^[\d\w_\-]+$', story_name)
-            isvalid = match and 4 <= len(story_name) and len(story_name) <= 20;
+            match = re.search(r'^[\d\w_\-]+$', tree_name)
+            isvalid = match and 4 <= len(tree_name) and len(tree_name) <= 20;
             if not isvalid:
                 errors['invalid_name'] = True
         
-        page = Page(id=story_name)
-        page.authorname = moderatorname
-        page.link = root_page_link
-        page.content = root_page_content
-        page.story_name = story_name
+        branch = Branch(id=tree_name)
+        branch.authorname = moderatorname
+        branch.link = root_branch_link
+        branch.content = root_branch_content
+        branch.tree_name = tree_name
         
-        if page.link == None or len(page.link) == 0:
-            errors['empty_root_page_link'] = True
+        if branch.link == None or len(branch.link) == 0:
+            errors['empty_root_branch_link'] = True
         
-        if page.content == None or len(page.content) == 0:
-            errors['empty_root_page_content'] = True
+        if branch.content == None or len(branch.content) == 0:
+            errors['empty_root_branch_content'] = True
         
-#let the user complete the other validation before trying to create the story        
+#let the user complete the other validation before trying to create the tree        
         if len(errors.keys()) != 0:
             return False, errors
         
         
-        story = story_key.get();
+        tree = tree_key.get();
         
-        if story:
-            errors['story_exists'] = True
+        if tree:
+            errors['tree_exists'] = True
         
         if len(errors.keys()) == 0:
             #if two users enter identical information at the same time, then
             #whoever gets it second is the winner
-            story = Story(id=story_name,name=story_name)
-            story.moderatorname = moderatorname
-            story.conventions = conventions
-            page.put()
-            story.put()
+            tree = Tree(id=tree_name,name=tree_name)
+            tree.moderatorname = moderatorname
+            tree.conventions = conventions
+            branch.put()
+            tree.put()
         
         if len(errors.keys()) == 0:
-            return True, story
+            return True, tree
         else:
             return False, errors
         
         
     @classmethod
-    def update_story(cls,story,moderatorname,conventions):
+    def update_tree(cls,tree,moderatorname,conventions):
         
-        if story is None:
-            return False, { 'story_not_found':True}
+        if tree is None:
+            return False, { 'tree_not_found':True}
         
         if moderatorname is None:
             return False, { 'unauthenticated':True}
@@ -148,10 +148,10 @@ class StoryController:
             return False, { 'invalid_user':True}
         
         
-        story.conventions = conventions
-        story.put()
+        tree.conventions = conventions
+        tree.put()
 
-        return True, story
+        return True, tree
 
 class UserInfoController:
     

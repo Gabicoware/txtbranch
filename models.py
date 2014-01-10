@@ -8,11 +8,11 @@ import datetime
 from HTMLParser import HTMLParser
 
 config = {
-    "stories": {
-        "default_name": "default_story",
+    "trees": {
+        "default_name": "default_tree",
         "custom_enabled": False,
     },
-    "pages": {
+    "branchs": {
         "link_max": 64,
         "content_max": 256,
         "depth_max": 512,
@@ -34,9 +34,9 @@ def string_validator(prop, value):
     value = stripper.get_data()
     max_chars = 10000
     if prop._name == 'link':
-        max_chars = config['pages']['link_max']
+        max_chars = config['branchs']['link_max']
     elif prop._name == 'content':
-        max_chars = config['pages']['content_max']
+        max_chars = config['branchs']['content_max']
     
     if max_chars < len(value):
         value = value[:max_chars]
@@ -44,76 +44,76 @@ def string_validator(prop, value):
     return value
     
     
-def page_url(story_name, page_key):
-    query_params = {'page_key': page_key.urlsafe()}
-    return '/page?%s' % (urllib.urlencode(query_params))
+def branch_url(tree_name, branch_key):
+    query_params = {'branch_key': branch_key.urlsafe()}
+    return '/branch?%s' % (urllib.urlencode(query_params))
 
 def user_url(username):
     return '/user/'+username
 
-class Story(ndb.Model):
-    """Models an individual Story"""
+class Tree(ndb.Model):
+    """Models an individual Tree"""
     moderatorname = ndb.StringProperty(indexed=True)
     name = ndb.StringProperty(indexed=False,validator=string_validator)
     conventions = ndb.TextProperty(validator=string_validator)
     
     @classmethod
-    def create_key(cls, story_name=config['stories']['default_name']):
-        """Constructs a Datastore key for a Game entity with story_name."""
-        return ndb.Key('Story', story_name)
+    def create_key(cls, tree_name=config['trees']['default_name']):
+        """Constructs a Datastore key for a Game entity with tree_name."""
+        return ndb.Key('Tree', tree_name)
     
     @classmethod
-    def get_by_name(cls,story_name):
-        if story_name:
-            return Story.create_key(story_name).get()
+    def get_by_name(cls,tree_name):
+        if tree_name:
+            return Tree.create_key(tree_name).get()
         return None
     
-    #we store the root page with an id equali to the name of the story
-    #all other pages are stored with random integer ids
-    def get_root_page(self):
-        return ndb.Key('Page',self.name).get()
+    #we store the root branch with an id equali to the name of the tree
+    #all other branchs are stored with random integer ids
+    def get_root_branch(self):
+        return ndb.Key('Branch',self.name).get()
     
     @classmethod
     def get_by_names(cls,names):
         result = {}
         for name in names:
-            result[name] = Story.get_by_name(name)
+            result[name] = Tree.get_by_name(name)
         return result
     
     @classmethod
-    def main_stories(cls):
-        memcache_key = 'main_stories'
+    def main_trees(cls):
+        memcache_key = 'main_trees'
         data = memcache.get(memcache_key)  # @UndefinedVariable
         if data is None:
-            stories_query = Story.query()
-            data = stories_query.fetch(64)
+            trees_query = Tree.query()
+            data = trees_query.fetch(64)
             if not memcache.add(key=memcache_key, value=data, time=60):  # @UndefinedVariable
-                logging.error('main_pages - memcache add failed.')
+                logging.error('main_branchs - memcache add failed.')
         return data
     
 
 class Like(ndb.Model):
-    """Models a Like on a page"""
+    """Models a Like on a branch"""
     username = ndb.StringProperty(indexed=True)
-    page = ndb.KeyProperty(kind='Page',indexed=True)
+    branch = ndb.KeyProperty(kind='Branch',indexed=True)
     #denormalizing here, but will make queries much quicker
-    pageauthorname = ndb.StringProperty(indexed=True)
+    branchauthorname = ndb.StringProperty(indexed=True)
     date = ndb.DateTimeProperty(auto_now_add=True)
     value = ndb.IntegerProperty(indexed=True)
     
     #assumes that the 
     @classmethod
-    def create_key(cls, page_key, username):
-        return ndb.Key('Like', username+"_"+page_key.urlsafe())
+    def create_key(cls, branch_key, username):
+        return ndb.Key('Like', username+"_"+branch_key.urlsafe())
     
-class Page(ndb.Model):
+class Branch(ndb.Model):
     authorname = ndb.StringProperty(indexed=True)
-    story_name = ndb.StringProperty(indexed=True)
+    tree_name = ndb.StringProperty(indexed=True)
     content = ndb.StringProperty(indexed=False, validator=string_validator)
     link = ndb.StringProperty(indexed=False, validator=string_validator)
     date = ndb.DateTimeProperty(auto_now_add=True)
-    parent_page = ndb.KeyProperty(kind='Page',indexed=True)
-    parent_page_authorname = ndb.StringProperty(indexed=True)
+    parent_branch = ndb.KeyProperty(kind='Branch',indexed=True)
+    parent_branch_authorname = ndb.StringProperty(indexed=True)
     
     _like_count = None
     _unlike_count = None
@@ -121,23 +121,23 @@ class Page(ndb.Model):
     
     def url(self):
         if self.key:
-            query_params = {'page_key': self.key.urlsafe()}
-            return '/page#%s' % (urllib.urlencode(query_params))
+            query_params = {'branch_key': self.key.urlsafe()}
+            return '/branch#%s' % (urllib.urlencode(query_params))
         return None
     
     def like_count(self):
         if self._like_count is None:
-            self._like_count = Like.query(Like.page==self.key,Like.value==1).count()
+            self._like_count = Like.query(Like.branch==self.key,Like.value==1).count()
         return self._like_count
     
     def unlike_count(self):
         if self._unlike_count is None:
-            self._unlike_count = Like.query(Like.page==self.key,Like.value==-1).count()
+            self._unlike_count = Like.query(Like.branch==self.key,Like.value==-1).count()
         return self._unlike_count
     
     def child_count(self):
         if self._child_count is None:
-            self._child_count = Page.query( Page.parent_page==self.key).count()
+            self._child_count = Branch.query( Branch.parent_branch==self.key).count()
         return self._child_count
     
     def score(self):
@@ -150,12 +150,12 @@ class Page(ndb.Model):
         memcache_key = self.children_key()
         data = memcache.get(memcache_key)  # @UndefinedVariable
         if data is None:
-            pages_query = Page.query( Page.parent_page==self.key)
-            data = pages_query.fetch(64)
+            branchs_query = Branch.query( Branch.parent_branch==self.key)
+            data = branchs_query.fetch(64)
             self._child_count = len(data)
             if not memcache.add(key=memcache_key, value=data, time=60):  # @UndefinedVariable
                 logging.error('get_children - memcache add failed.')
-        return sorted(data, key=lambda page: page.score(), reverse=True)
+        return sorted(data, key=lambda branch: branch.score(), reverse=True)
     
     def append_child(self,child):
         memcache_key = self.children_key()
@@ -177,31 +177,31 @@ class Page(ndb.Model):
             logging.info('append_child - child exists')
             
     @classmethod
-    def main_pagedatas(cls):
-            memcache_key = 'main_pages_key'
+    def main_branchdatas(cls):
+            memcache_key = 'main_branchs_key'
             data = memcache.get(memcache_key)  # @UndefinedVariable
             if data is None:
-                pages_query = Page.query()
-                pages = pages_query.fetch(64)
+                branchs_query = Branch.query()
+                branchs = branchs_query.fetch(64)
                 data = {}
-                for page in pages:
-                    pagedata = page.to_dict()
-                    pagedata['time_ago'] = Page.format_time_ago(page.date)
-                    pagedata['page_key'] = page.key.urlsafe()
-                    pagedata['score'] = page.score()
-                    if pagedata['story_name'] not in data:
-                        data[pagedata['story_name']] = []
-                    story_pagedatas = data[pagedata['story_name']]
-                    story_pagedatas.append(pagedata)
+                for branch in branchs:
+                    branchdata = branch.to_dict()
+                    branchdata['time_ago'] = Branch.format_time_ago(branch.date)
+                    branchdata['branch_key'] = branch.key.urlsafe()
+                    branchdata['score'] = branch.score()
+                    if branchdata['tree_name'] not in data:
+                        data[branchdata['tree_name']] = []
+                    tree_branchdatas = data[branchdata['tree_name']]
+                    tree_branchdatas.append(branchdata)
                 if not memcache.add(key=memcache_key, value=data, time=60):  # @UndefinedVariable
-                    logging.error('main_pages - memcache add failed.')
+                    logging.error('main_branchs - memcache add failed.')
             return data
     
     @classmethod
-    def get_first_pages(cls,stories):
+    def get_first_branchs(cls,trees):
         result = {}
-        for story in stories:
-            result[story.name] = ndb.Key(Page,story.name).get()
+        for tree in trees:
+            result[tree.name] = ndb.Key(Branch,tree.name).get()
         return result
     
     
@@ -298,13 +298,13 @@ class UserInfo(ndb.Model):
         result.username = username
         return result
         
-    def pages(self):
-        data = Page.query(Page.authorname == self.username)
-        return sorted(data, key=lambda page: page.score(), reverse=True)
+    def branchs(self):
+        data = Branch.query(Branch.authorname == self.username)
+        return sorted(data, key=lambda branch: branch.score(), reverse=True)
     
-    def branch_pages(self):
-        data = Page.query(Page.authorname != self.username , Page.parent_page_authorname == self.username)
-        return sorted(data, key=lambda page: page.score(), reverse=True)
+    def branch_branchs(self):
+        data = Branch.query(Branch.authorname != self.username , Branch.parent_branch_authorname == self.username)
+        return sorted(data, key=lambda branch: branch.score(), reverse=True)
     
 class SessionInfo:
     link_text = ""

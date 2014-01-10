@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block additional_header %}
+    
+    <script type="text/javascript">
+    	var config = {
+    		'link_max' : parseInt('{{link_max}}'),
+    		'content_max' : parseInt('{{content_max}}')
+    	};
+    </script>
+    <script type="text/javascript" src="/assets/js/txtbranch.js"></script>
+    <script id="parent_branch_template" type="text/template">
+        <div class="parent_branch_link" >
+            &uarr; <a href="javascript:void(0)" onclick="openParentBranch('##branch.key##')">##branch.link##</a>
+        </div>
+        <hr />
+    </script>
+    <script id="branch_template" type="text/template">
+    	<div id="##branch_div_id##">
+	    	<div>
+	            <div class="branch_link" >
+	                <a href="javascript:void(0)" onclick="returnToBranch('##branch.key##')">##branch.link##</a>
+	            </div>
+	            <div class="branch_info">
+	                <div id="##like_div_id##" class="like_div vote" onclick="toggleLike('##branch.key##',1);" > </div>
+	                <div id="##unlike_div_id##" class="unlike_div vote" onclick="toggleLike('##branch.key##',-1);" > </div>
+	                <div class="stats">
+	                    ( <span id="branch_count_span">##branch.child_count##</span> / <span id="##like_count_span_id##" >0</span> / <span id="##unlike_count_span_id##" >0</span> ) 
+	                </div>
+	                ##author_info##
+	            </div>
+	        </div>
+	        <div class="branch_content">##branch.content##</div>
+	        <br />
+       	</div>
+    </script>
+    <script id="branch_link_template" type="text/template">
+        <div class="branch_link">
+            <a href="javascript:void(0)" onclick="openBranch('##branch.key##')">##branch.link##</a> <span>( ##branch.score## )</span><br />
+        </div>
+    </script>
+    <script id="no_links_template" type="text/template">
+	    <div class="no_links">
+    	    This branch does not have any branches yet. You should add one!<br />
+        </div>
+    </script>
+    <script id="has_links_template" type="text/template">
+	    <div class="invalid">##message##</div>
+    </script>
+    <script id="add_branch_form_template" type="text/template">
+        <b>Add a Branch</b>
+        <form id="##branch.key##_child_add_branch_form" action="/api/v1/branchs" method="post">
+            <input name="parent_branch_key" type="hidden" value="##branch.key##" />
+            <div id="show_conventions_div">
+                <a href="javascript:void(0)" onclick="showConventions()" style="font-size:smaller">(show conventions)</a>
+            </div>
+            <div id="hide_conventions_div">
+                Tree Conventions <a href="javascript:void(0)" onclick="hideConventions()" style="font-size:smaller">(hide)</a>
+            </div>
+            <div id="conventions_div">
+		        <pre class="form_conventions" >{{tree.conventions}}</pre>
+            </div>
+            <br />
+            <div>
+                <label for="##branch.key##_child_link">Link</label>
+            </div>
+            <div>
+                <input class="form_link" id="##branch.key##_child_link" name="link" rows="1" type="text" />
+            </div>
+            <br />
+            <div>
+                <label for="##branch.key##_child_content">Content</label>
+            </div>
+            <div>
+                <textarea class="form_content" id="##branch.key##_child_content" name="content" rows="3" cols="60" ></textarea>
+            </div>
+            <br />
+            <div>
+            	<input type="button" value="Cancel" onclick="showAddBranchLink()"> 
+            	&nbsp; 
+            	<input type="submit" value="Add Branch"></div>
+        </form>
+    </script>
+    <script id="must_login_template" type="text/template">
+        <span class="invalid">
+        	You must <a href="{{ session_info.url|safe }}">{{ session_info.link_text }}</a> to add a Branch.
+        </span>
+    </script>
+    <script id="has_child_branchs_template" type="text/template">
+        <span class="invalid">
+        	You have already added the maximum number of child branchs.
+        </span>
+    </script>
+    
+    
+{% endblock %}
+
+{% block content %}
+        <h2>{{tree.name}}</h2>
+        <div id="parent_container"></div>
+        <div id="content_container"></div>
+        <div style="font-size:smaller" >
+            &darr; <span id="branch_count_span"></span> branches
+        </div>
+        <div id="link_container"></div>
+        <br />
+        <div class="branch_link" id="add_branch_link">
+	        <a href="javascript:void(0)" onclick="updateAddBranchDiv();">+ Add a Branch</a>
+        </div>
+        <div id="add_branch_div" class="add_branch_inactive"></div>
+        <br />
+        <script>
+        	
+        	var branch_key = getParameterByName("branch_key");
+        	
+        	if(branch_key == null || branch_key ==""){
+        		branch_key = "{{root_branch_key.urlsafe()}}";
+        	}
+        	
+        	if (branch_key != "") {
+	            $.get('/api/v1/branchs?branch_key='+branch_key, function(data) {
+	            	var jsondata = JSON.parse(data);
+	            	if(jsondata.result.length == 1){
+	            		var branch = jsondata["result"][0];
+	            		branch_cache[branch.key] = branch;
+				        openBranch(branch.key);
+	            	}
+	            });
+        	};
+        	
+        
+        </script>
+{% endblock %}

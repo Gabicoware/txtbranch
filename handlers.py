@@ -2,7 +2,7 @@
 
 #TODO AUTOMATICALLY TEST SYSTEM LIMITS
 
-#TODO: Make adding a page an in page experience
+#TODO: Make adding a branch an in branch experience
 #TODO: figure out limits to branch count
 
 #TODO: Ranking algorithm
@@ -16,7 +16,7 @@ import jinja2
 
 from defaulttext import *
 from models import *
-from controllers import StoryController
+from controllers import TreeController
 
 
 class RequestHandler(webapp2.RequestHandler):
@@ -31,123 +31,123 @@ class MainHandler(RequestHandler):
     
     def get(self):
         
-        stories = Story.main_stories()
-        pagedatas = Page.get_first_pages(stories)
-        logging.info(stories)
+        trees = Tree.main_trees()
+        branchdatas = Branch.get_first_branchs(trees)
+        logging.info(trees)
         template_values = {
-            'stories': stories,
-            'pagedatas': pagedatas,
+            'trees': trees,
+            'branchdatas': branchdatas,
             'username': self.username(),
             'session_info': UserInfo.session_info(self.username()),
         }
         
         template = JINJA_ENVIRONMENT.get_template('main.html')
         self.response.write(template.render(template_values))
-        # Write the submission form and the footer of the page
+        # Write the submission form and the footer of the branch
 
-class CreateStoryHandler(RequestHandler):
+class CreateTreeHandler(RequestHandler):
     
-    _create_story_lock = threading.Lock()
+    _create_tree_lock = threading.Lock()
     
     def get(self):
-        self.render_create_story_form()
+        self.render_create_tree_form()
         
     def post(self):
-        story_name = self.request.get('story_name',config['stories']['default_name'])
+        tree_name = self.request.get('tree_name',config['trees']['default_name'])
         
-        success, story = StoryController.save_story(story_name,
+        success, tree = TreeController.save_tree(tree_name,
           self.username(),
           self.request.get('conventions', DEFAULT_CONVENTIONS),
-          self.request.get('root_page_link',''),
-          self.request.get('root_page_content',''))
+          self.request.get('root_branch_link',''),
+          self.request.get('root_branch_content',''))
         
         if success:
-            redirect_url = '/story/' + story_name
+            redirect_url = '/tree/' + tree_name
             self.redirect(redirect_url)
         else:
-            self.render_create_story_form(story)
+            self.render_create_tree_form(tree)
     
-    def render_create_story_form(self,errors=None):
-        template = JINJA_ENVIRONMENT.get_template('new_story.html')
+    def render_create_tree_form(self,errors=None):
+        template = JINJA_ENVIRONMENT.get_template('new_tree.html')
         template_values = {
             'session_info': UserInfo.session_info(self.username()),
             'conventions' : self.request.get('conventions', DEFAULT_CONVENTIONS),
 
-            'story_name' : self.request.get('story_name', ''),
-            'root_page_link' : self.request.get('root_page_link', ''),
-            'root_page_content' : self.request.get('root_page_content', ''),
+            'tree_name' : self.request.get('tree_name', ''),
+            'root_branch_link' : self.request.get('root_branch_link', ''),
+            'root_branch_content' : self.request.get('root_branch_content', ''),
             
-            'new_story_endpoint' : self.request.uri,
-            'link_max' : config["pages"]["link_max"],
-            'content_max' : config["pages"]["content_max"],
+            'new_tree_endpoint' : self.request.uri,
+            'link_max' : config["branchs"]["link_max"],
+            'content_max' : config["branchs"]["content_max"],
             'errors' : json.dumps(errors),
         }
         self.response.write(template.render(template_values))
         
 
-class EditStoryHandler(RequestHandler):
+class EditTreeHandler(RequestHandler):
     
-    def get(self,story_name):
-        story = Story.get_by_name(story_name)
-        if story == None:
+    def get(self,tree_name):
+        tree = Tree.get_by_name(tree_name)
+        if tree == None:
             return self.redirect('/')
-        elif story.moderatorname != self.username():
-            return self.redirect('/story/'+story_name)
+        elif tree.moderatorname != self.username():
+            return self.redirect('/tree/'+tree_name)
         
-        self.render_edit_story_form(story)
+        self.render_edit_tree_form(tree)
         
-    def post(self,story_name):
+    def post(self,tree_name):
         
-        story = Story.get_by_name(story_name)
+        tree = Tree.get_by_name(tree_name)
         
-        success, result = StoryController.update_story(
-          story,
+        success, result = TreeController.update_tree(
+          tree,
           self.username(),
           self.request.get('conventions'))
         
         if success:
-            self.render_edit_story_form(story)
+            self.render_edit_tree_form(tree)
         else:
-            self.render_edit_story_form(story, errors=result)
+            self.render_edit_tree_form(tree, errors=result)
             
-    def render_edit_story_form(self,story,errors=None):
-        template = JINJA_ENVIRONMENT.get_template('edit_story.html')
+    def render_edit_tree_form(self,tree,errors=None):
+        template = JINJA_ENVIRONMENT.get_template('edit_tree.html')
         template_values = {
             'session_info': UserInfo.session_info(self.username()),
-            'conventions' : self.request.get('conventions', story.conventions),
-            'story_name' : story.name,
-            'edit_story_endpoint' : self.request.uri,
+            'conventions' : self.request.get('conventions', tree.conventions),
+            'tree_name' : tree.name,
+            'edit_tree_endpoint' : self.request.uri,
             'errors' : json.dumps(errors),
         }
         self.response.write(template.render(template_values))
          
-class StoryHandler(RequestHandler):
-    def get(self, story_name):
+class TreeHandler(RequestHandler):
+    def get(self, tree_name):
         
-        key = Story.create_key(story_name)
+        key = Tree.create_key(tree_name)
         
-        story = key.get()
+        tree = key.get()
         
-        if story:
+        if tree:
         
-            root_page = story.get_root_page()
+            root_branch = tree.get_root_branch()
             
             template_values = {
-                'root_page_key': root_page.key,
-                'story': story,
-                'link_max' : config["pages"]["link_max"],
-                'content_max' : config["pages"]["content_max"],
+                'root_branch_key': root_branch.key,
+                'tree': tree,
+                'link_max' : config["branchs"]["link_max"],
+                'content_max' : config["branchs"]["content_max"],
                 'session_info': UserInfo.session_info(self.username()),
             }
             
-            template = JINJA_ENVIRONMENT.get_template('story.html')
+            template = JINJA_ENVIRONMENT.get_template('tree.html')
             self.response.write(template.render(template_values))
         else:
             template_values = {
-                'story_name': story_name,
+                'tree_name': tree_name,
                 'session_info': UserInfo.session_info(self.username()),
             }
-            template = JINJA_ENVIRONMENT.get_template('story_not_found.html')
+            template = JINJA_ENVIRONMENT.get_template('tree_not_found.html')
             self.response.status = 404
             self.response.write(template.render(template_values))
         
@@ -174,12 +174,12 @@ class UserHandler(RequestHandler):
             user_info = UserInfo(id=user_info_key.string_id())
             user_info.put()
         
-        pages = user_info.pages()
-        branch_pages = user_info.branch_pages()
+        branchs = user_info.branchs()
+        branch_branchs = user_info.branch_branchs()
         
         template_values = {
-            'pages' : pages,
-            'branch_pages' : branch_pages,
+            'branchs' : branchs,
+            'branch_branchs' : branch_branchs,
             'user_info' : user_info,
             'session_info': UserInfo.session_info(self.username()),
         }

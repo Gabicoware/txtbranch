@@ -86,7 +86,7 @@ _WEB_TEST_DIR = '/test'   # how you want to refer to tests on your web server
 ##############################################################################
 
 
-class MainTestPageHandler(webapp.RequestHandler):
+class MainTestBranchHandler(webapp.RequestHandler):
     def get(self):
         unknown_args = [arg for arg in self.request.arguments()
                         if arg not in ("format", "package", "name")]
@@ -183,7 +183,7 @@ class JsonTestRunHandler(webapp.RequestHandler):
         runner.result.render_to(self.response.out)
 
 
-# This is not used by the HTML page, but it may be useful for other client test runners.
+# This is not used by the HTML branch, but it may be useful for other client test runners.
 class JsonTestListHandler(webapp.RequestHandler):
     def get(self):
         self.response.headers["Content-Type"] = "text/javascript"
@@ -439,7 +439,7 @@ _MAIN_PAGE_CONTENT = """
     <div id="footerarea">
         <div id="weblink">
         <p>
-            Please visit the <a href="http://code.google.com/p/gaeunit">project home page</a>
+            Please visit the <a href="http://code.google.com/p/gaeunit">project home branch</a>
             for the latest version or to report problems.
         </p>
         <p>
@@ -458,7 +458,7 @@ _MAIN_PAGE_CONTENT = """
 ##############################################################################
 
 
-application = webapp.WSGIApplication([('%s'      % _WEB_TEST_DIR, MainTestPageHandler),
+application = webapp.WSGIApplication([('%s'      % _WEB_TEST_DIR, MainTestBranchHandler),
                                       ('%s/run'  % _WEB_TEST_DIR, JsonTestRunHandler),
                                       ('%s/list' % _WEB_TEST_DIR, JsonTestListHandler)],
                                       debug=True)

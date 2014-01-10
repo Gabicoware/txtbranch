@@ -15,15 +15,15 @@ from controllers import *
 from models import *
 
 
-class PageControllerTestCase(unittest.TestCase):
+class BranchControllerTestCase(unittest.TestCase):
     
-    parent_page = None
+    parent_branch = None
     
     user_info = None
     
-    story = None
+    tree = None
     
-    child_pages = []
+    child_branchs = []
     
     def setUp(self):
         #the memcache will contain values that will break the tests
@@ -42,51 +42,51 @@ class PageControllerTestCase(unittest.TestCase):
         
         millis = int(round(time.time() * 1000))
         
-        story_name = 'test_story' + str(millis)
+        tree_name = 'test_tree' + str(millis)
         
         username = 'test_user' + str(millis)
         
         self.testbed.setup_env(USER_EMAIL=username+'@example.com',USER_ID='1', USER_IS_ADMIN='0')
         self.testbed.init_user_stub()
         
-        self.story = Story(id=story_name,name=story_name)
-        self.story.conventions = ''
-        self.story.put()
+        self.tree = Tree(id=tree_name,name=tree_name)
+        self.tree.conventions = ''
+        self.tree.put()
         
         
         
-        self.parent_page = Page(id=story_name)
+        self.parent_branch = Branch(id=tree_name)
         
-        self.parent_page.link = ''
-        self.parent_page.content = ''
-        self.parent_page.story = self.story.key
-        self.parent_page.put()
+        self.parent_branch.link = ''
+        self.parent_branch.content = ''
+        self.parent_branch.tree = self.tree.key
+        self.parent_branch.put()
         
         self.user_info = UserInfo.put_new(username)
     
     def tearDown(self):
-        for page in self.child_pages:
-            page.key.delete()
+        for branch in self.child_branchs:
+            branch.key.delete()
         
-        self.parent_page.key.delete()
-        self.story.key.delete()
+        self.parent_branch.key.delete()
+        self.tree.key.delete()
         
         self.testbed.deactivate()
 
-    def testEmptyPageLink(self):
-        success, result = PageController.save_page(self.user_info.username,self.parent_page.key.urlsafe(),'','some_content')
+    def testEmptyBranchLink(self):
+        success, result = BranchController.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(),'','some_content')
         
         self.assertFalse(success)
-        self.assertTrue(result['empty_page_link'])
+        self.assertTrue(result['empty_branch_link'])
         
-    def testEmptyPageContent(self):
-        success, result = PageController.save_page(self.user_info.username,self.parent_page.key.urlsafe(),'testEmptyPageLink.unique_link','')
+    def testEmptyBranchContent(self):
+        success, result = BranchController.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(),'testEmptyBranchLink.unique_link','')
         
         self.assertFalse(success)
-        self.assertTrue(result['empty_page_content'])
+        self.assertTrue(result['empty_branch_content'])
         
     def testIdenticalLink(self):
-        success, result = PageController.save_page(self.user_info.username,self.parent_page.key.urlsafe(),'testIdenticalLink.some_link','some_content')
+        success, result = BranchController.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(),'testIdenticalLink.some_link','some_content')
         
         if success == False:
             logging.info(result)
@@ -95,22 +95,22 @@ class PageControllerTestCase(unittest.TestCase):
         
         
         if success and result.key:
-            self.child_pages.append(result)
+            self.child_branchs.append(result)
         
-        success, result = PageController.save_page(self.user_info.username,self.parent_page.key.urlsafe(), 'testIdenticalLink.some_link', 'some_content')
+        success, result = BranchController.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(), 'testIdenticalLink.some_link', 'some_content')
         
         self.assertFalse(success)
         self.assertTrue(result['has_identical_link'])
         
-    def testSavePage(self):
-        success, result = PageController.save_page(self.user_info.username, self.parent_page.key.urlsafe(), 'testPage.unique_link', 'testPage.unique_content' )
+    def testSaveBranch(self):
+        success, result = BranchController.save_branch(self.user_info.username, self.parent_branch.key.urlsafe(), 'testBranch.unique_link', 'testBranch.unique_content' )
         
         if success == False:
             logging.info(result)
         
         self.assertTrue(success)
         
-class StoryControllerTestCase(unittest.TestCase):
+class TreeControllerTestCase(unittest.TestCase):
     
     user_info = None
     invalid_user_info = None
@@ -145,61 +145,61 @@ class StoryControllerTestCase(unittest.TestCase):
         self.invalid_user_info.date = datetime.datetime.now()
         self.invalid_user_info.put()
         
-    def testSaveStory(self):        
+    def testSaveTree(self):        
         millis = int(round(time.time() * 1000))
-        story_name = 's' + str(millis)
+        tree_name = 's' + str(millis)
         
-        success, result = StoryController.save_story( story_name,self.user_info.username,'', 'testSaveStory.unique_link', 'testSaveStory.unique_content' )
+        success, result = TreeController.save_tree( tree_name,self.user_info.username,'', 'testSaveTree.unique_link', 'testSaveTree.unique_content' )
         
         if success == False:
             logging.info(result)
         
         self.assertTrue(success)
         
-        self.assertFalse(result.get_root_page() is None)
+        self.assertFalse(result.get_root_branch() is None)
         
-        result.get_root_page().key.delete()
+        result.get_root_branch().key.delete()
         
         result.key.delete()
     
     
     def testErrors(self):
         
-        success, result = StoryController.save_story( 'some_name',None,'',None,None)
+        success, result = TreeController.save_tree( 'some_name',None,'',None,None)
         
         self.assertFalse(success)
         self.assertTrue(result['unauthenticated'])
     
-        success, result = StoryController.save_story( 'some_name','DNE.','',None,None)
+        success, result = TreeController.save_tree( 'some_name','DNE.','',None,None)
         
         self.assertFalse(success)
         self.assertTrue(result['unauthenticated'])
         
-        success, result = StoryController.save_story( 'some_name',self.invalid_username,'',None,None)
+        success, result = TreeController.save_tree( 'some_name',self.invalid_username,'',None,None)
         
         self.assertFalse(success)
         self.assertTrue(result['unauthenticated'])
         
-        success, result = StoryController.save_story( None,self.user_info.username,'',None,None)
+        success, result = TreeController.save_tree( None,self.user_info.username,'',None,None)
         
         self.assertFalse(success)
         self.assertTrue(result['empty_name'])
         
-        success, result = StoryController.save_story( '',self.user_info.username,'',None,None)
+        success, result = TreeController.save_tree( '',self.user_info.username,'',None,None)
         
         self.assertFalse(success)
         self.assertTrue(result['empty_name'])
         
-        success, result = StoryController.save_story( 'q q q q q ',self.user_info.username,'',None,None)
+        success, result = TreeController.save_tree( 'q q q q q ',self.user_info.username,'',None,None)
         
         self.assertFalse(success)
         self.assertTrue(result['invalid_name'])
     
-        success, result = StoryController.save_story( 'TestStory',self.user_info.username,None,None,None)
+        success, result = TreeController.save_tree( 'TestTree',self.user_info.username,None,None,None)
         
         self.assertFalse(success)
-        self.assertTrue(result['empty_root_page_link'])
-        self.assertTrue(result['empty_root_page_content'])
+        self.assertTrue(result['empty_root_branch_link'])
+        self.assertTrue(result['empty_root_branch_content'])
     
     
     
