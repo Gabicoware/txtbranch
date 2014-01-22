@@ -41,7 +41,7 @@ class MainHandler(RequestHandler):
             'session_info': UserInfo.session_info(self.username()),
         }
         
-        template = JINJA_ENVIRONMENT.get_template('main.html')
+        template = JINJA_ENVIRONMENT.get_template('templates/main.html')
         self.response.write(template.render(template_values))
         # Write the submission form and the footer of the branch
 
@@ -68,7 +68,7 @@ class CreateTreeHandler(RequestHandler):
             self.render_create_tree_form(tree)
     
     def render_create_tree_form(self,errors=None):
-        template = JINJA_ENVIRONMENT.get_template('new_tree.html')
+        template = JINJA_ENVIRONMENT.get_template('templates/new_tree.html')
         template_values = {
             'session_info': UserInfo.session_info(self.username()),
             'conventions' : self.request.get('conventions', DEFAULT_CONVENTIONS),
@@ -111,7 +111,7 @@ class EditTreeHandler(RequestHandler):
             self.render_edit_tree_form(tree, errors=result)
             
     def render_edit_tree_form(self,tree,errors=None):
-        template = JINJA_ENVIRONMENT.get_template('edit_tree.html')
+        template = JINJA_ENVIRONMENT.get_template('templates/edit_tree.html')
         template_values = {
             'session_info': UserInfo.session_info(self.username()),
             'conventions' : self.request.get('conventions', tree.conventions),
@@ -140,14 +140,14 @@ class TreeHandler(RequestHandler):
                 'session_info': UserInfo.session_info(self.username()),
             }
             
-            template = JINJA_ENVIRONMENT.get_template('tree.html')
+            template = JINJA_ENVIRONMENT.get_template('templates/tree.html')
             self.response.write(template.render(template_values))
         else:
             template_values = {
                 'tree_name': tree_name,
                 'session_info': UserInfo.session_info(self.username()),
             }
-            template = JINJA_ENVIRONMENT.get_template('tree_not_found.html')
+            template = JINJA_ENVIRONMENT.get_template('templates/tree_not_found.html')
             self.response.status = 404
             self.response.write(template.render(template_values))
         
@@ -158,7 +158,7 @@ class AboutHandler(RequestHandler):
         template_values = {
             'session_info': UserInfo.session_info(self.username()),
         }
-        template = JINJA_ENVIRONMENT.get_template('about.html')
+        template = JINJA_ENVIRONMENT.get_template('templates/about.html')
         self.response.write(template.render(template_values))
 
 class UserHandler(RequestHandler):
@@ -183,7 +183,7 @@ class UserHandler(RequestHandler):
             'user_info' : user_info,
             'session_info': UserInfo.session_info(self.username()),
         }
-        template = JINJA_ENVIRONMENT.get_template('user.html')
+        template = JINJA_ENVIRONMENT.get_template('templates/user.html')
         
         self.response.write(template.render(template_values))
         
@@ -192,7 +192,7 @@ class PostLoginHandler(RequestHandler):
     def get(self):
         user_info = UserInfo.get_current()
         if user_info is None:
-            template = JINJA_ENVIRONMENT.get_template('post_login.html')
+            template = JINJA_ENVIRONMENT.get_template('templates/post_login.html')
             
             self.response.write(template.render({'cancel_link':users.create_logout_url('/')}))
         else:

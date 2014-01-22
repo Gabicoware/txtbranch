@@ -15,8 +15,8 @@ libraries:
 handlers:
   
 - url: /favicon\.ico
-  static_files: favicon.ico
-  upload: favicon\.ico
+  static_files: /assets/favicon.ico
+  upload: /assets/favicon\.ico
   
 - url: /assets
   static_dir: assets
