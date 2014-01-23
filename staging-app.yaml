@@ -1,0 +1,41 @@
+application: txtbranch-staging
+version: 2
+runtime: python27
+api_version: 1
+threadsafe: true
+
+libraries:
+- name: webapp2
+  version: "2.5.2"
+- name: jinja2
+  version: "2.6"
+- name: django
+  version: "1.4"
+  
+handlers:
+  
+- url: /favicon\.ico
+  static_files: /assets/favicon.ico
+  upload: /assets/favicon\.ico
+  
+- url: /assets
+  static_dir: assets
+  
+- url: /admin/.*
+  script: admin.application
+  login: admin
+
+- url: /mock/.*
+  script: mock.application
+  login: admin
+
+- url: /test.*
+  script: gaeunit.application
+  login: admin
+
+- url: /api/v1/.*
+  script: api.application
+
+- url: /.*
+  script: branch-engine.application
+  
