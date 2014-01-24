@@ -44,3 +44,8 @@ httplib2
 oauth2
 simpleauth
 
+# Secret Things #
+#################
+*secrets.py
+
+.settings

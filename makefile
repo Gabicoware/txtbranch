@@ -5,9 +5,11 @@ install-staging: install-base
 	cp -r tests ${dest_folder}
 	cp gaeunit.py ${dest_folder}
 	cp staging-app.yaml ${dest_folder}/app.yaml
+	cp staging-secrets.py ${dest_folder}/secrets.py
 
 install-production: install-base
 	cp production-app.yaml ${dest_folder}/app.yaml
+	cp production-secrets.py ${dest_folder}/secrets.py
 
 install-base: prep
 	cp *.* ${dest_folder}
@@ -18,6 +20,7 @@ install-base: prep
 	cp -r templates ${dest_folder}
 	cp admin.py ${dest_folder}
 	cp api.py ${dest_folder}
+	cp base.py ${dest_folder}
 	cp branch-engine.py ${dest_folder}
 	cp controllers.py ${dest_folder}
 	cp defaulttext.py ${dest_folder}

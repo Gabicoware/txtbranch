@@ -21,10 +21,6 @@ handlers:
 - url: /assets
   static_dir: assets
   
-- url: /admin/.*
-  script: admin.application
-  login: admin
-
 - url: /api/v1/.*
   script: api.application
 

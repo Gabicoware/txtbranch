@@ -4,6 +4,7 @@ from google.appengine.ext import ndb
 import webapp2
 import json
 import datetime
+import base
 
 import logging
 
@@ -21,7 +22,7 @@ class ModelEncoder(JSONEncoder):
             return o.urlsafe()
         return str(o);
                 
-class LikeHandler(webapp2.RequestHandler):
+class LikeHandler(base.BaseRequestHandler):
     
     def get(self):
         branch_urlsafe_key = self.request.get('branch_key')
@@ -51,7 +52,7 @@ class LikeHandler(webapp2.RequestHandler):
         else:
             self.response.write('UNAUTHENTICATED')
 
-class UserInfoHandler(webapp2.RequestHandler):
+class UserInfoHandler(base.BaseRequestHandler):
     
     def get(self):
         
@@ -85,7 +86,7 @@ class UserInfoHandler(webapp2.RequestHandler):
         else:
             self.response.write(json.dumps({'status':'ERROR','result':result}))
     
-class BranchHandler(webapp2.RequestHandler):
+class BranchHandler(base.BaseRequestHandler):
 
     def get(self):
     
