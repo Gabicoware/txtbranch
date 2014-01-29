@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 import webapp2
 from webapp2_extras import auth, sessions, jinja2
 from jinja2.runtime import TemplateNotFound
@@ -14,7 +13,7 @@ class BaseRequestHandler(webapp2.RequestHandler):
         if user_dict is not None:
                 controller.oauth_user_id = user_dict['user_id']
         google_user = users.get_current_user()
-        if user_dict is not None:
+        if google_user is not None:
                 controller.google_user = google_user
         return controller
     
@@ -67,10 +66,10 @@ class BaseRequestHandler(webapp2.RequestHandler):
         values.update(template_vars)
         
         # read the template or 404.html
-#        try:
-        self.response.write(self.jinja2.render_template(template_name, **values))
-#        except TemplateNotFound:
-#            self.abort(404)
+        try:
+            self.response.write(self.jinja2.render_template(template_name, **values))
+        except TemplateNotFound:
+            self.abort(404)
 
     def head(self, *args):
         """Head is used by Twitter. If not there the tweet button shows 0"""

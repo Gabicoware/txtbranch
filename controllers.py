@@ -195,8 +195,8 @@ class UserInfoController(BaseController):
         if not isvalid:
             errors['invalid_name'] = True
         else:
-            
-            if self.userinfo is None:
+            user_info = self.current_user_info()
+            if user_info is None:
                 user_info_key = ndb.Key('UserInfo',username)
                 
                 #in the circumstances of a collision whoever asked last is the winner
@@ -206,7 +206,7 @@ class UserInfoController(BaseController):
                     user_info = UserInfo.put_new(username,oauth_user_id=self.oauth_user_id,google_user=self.google_user)
                 else:
                     errors['other_has_name'] = True
-            
+        
         if len(errors.keys()) == 0:
             return True, user_info
         else:

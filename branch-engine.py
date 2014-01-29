@@ -1,5 +1,3 @@
-import sys
-    
 from secrets import SESSION_KEY
 
 from webapp2 import WSGIApplication, Route
@@ -28,6 +26,8 @@ handlers = [
     ('/tree/new', CreateTreeHandler),
     (r'/tree/([\d\w_\-]+)/edit', EditTreeHandler),
     (r'/tree/([\d\w_\-]+)', TreeHandler),
+  Route('/login', handler='handlers.LoginHandler:login', name='login'),
+  Route('/google_login', handler='handlers.LoginHandler:google_login', name='google_login'),
   Route('/logout', handler='handlers.AuthHandler:logout', name='logout'),
   Route('/auth/<provider>', 
     handler='handlers.AuthHandler:_simple_auth', name='auth_login'),

@@ -13,6 +13,7 @@ import secrets
 from defaulttext import *
 from models import *
 from controllers import TreeController, BaseController
+from google.appengine.api import users
 
 
 class RequestHandler(base.BaseRequestHandler):
@@ -162,7 +163,8 @@ class UserHandler(RequestHandler):
 class PostLoginHandler(RequestHandler):
     
     def get(self):
-        user_info = self.current_user_info()
+        
+        user_info = self.controller(BaseController).current_user_info()
         if user_info is None:
             self.render('post_login.html',{})
         else:
@@ -178,8 +180,11 @@ class PostLoginHandler(RequestHandler):
             
 class LoginHandler(RequestHandler):
     
-    def get(self):
+    def login(self):
         self.render('login.html', {})
+    def google_login(self):
+        url = users.create_login_url('/post_login')
+        self.redirect(url, permanent=True)
         
 class PostLogoutHandler(RequestHandler):
     
