@@ -1,15 +1,49 @@
-import threading
 import re
 
-from models import Branch, UserInfo, Tree
+from models import Branch, UserInfo, Tree, Like
 from google.appengine.ext import ndb
 
-class BranchController:
-    @classmethod
-    def save_branch(cls,authorname,parent_urlsafe_key,link,content):
+class BaseController:
+    def __init__(self):
+        self.oauth_user_id = None
+        self.google_user = None
+        self.user_info = None
+
+    def current_user_info(self):
+        
+        if self.user_info is not None and self.is_user_info_current(self.user_info):
+            return self.user_info
+        
+        """Gets the current user. This involves a query. Its more efficient to perform 
+        lookups with the username and verify that the user_info is current."""
+        if self.google_user is not None:
+            users_query = UserInfo.query( UserInfo.google_user==self.google_user)
+            return users_query.get()
+        
+        if self.oauth_user_id is not None:
+            users_query = UserInfo.query( UserInfo.oauth_user_id==self.oauth_user_id)
+            return users_query.get()
+        
+        return None
+
+    def is_user_info_current(self, user_info):
+    
+        if user_info is None:
+            return False
+        
+        if self.google_user is not None:
+            return self.google_user == user_info.google_user
+        
+        if self.oauth_user_id is not None:
+            return self.oauth_user_id == user_info.oauth_user_id
+        
+        return False
+
+class BranchController(BaseController):
+    def save_branch(self,authorname,parent_urlsafe_key,link,content):
         
         userinfo = UserInfo.get_by_username(authorname)    
-        if userinfo is None or not userinfo.is_current():
+        if userinfo is None or not self.is_user_info_current(userinfo):
             
             return False, { 'unauthenticated':True }
         
@@ -61,19 +95,16 @@ class BranchController:
         else:
             return False, errors
         
-class TreeController:
+class TreeController(BaseController):
     
-    _create_tree_lock = threading.Lock()
-    
-    @classmethod
-    def save_tree(cls,tree_name,moderatorname,conventions,root_branch_link,root_branch_content):
+    def save_tree(self,tree_name,moderatorname,conventions,root_branch_link,root_branch_content):
         
         if moderatorname is None:
             return False, { 'unauthenticated':True}
         
         author_info = UserInfo.get_by_username(moderatorname)
         
-        if author_info is None or not author_info.is_current():
+        if author_info is None or not self.is_user_info_current(author_info):
             return False, { 'unauthenticated':True}
         
         if author_info.username is None:
@@ -130,8 +161,7 @@ class TreeController:
             return False, errors
         
         
-    @classmethod
-    def update_tree(cls,tree,moderatorname,conventions):
+    def update_tree(self,tree,moderatorname,conventions):
         
         if tree is None:
             return False, { 'tree_not_found':True}
@@ -141,7 +171,7 @@ class TreeController:
         
         author_info = UserInfo.get_by_username(moderatorname)
         
-        if author_info is None or not author_info.is_current():
+        if author_info is None or not self.is_user_info_current(author_info):
             return False, { 'unauthenticated':True}
         
         if author_info.username is None:
@@ -153,12 +183,9 @@ class TreeController:
 
         return True, tree
 
-class UserInfoController:
+class UserInfoController(BaseController):
     
-    _update_user_lock = threading.Lock()
-    
-    @classmethod
-    def set_username(cls,username):
+    def set_username(self,username):
         errors = {}
                 
         match = re.search(r'^[\d\w_\-]+$', username)
@@ -169,16 +196,14 @@ class UserInfoController:
             errors['invalid_name'] = True
         else:
             
-            user_info = UserInfo.get_current()
-            
-            if user_info is None:
+            if self.userinfo is None:
                 user_info_key = ndb.Key('UserInfo',username)
                 
                 #in the circumstances of a collision whoever asked last is the winner
                 #of course if fifty 'Daniels' pile up then we have an issue
                 user_info = user_info_key.get()
                 if user_info is None:
-                    user_info = UserInfo.put_new(username)
+                    user_info = UserInfo.put_new(username,oauth_user_id=self.oauth_user_id,google_user=self.google_user)
                 else:
                     errors['other_has_name'] = True
             
@@ -186,3 +211,30 @@ class UserInfoController:
             return True, user_info
         else:
             return False, errors
+
+class LikeController(BaseController):
+    
+    def set_like(self,branch_urlsafe_key,like_value):
+        
+        if branch_urlsafe_key is None or branch_urlsafe_key == '':
+            return False, {'no_page_key':True}
+        
+        userinfo = self.current_user_info()
+        if userinfo is None:
+            return False, {'unauthenticated':True}
+        
+        branch_key = ndb.Key(urlsafe=branch_urlsafe_key)
+        
+        like_key = Like.create_key(branch_key,userinfo.username)
+        like = like_key.get()
+        
+        if like is None:
+            branch = branch_key.get()
+            like = Like(key=like_key,username=userinfo.username,branch=branch_key,branchauthorname=branch.authorname)
+        
+        like.value = int(like_value)
+        
+        like.put()
+        
+        return True, like
+    

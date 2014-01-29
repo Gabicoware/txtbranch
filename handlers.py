@@ -193,11 +193,11 @@ class UserHandler(RequestHandler):
 class PostLoginHandler(RequestHandler):
     
     def get(self):
-        user_info = UserInfo.get_current()
+        user_info = self.current_user_info()
         if user_info is None:
             template = JINJA_ENVIRONMENT.get_template('templates/post_login.html')
             
-            self.response.write(template.render({'cancel_link':users.create_logout_url('/')}))
+            self.response.write(template.render({}))
         else:
             #don't worry about redirects for now
             
@@ -218,8 +218,7 @@ class LoginHandler(RequestHandler):
             'session_info': UserInfo.session_info(self.username())
         }
         
-        self.response.write(template.render(template_values))
-        #self.render('templates/login.html', {})
+        self.render('templates/login.html', template_values)
         
 class PostLogoutHandler(RequestHandler):
     

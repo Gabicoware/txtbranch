@@ -1,17 +1,16 @@
 
 from google.appengine.ext import ndb
-
 import webapp2
 import json
 import datetime
-import base
-
 import logging
 
+import base
+from secrets import SESSION_KEY
 from json import JSONEncoder
 
 from models import Like, UserInfo, Branch
-from controllers import UserInfoController, BranchController
+from controllers import UserInfoController, BranchController, LikeController
 
 class ModelEncoder(JSONEncoder):
 #TODO make non models passthrough objects
@@ -25,33 +24,19 @@ class ModelEncoder(JSONEncoder):
 class LikeHandler(base.BaseRequestHandler):
     
     def get(self):
+        
         branch_urlsafe_key = self.request.get('branch_key')
         
-        if branch_urlsafe_key is None or branch_urlsafe_key == '':
-            return self.response.write('NO PAGE KEY SPECIFIED')
+        like_value = self.request.get('value','0')
+            
+        success, result = self.controller(LikeController).set_like( branch_urlsafe_key, like_value)
         
-        username = self.request.cookies.get('username')
-        userinfo = UserInfo.get_by_username(username)    
-        if userinfo and userinfo.is_current():
-            
-            like_value = self.request.get('value','0')
-            branch_key = ndb.Key(urlsafe=branch_urlsafe_key)
-             
-            like_key = Like.create_key(branch_key,self.request.cookies.get('username'))
-            like = like_key.get();
-            
-            if like is None:
-                branch = branch_key.get()
-                like = Like(key=like_key,username=username,branch=branch_key,branchauthorname=branch.authorname)
-            
-            like.value = int(like_value)
-            
-            like.put()
-                
-            self.response.write('OK')
+        if success:
+            like_dict = { 'like_value':result.value }
+            self.response.write(json.dumps({'status':'OK','result':like_dict}))
         else:
-            self.response.write('UNAUTHENTICATED')
-
+            self.response.write(json.dumps({'status':'ERROR','result':result}))
+        
 class UserInfoHandler(base.BaseRequestHandler):
     
     def get(self):
@@ -64,7 +49,7 @@ class UserInfoHandler(base.BaseRequestHandler):
             if username:
                 user_info = UserInfo.get_by_username(username)
             else:
-                user_info = UserInfo.get_current()
+                user_info = self.current_user_info()
         
         if user_info is not None:
             self.response.write(json.dumps({'status':'OK','result':user_info.to_dict()},cls=ModelEncoder))
@@ -73,7 +58,7 @@ class UserInfoHandler(base.BaseRequestHandler):
 
     def post(self):
         username = self.request.get('username')
-        success, result = UserInfoController.set_username(username)
+        success, result = self.controller(UserInfoController).set_username(username)
         
         if success:
             now = datetime.datetime.now()
@@ -126,7 +111,7 @@ class BranchHandler(base.BaseRequestHandler):
         
         username = self.request.cookies.get('username')
         userinfo = UserInfo.get_by_username(username)    
-        if userinfo and userinfo.is_current():
+        if userinfo and self.is_user_info_current(userinfo):
             like_key = Like.create_key(branch.key,self.request.cookies.get('username'))
             like = like_key.get();
             if like:
@@ -156,7 +141,7 @@ class BranchHandler(base.BaseRequestHandler):
     def post(self):
         parent_urlsafe_key = self.request.get('parent_branch_key')
         
-        success, result = BranchController.save_branch(
+        success, result = self.controller(BranchController).save_branch(
           self.request.cookies.get('username'),
           parent_urlsafe_key,
           self.request.get('link',''),
@@ -181,6 +166,17 @@ class BranchHandler(base.BaseRequestHandler):
 
 
 
+# webapp2 config
+app_config = {
+  'webapp2_extras.sessions': {
+    'cookie_name': '_simpleauth_sess',
+    'secret_key': SESSION_KEY
+  },
+  'webapp2_extras.auth': {
+    'user_attributes': []
+  }
+}
+
 
 handlers = [
     ('/api/v1/likes', LikeHandler),
@@ -188,4 +184,4 @@ handlers = [
     ('/api/v1/userinfos', UserInfoHandler),
 ]
 
-application = webapp2.WSGIApplication(handlers, debug=True)
+application = webapp2.WSGIApplication(handlers, config=app_config, debug=True)

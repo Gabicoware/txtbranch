@@ -1,7 +1,7 @@
 import urllib
 import logging
 
-from google.appengine.api import users, memcache
+from google.appengine.api import memcache
 from google.appengine.ext import ndb
 import datetime
 
@@ -256,17 +256,15 @@ class Branch(ndb.Model):
 class UserInfo(ndb.Model):
     username = ndb.StringProperty(validator=string_validator)
     google_user = ndb.UserProperty(indexed=True)
+    oauth_user_id = ndb.StringProperty(validator=string_validator)
     date = ndb.DateTimeProperty(auto_now_add=True)
     
-    def is_current(self):
-        return self.google_user == users.get_current_user()
-    
     @classmethod
-    def put_new(cls,username):
+    def put_new(cls,username,google_user=None,oauth_user_id=None):
         user_info = UserInfo(id=username)
-                
+        user_info.google_user = google_user
+        user_info.oauth_user_id = oauth_user_id
         user_info.username = username
-        user_info.google_user = users.get_current_user()
         user_info.put()
         return user_info
             
@@ -276,28 +274,7 @@ class UserInfo(ndb.Model):
         if username:
             return ndb.Key('UserInfo',username).get()
         return None
-    
-    @classmethod
-    def get_current(cls):
-        """Gets the current user. This involves a query. Its more efficient to perform 
-        lookups with the username and verify that the user_info is current."""
-        
-        users_query = UserInfo.query( UserInfo.google_user==users.get_current_user())
-        return users_query.get()
-        
-    @classmethod
-    def session_info(cls, username):
-        result = SessionInfo()
-        if users.get_current_user():
-            result.url = users.create_logout_url('/post_logout')
-            result.link_text = 'Logout'
-            result.isloggedin = True
-        else:
-            result.url = users.create_login_url('/post_login')
-            result.link_text = 'Login'
-        result.username = username
-        return result
-        
+            
     def branchs(self):
         data = Branch.query(Branch.authorname == self.username)
         return sorted(data, key=lambda branch: branch.score(), reverse=True)
