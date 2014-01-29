@@ -1,4 +1,4 @@
-{% extends "templates/base.html" %}
+{% extends "base.html" %}
 
 {% block additional_header %}
     
@@ -83,7 +83,7 @@
     </script>
     <script id="must_login_template" type="text/template">
         <span class="invalid">
-        	You must <a href="{{ session_info.url|safe }}">{{ session_info.link_text }}</a> to add a Branch.
+        	You must <a href="/login">Login</a> to add a Branch.
         </span>
     </script>
     <script id="has_child_branchs_template" type="text/template">

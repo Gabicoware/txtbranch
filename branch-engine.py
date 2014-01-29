@@ -35,4 +35,4 @@ handlers = [
     handler='handlers.AuthHandler:_auth_callback', name='auth_callback')
 ]
 
-application = webapp2.WSGIApplication(handlers, config=app_config, debug=True)
+application = WSGIApplication(handlers, config=app_config, debug=True)

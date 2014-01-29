@@ -1,34 +1,23 @@
-#TODO: USER CAN SUBMIT 1 BRANCH PER PARENT, and only after 5 minutes
-
 #TODO AUTOMATICALLY TEST SYSTEM LIMITS
 
-#TODO: Make adding a branch an in branch experience
 #TODO: figure out limits to branch count
 
 #TODO: Ranking algorithm
 
-import os
-import webapp2
 import json
-import datetime
 import threading
-import jinja2
 import base
 from simpleauth import SimpleAuthHandler
 
 import secrets
 from defaulttext import *
 from models import *
-from controllers import TreeController
+from controllers import TreeController, BaseController
 
 
 class RequestHandler(base.BaseRequestHandler):
     def username(self):
         return self.request.cookies.get('username')
-
-JINJA_ENVIRONMENT = jinja2.Environment(
-    loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
-    extensions=['jinja2.ext.autoescape'])
 
 class MainHandler(RequestHandler):
     
@@ -40,13 +29,10 @@ class MainHandler(RequestHandler):
         template_values = {
             'trees': trees,
             'branchdatas': branchdatas,
-            'username': self.username(),
-            'session_info': UserInfo.session_info(self.username()),
+            'username': self.username()
         }
         
-        template = JINJA_ENVIRONMENT.get_template('templates/main.html')
-        self.response.write(template.render(template_values))
-        # Write the submission form and the footer of the branch
+        self.render('main.html', template_values)
 
 class CreateTreeHandler(RequestHandler):
     
@@ -71,9 +57,7 @@ class CreateTreeHandler(RequestHandler):
             self.render_create_tree_form(tree)
     
     def render_create_tree_form(self,errors=None):
-        template = JINJA_ENVIRONMENT.get_template('templates/new_tree.html')
-        template_values = {
-            'session_info': UserInfo.session_info(self.username()),
+        template_vars = {
             'conventions' : self.request.get('conventions', DEFAULT_CONVENTIONS),
 
             'tree_name' : self.request.get('tree_name', ''),
@@ -85,8 +69,8 @@ class CreateTreeHandler(RequestHandler):
             'content_max' : config["branchs"]["content_max"],
             'errors' : json.dumps(errors),
         }
-        self.response.write(template.render(template_values))
         
+        self.render('new_tree.html', template_vars)
 
 class EditTreeHandler(RequestHandler):
     
@@ -114,15 +98,13 @@ class EditTreeHandler(RequestHandler):
             self.render_edit_tree_form(tree, errors=result)
             
     def render_edit_tree_form(self,tree,errors=None):
-        template = JINJA_ENVIRONMENT.get_template('templates/edit_tree.html')
         template_values = {
-            'session_info': UserInfo.session_info(self.username()),
             'conventions' : self.request.get('conventions', tree.conventions),
             'tree_name' : tree.name,
             'edit_tree_endpoint' : self.request.uri,
             'errors' : json.dumps(errors),
         }
-        self.response.write(template.render(template_values))
+        self.render('edit_tree.html',template_values)
          
 class TreeHandler(RequestHandler):
     def get(self, tree_name):
@@ -133,36 +115,26 @@ class TreeHandler(RequestHandler):
         
         if tree:
         
-            root_branch = tree.get_root_branch()
             
             template_values = {
-                'root_branch_key': root_branch.key,
+                'root_branch_key': tree.get_root_branch_key(),
                 'tree': tree,
                 'link_max' : config["branchs"]["link_max"],
                 'content_max' : config["branchs"]["content_max"],
-                'session_info': UserInfo.session_info(self.username()),
             }
             
-            template = JINJA_ENVIRONMENT.get_template('templates/tree.html')
-            self.response.write(template.render(template_values))
+            self.render('tree.html',template_values)
         else:
             template_values = {
                 'tree_name': tree_name,
-                'session_info': UserInfo.session_info(self.username()),
             }
-            template = JINJA_ENVIRONMENT.get_template('templates/tree_not_found.html')
             self.response.status = 404
-            self.response.write(template.render(template_values))
+            self.render('tree_not_found.html',template_values)
         
 class AboutHandler(RequestHandler):
 
     def get(self):
-        
-        template_values = {
-            'session_info': UserInfo.session_info(self.username()),
-        }
-        template = JINJA_ENVIRONMENT.get_template('templates/about.html')
-        self.response.write(template.render(template_values))
+        self.render('about.html',{})
 
 class UserHandler(RequestHandler):
     
@@ -184,20 +156,15 @@ class UserHandler(RequestHandler):
             'branchs' : branchs,
             'branch_branchs' : branch_branchs,
             'user_info' : user_info,
-            'session_info': UserInfo.session_info(self.username()),
         }
-        template = JINJA_ENVIRONMENT.get_template('templates/user.html')
-        
-        self.response.write(template.render(template_values))
+        self.render('user.html',template_values)
         
 class PostLoginHandler(RequestHandler):
     
     def get(self):
         user_info = self.current_user_info()
         if user_info is None:
-            template = JINJA_ENVIRONMENT.get_template('templates/post_login.html')
-            
-            self.response.write(template.render({}))
+            self.render('post_login.html',{})
         else:
             #don't worry about redirects for now
             
@@ -212,13 +179,7 @@ class PostLoginHandler(RequestHandler):
 class LoginHandler(RequestHandler):
     
     def get(self):
-        template = JINJA_ENVIRONMENT.get_template('templates/login.html')
-        
-        template_values = {
-            'session_info': UserInfo.session_info(self.username())
-        }
-        
-        self.render('templates/login.html', template_values)
+        self.render('login.html', {})
         
 class PostLogoutHandler(RequestHandler):
     
@@ -227,126 +188,130 @@ class PostLogoutHandler(RequestHandler):
         self.response.delete_cookie('username')
 
 class AuthHandler(RequestHandler, SimpleAuthHandler):
-  """Authentication handler for OAuth 2.0, 1.0(a) and OpenID."""
+    """Authentication handler for OAuth 2.0, 1.0(a) and OpenID."""
 
-  # Enable optional OAuth 2.0 CSRF guard
-  OAUTH2_CSRF_STATE = True
-  
-  USER_ATTRS = {
-    'facebook' : {
-      'id'     : lambda id: ('avatar_url', 
-        'http://graph.facebook.com/{0}/picture?type=large'.format(id)),
-      'name'   : 'name',
-      'link'   : 'link'
-    },
-    'google'   : {
-      'picture': 'avatar_url',
-      'name'   : 'name',
-      'profile': 'link'
-    },
-    'windows_live': {
-      'avatar_url': 'avatar_url',
-      'name'      : 'name',
-      'link'      : 'link'
-    },
-    'twitter'  : {
-      'profile_image_url': 'avatar_url',
-      'screen_name'      : 'name',
-      'link'             : 'link'
-    },
-    'linkedin' : {
-      'picture-url'       : 'avatar_url',
-      'first-name'        : 'name',
-      'public-profile-url': 'link'
-    },
-    'linkedin2' : {
-      'picture-url'       : 'avatar_url',
-      'first-name'        : 'name',
-      'public-profile-url': 'link'
-    },
-    'foursquare'   : {
-      'photo'    : lambda photo: ('avatar_url', photo.get('prefix') + '100x100' + photo.get('suffix')),
-      'firstName': 'firstName',
-      'lastName' : 'lastName',
-      'contact'  : lambda contact: ('email',contact.get('email')),
-      'id'       : lambda id: ('link', 'http://foursquare.com/user/{0}'.format(id))
-    },
-    'openid'   : {
-      'id'      : lambda id: ('avatar_url', '/img/missing-avatar.png'),
-      'nickname': 'name',
-      'email'   : 'link'
+    # Enable optional OAuth 2.0 CSRF guard
+    OAUTH2_CSRF_STATE = True
+    
+    USER_ATTRS = {
+        'facebook' : {
+            'id'     : lambda id: ('avatar_url', 
+                'http://graph.facebook.com/{0}/picture?type=large'.format(id)),
+            'name'   : 'name',
+            'link'   : 'link'
+        },
+        'google'   : {
+            'picture': 'avatar_url',
+            'name'   : 'name',
+            'profile': 'link'
+        },
+        'windows_live': {
+            'avatar_url': 'avatar_url',
+            'name'      : 'name',
+            'link'      : 'link'
+        },
+        'twitter'  : {
+            'profile_image_url': 'avatar_url',
+            'screen_name'      : 'name',
+            'link'             : 'link'
+        },
+        'linkedin' : {
+            'picture-url'       : 'avatar_url',
+            'first-name'        : 'name',
+            'public-profile-url': 'link'
+        },
+        'linkedin2' : {
+            'picture-url'       : 'avatar_url',
+            'first-name'        : 'name',
+            'public-profile-url': 'link'
+        },
+        'foursquare'   : {
+            'photo'    : lambda photo: ('avatar_url', photo.get('prefix') + '100x100' + photo.get('suffix')),
+            'firstName': 'firstName',
+            'lastName' : 'lastName',
+            'contact'  : lambda contact: ('email',contact.get('email')),
+            'id'       : lambda id: ('link', 'http://foursquare.com/user/{0}'.format(id))
+        },
+        'openid'   : {
+            'id'      : lambda id: ('avatar_url', '/img/missing-avatar.png'),
+            'nickname': 'name',
+            'email'   : 'link'
+        }
     }
-  }
-  
-  def _on_signin(self, data, auth_info, provider):
-    """Callback whenever a new or existing user is logging in.
-     data is a user info dictionary.
-     auth_info contains access token or oauth token and secret.
-    """
-    auth_id = '%s:%s' % (provider, data['id'])
-    logging.info('Looking for a user with id %s', auth_id)
     
-    user = self.auth.store.user_model.get_by_auth_id(auth_id)
-    _attrs = self._to_user_model_attrs(data, self.USER_ATTRS[provider])
-
-    if user:
-      logging.info('Found existing user to log in')
-      # Existing users might've changed their profile data so we update our
-      # local model anyway. This might result in quite inefficient usage
-      # of the Datastore, but we do this anyway for demo purposes.
-      #
-      # In a real app you could compare _attrs with user's properties fetched
-      # from the datastore and update local user in case something's changed.
-      user.populate(**_attrs)
-      user.put()
-      self.auth.set_session(
-        self.auth.store.user_to_dict(user))
-      
-    else:
-      # check whether there's a user currently logged in
-      # then, create a new user if nobody's signed in, 
-      # otherwise add this auth_id to currently logged in user.
-
-      if self.logged_in:
-        logging.info('Updating currently logged in user')
+    def _on_signin(self, data, auth_info, provider):
+        """Callback whenever a new or existing user is logging in.
+         data is a user info dictionary.
+         auth_info contains access token or oauth token and secret.
+        """
+        auth_id = '%s:%s' % (provider, data['id'])
+        logging.info('Looking for a user with id %s', auth_id)
         
-        u = self.current_user
-        u.populate(**_attrs)
-        # The following will also do u.put(). Though, in a real app
-        # you might want to check the result, which is
-        # (boolean, info) tuple where boolean == True indicates success
-        # See webapp2_extras.appengine.auth.models.User for details.
-        u.add_auth_id(auth_id)
+        user = self.auth.store.user_model.get_by_auth_id(auth_id)
+        _attrs = self._to_user_model_attrs(data, self.USER_ATTRS[provider])
+
+        if user:
+            logging.info('Found existing user to log in')
+            # Existing users might've changed their profile data so we update our
+            # local model anyway. This might result in quite inefficient usage
+            # of the Datastore, but we do this anyway for demo purposes.
+            #
+            # In a real app you could compare _attrs with user's properties fetched
+            # from the datastore and update local user in case something's changed.
+            user.populate(**_attrs)
+            user.put()
+            self.auth.set_session(
+                self.auth.store.user_to_dict(user))
+            
+        else:
+            # check whether there's a user currently logged in
+            # then, create a new user if nobody's signed in, 
+            # otherwise add this auth_id to currently logged in user.
+
+            if self.logged_in:
+                logging.info('Updating currently logged in user')
+                
+                u = self.current_user
+                u.populate(**_attrs)
+                # The following will also do u.put(). Though, in a real app
+                # you might want to check the result, which is
+                # (boolean, info) tuple where boolean == True indicates success
+                # See webapp2_extras.appengine.auth.models.User for details.
+                u.add_auth_id(auth_id)
+                
+            else:
+                logging.info('Creating a brand new user')
+                ok, user = self.auth.store.user_model.create_user(auth_id, **_attrs)
+                if ok:
+                    self.auth.set_session(self.auth.store.user_to_dict(user))
+
+        if self.controller(BaseController).current_user_info() is not None:
+            #figure out where to send the user
+            self.redirect('/')
+        else:
+            #create an account
+            self.redirect('/post_login')
+
+    def logout(self):
+        self.auth.unset_session()
+        self.redirect('/')
+
+    def handle_exception(self, exception, debug):
+        logging.error(exception)
+        self.render('error.html', {'exception': exception})
         
-      else:
-        logging.info('Creating a brand new user')
-        ok, user = self.auth.store.user_model.create_user(auth_id, **_attrs)
-        if ok:
-          self.auth.set_session(self.auth.store.user_to_dict(user))
+    def _callback_uri_for(self, provider):
+        return self.uri_for('auth_callback', provider=provider, _full=True)
+        
+    def _get_consumer_info_for(self, provider):
+        """Returns a tuple (key, secret) for auth init requests."""
+        return secrets.AUTH_CONFIG[provider]
+        
+    def _to_user_model_attrs(self, data, attrs_map):
+        """Get the needed information from the provider dataset."""
+        user_attrs = {}
+        for k, v in attrs_map.iteritems():
+            attr = (v, data.get(k)) if isinstance(v, str) else v(data.get(k))
+            user_attrs.setdefault(*attr)
 
-    # Go to the profile page
-    self.redirect('/post_login')
-
-  def logout(self):
-    self.auth.unset_session()
-    self.redirect('/')
-
-  def handle_exception(self, exception, debug):
-    logging.error(exception)
-    self.render('error.html', {'exception': exception})
-    
-  def _callback_uri_for(self, provider):
-    return self.uri_for('auth_callback', provider=provider, _full=True)
-    
-  def _get_consumer_info_for(self, provider):
-    """Returns a tuple (key, secret) for auth init requests."""
-    return secrets.AUTH_CONFIG[provider]
-    
-  def _to_user_model_attrs(self, data, attrs_map):
-    """Get the needed information from the provider dataset."""
-    user_attrs = {}
-    for k, v in attrs_map.iteritems():
-      attr = (v, data.get(k)) if isinstance(v, str) else v(data.get(k))
-      user_attrs.setdefault(*attr)
-
-    return user_attrs
+        return user_attrs

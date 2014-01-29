@@ -71,7 +71,10 @@ class Tree(ndb.Model):
     #we store the root branch with an id equali to the name of the tree
     #all other branchs are stored with random integer ids
     def get_root_branch(self):
-        return ndb.Key('Branch',self.name).get()
+        return self.get_root_branch_key().get()
+    
+    def get_root_branch_key(self):
+        return ndb.Key('Branch',self.name)
     
     @classmethod
     def get_by_names(cls,names):

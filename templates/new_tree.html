@@ -1,4 +1,4 @@
-{% extends "templates/base.html" %}
+{% extends "base.html" %}
 
 {% block additional_header %}
     
@@ -24,7 +24,7 @@
 {% block content %}
     
     <div id="add_tree_div">
-    {% if session_info.username %}
+    {% if logged_in %}
         <b>Add a Tree</b>
         <form id="new_tree_form" action="{{new_tree_endpoint}}" method="post">
             <div>
@@ -141,7 +141,7 @@
             }];
         </script>
     {% else %}
-        <div class="no_links">You must <a href="{{ session_info.url|safe }}">{{ session_info.link_text }}</a> to add a Tree.</div>
+        <div class="no_links">You must <a href="/login">Login</a> to add a Tree.</div>
     {% endif %}
     </div>
 

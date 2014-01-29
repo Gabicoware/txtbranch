@@ -66,7 +66,6 @@
             <ul class="nav">
               <li id="home_li"><a href="/">Home</a></li>
               <li id="about_li"><a href="/about">About</a></li>
-              <li><a href="{{ session_info.url|safe }}">{{ session_info.link_text }}</a></li>
             </ul>
           </div><!--/.nav-collapse -->
 		  <script>
@@ -89,7 +88,7 @@
 		    }
 		    
 		    function isLoggedIn(){
-		    	{% if session_info.isloggedin %}
+		    	{% if logged_in %}
 		    	var is_logged_in = true;
 			    {% else %}
 		    	var is_logged_in = false;
