@@ -107,16 +107,8 @@ class BranchHandler(base.BaseRequestHandler):
 
     def expanded_branch(self,branch):
         
-        like_value = 0
-        
-        username = self.request.cookies.get('username')
-        userinfo = UserInfo.get_by_username(username)    
-        if userinfo and self.is_user_info_current(userinfo):
-            like_key = Like.create_key(branch.key,self.request.cookies.get('username'))
-            like = like_key.get();
-            if like:
-                like_value = like.value
-        
+        like_value = self.controller(LikeController).get_like_value(branch)
+                
         child_count = branch.child_count()
         like_count = branch.like_count()
         unlike_count = branch.unlike_count()

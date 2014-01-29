@@ -15,6 +15,7 @@ class BaseRequestHandler(webapp2.RequestHandler):
         google_user = users.get_current_user()
         if google_user is not None:
                 controller.google_user = google_user
+        controller.username = self.request.cookies.get('username')
         return controller
     
     def dispatch(self):
@@ -51,7 +52,7 @@ class BaseRequestHandler(webapp2.RequestHandler):
     @webapp2.cached_property
     def logged_in(self):
         """Returns true if a user is currently logged in, false otherwise"""
-        return self.auth.get_user_by_session() is not None
+        return self.auth.get_user_by_session() is not None or users.get_current_user() is not None
     
             
     def render(self, template_name, template_vars={}):

@@ -45,7 +45,7 @@ class CreateTreeHandler(RequestHandler):
     def post(self):
         tree_name = self.request.get('tree_name',config['trees']['default_name'])
         
-        success, tree = TreeController.save_tree(tree_name,
+        success, tree = self.controller(TreeController).save_tree(tree_name,
           self.username(),
           self.request.get('conventions', DEFAULT_CONVENTIONS),
           self.request.get('root_branch_link',''),
@@ -88,7 +88,7 @@ class EditTreeHandler(RequestHandler):
         
         tree = Tree.get_by_name(tree_name)
         
-        success, result = TreeController.update_tree(
+        success, result = self.controller(TreeController).update_tree(
           tree,
           self.username(),
           self.request.get('conventions'))

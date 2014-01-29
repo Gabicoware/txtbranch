@@ -8,6 +8,7 @@ class BaseController:
         self.oauth_user_id = None
         self.google_user = None
         self.user_info = None
+        self.username = None
 
     def current_user_info(self):
         
@@ -213,6 +214,15 @@ class UserInfoController(BaseController):
             return False, errors
 
 class LikeController(BaseController):
+    
+    def get_like_value(self,branch):
+        userinfo = UserInfo.get_by_username(self.username)    
+        if userinfo and self.is_user_info_current(userinfo):
+            like_key = Like.create_key(branch.key,self.username)
+            like = like_key.get();
+            if like:
+                return like.value
+        return 0
     
     def set_like(self,branch_urlsafe_key,like_value):
         
