@@ -23,7 +23,8 @@ function toggleLike(branch_key,param_value){
     }
     
     $.get('/api/v1/likes?branch_key='+branch_key+'&value='+param_value, function(data) {
-        if(data == 'OK'){
+        var jsondata = JSON.parse(data);
+        if(jsondata.status == 'OK'){
             branch.like_value = param_value;
             updateLikeInfo(branch_key,branch.like_value);
         }
@@ -119,7 +120,7 @@ function loadParent(branch){
                 $.get('/api/v1/branchs?branch_key='+branch.parent_branch, function(data,textStatus,xhr) {
                     var jsondata = JSON.parse(data);
                     
-                    if(0 < jsondata.result.length){
+                    if(jsondata.status == 'OK' && 0 < jsondata.result.length){
                         var parent_branch = jsondata.result[0];
                         branch_cache[parent_branch.key] = parent_branch;
                         showParent(parent_branch);
@@ -154,7 +155,7 @@ function updateBranchLinks(branch_key){
     $.get('/api/v1/branchs?parent_branch_key='+branch_key, function(data,textStatus,xhr) {
         var jsondata = JSON.parse(data);
         
-        if(0 < jsondata.result.length){
+        if(jsondata.status == 'OK' && 0 < jsondata.result.length){
             
             var child_keys = [];
             

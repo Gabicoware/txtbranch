@@ -43,7 +43,7 @@ div.stats{
     height:20px;
 }
 div.branch_link{
-	display:inline-block;
+	display:block;
 }
 div.branch_link a{
 	font-size:larger;

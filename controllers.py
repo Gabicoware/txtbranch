@@ -48,7 +48,7 @@ class BranchController(BaseController):
             
             return False, { 'unauthenticated':True }
         
-        errors = {}
+        errors = []
         
         branch = Branch()
         branch.link = link
@@ -60,10 +60,10 @@ class BranchController(BaseController):
         branch.tree_name = parent_branch.tree_name
         
         if len(branch.link) == 0:
-            errors['empty_branch_link'] = True
+            errors.append('empty_branch_link')
         
         if len(branch.content) == 0:
-            errors['empty_branch_content'] = True
+            errors.append('empty_branch_content')
         
         
 #Comment on thread safety:
@@ -77,14 +77,14 @@ class BranchController(BaseController):
         
         for branch_branch in branchs:
             if branch_branch.link == branch.link:
-                errors['has_identical_link'] = True
+                errors.append('has_identical_link')
             if branch_branch.authorname == authorname:
                 authored_branch_count += 1
         
         if 2 <= authored_branch_count:
-            errors['has_branches'] = True
+            errors.append('has_branches')
         
-        if len(errors.keys()) == 0:
+        if len(errors) == 0:
             branch.parent_branch = parent_key
             branch.authorname = authorname
             branch.parent_branch_authorname = parent_branch.authorname
@@ -101,29 +101,29 @@ class TreeController(BaseController):
     def save_tree(self,tree_name,moderatorname,conventions,root_branch_link,root_branch_content):
         
         if moderatorname is None:
-            return False, { 'unauthenticated':True}
+            return False, ['unauthenticated']
         
         author_info = UserInfo.get_by_username(moderatorname)
         
         if author_info is None or not self.is_user_info_current(author_info):
-            return False, { 'unauthenticated':True}
+            return False, ['unauthenticated']
         
         if author_info.username is None:
-            return False, { 'invalid_user':True}
+            return False, ['invalid_user']
         
         tree_key = Tree.create_key(tree_name)
         
-        errors = {}
+        errors = []
         
         empty_name = tree_name is None or len(tree_name) == 0
         
         if empty_name:
-            errors['empty_name'] = True
+            errors.append('empty_name')
         else:
             match = re.search(r'^[\d\w_\-]+$', tree_name)
             isvalid = match and 4 <= len(tree_name) and len(tree_name) <= 20;
             if not isvalid:
-                errors['invalid_name'] = True
+                errors.append('invalid_name')
         
         branch = Branch(id=tree_name)
         branch.authorname = moderatorname
@@ -132,22 +132,22 @@ class TreeController(BaseController):
         branch.tree_name = tree_name
         
         if branch.link == None or len(branch.link) == 0:
-            errors['empty_root_branch_link'] = True
+            errors.append('empty_root_branch_link')
         
         if branch.content == None or len(branch.content) == 0:
-            errors['empty_root_branch_content'] = True
+            errors.append('empty_root_branch_content')
         
 #let the user complete the other validation before trying to create the tree        
-        if len(errors.keys()) != 0:
+        if len(errors) != 0:
             return False, errors
         
         
         tree = tree_key.get();
         
         if tree:
-            errors['tree_exists'] = True
+            errors.append('tree_exists')
         
-        if len(errors.keys()) == 0:
+        if len(errors) == 0:
             #if two users enter identical information at the same time, then
             #whoever gets it second is the winner
             tree = Tree(id=tree_name,name=tree_name)
@@ -156,7 +156,7 @@ class TreeController(BaseController):
             branch.put()
             tree.put()
         
-        if len(errors.keys()) == 0:
+        if len(errors) == 0:
             return True, tree
         else:
             return False, errors
@@ -165,18 +165,18 @@ class TreeController(BaseController):
     def update_tree(self,tree,moderatorname,conventions):
         
         if tree is None:
-            return False, { 'tree_not_found':True}
+            return False, ['tree_not_found']
         
         if moderatorname is None:
-            return False, { 'unauthenticated':True}
+            return False, ['unauthenticated']
         
         author_info = UserInfo.get_by_username(moderatorname)
         
         if author_info is None or not self.is_user_info_current(author_info):
-            return False, { 'unauthenticated':True}
+            return False, ['unauthenticated']
         
         if author_info.username is None:
-            return False, { 'invalid_user':True}
+            return False, ['invalid_user']
         
         
         tree.conventions = conventions
@@ -187,14 +187,14 @@ class TreeController(BaseController):
 class UserInfoController(BaseController):
     
     def set_username(self,username):
-        errors = {}
+        errors = []
                 
         match = re.search(r'^[\d\w_\-]+$', username)
         
         isvalid = match and 4 <= len(username) and len(username) <= 20;
         
         if not isvalid:
-            errors['invalid_name'] = True
+            errors.append('invalid_name')
         else:
             user_info = self.current_user_info()
             if user_info is None:
@@ -206,9 +206,9 @@ class UserInfoController(BaseController):
                 if user_info is None:
                     user_info = UserInfo.put_new(username,oauth_user_id=self.oauth_user_id,google_user=self.google_user)
                 else:
-                    errors['other_has_name'] = True
+                    errors.append('other_has_name')
         
-        if len(errors.keys()) == 0:
+        if len(errors) == 0:
             return True, user_info
         else:
             return False, errors
@@ -227,11 +227,11 @@ class LikeController(BaseController):
     def set_like(self,branch_urlsafe_key,like_value):
         
         if branch_urlsafe_key is None or branch_urlsafe_key == '':
-            return False, {'no_page_key':True}
+            return False, ['no_page_key']
         
         userinfo = self.current_user_info()
         if userinfo is None:
-            return False, {'unauthenticated':True}
+            return False, ['unauthenticated']
         
         branch_key = ndb.Key(urlsafe=branch_urlsafe_key)
         

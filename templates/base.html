@@ -49,6 +49,10 @@
               welcome back, <a href="/user/##username##" class="navbar-link">##username##</a>
         </p>
     </script>
+    <script id="add_tree_template" type="text/template">
+		<li id="add_tree_li"><a href="/tree/new">+ tree</a></li>
+    </script>
+
   </head>
   <body>
   
@@ -63,7 +67,7 @@
           </button>
           <a class="brand" href="/">txtbranch</a>
           <div class="nav-collapse collapse" id="navbaritems">
-            <ul class="nav">
+            <ul id="nav_ul" class="nav">
               <li id="home_li"><a href="/">Home</a></li>
               <li id="about_li"><a href="/about">About</a></li>
             </ul>
@@ -77,6 +81,8 @@
 			    	var template = $("#user_item_template").html();
 				    template = template.replace(/##username##/g, username);
 				    $("#navbaritems").append(template);
+				    
+				    $("#nav_ul").append($("#add_tree_template").html());
 				}
 				
 				if(location.pathname == "/"){

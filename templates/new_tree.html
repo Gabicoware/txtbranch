@@ -42,7 +42,7 @@
             <div>
                 <input type="text"  id="root_branch_link" name="root_branch_link" value="{{root_branch_link}}" />
             </div>
-            {% if errors['empty_root_branch_link'] %}
+            {% if 'empty_root_branch_link' in errors %}
             <div class="invalid_message">
                 A first branch link is required.
             </div>
@@ -53,7 +53,7 @@
             <div>
                 <textarea id="root_branch_content" name="root_branch_content" rows="3" >{{root_branch_content}}</textarea>
             </div>
-            {% if errors['empty_root_branch_content'] %}
+            {% if 'empty_root_branch_content' in errors %}
             <div class="invalid_message">
                 A first branch content is required.
             </div>
@@ -79,10 +79,10 @@
         	var errors = {};
 		    {% endif %}
 			
-			if( errors['empty_root_branch_content'] != null){
+			if( errors.contains('empty_root_branch_content') ){
 	        	$("#root_branch_content").addClass('invalid')
         	}
-			if( errors['empty_root_branch_link'] != null){
+			if( errors.contains('empty_root_branch_link') ){
 	        	$("#root_branch_link").addClass('invalid')
         	}
 			
@@ -102,7 +102,7 @@
 			var message = messages['valid_tree_name']
 			
         	for (var key in messages){
-        		if( errors[key] != null){
+        		if( errors.contains(key) ){
                 	message = messages[key];
 		        	$("#tree_name_message").addClass('invalid_message')
 			        $("#tree_name_message").removeClass('message')

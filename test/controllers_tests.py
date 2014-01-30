@@ -76,13 +76,13 @@ class BranchControllerTestCase(unittest.TestCase):
         success, result = self.controller.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(),'','some_content')
         
         self.assertFalse(success)
-        self.assertTrue(result['empty_branch_link'])
+        self.assertTrue('empty_branch_link' in result)
         
     def testEmptyBranchContent(self):
         success, result = self.controller.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(),'testEmptyBranchLink.unique_link','')
         
         self.assertFalse(success)
-        self.assertTrue(result['empty_branch_content'])
+        self.assertTrue('empty_branch_content' in result)
         
     def testIdenticalLink(self):
         success, result = self.controller.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(),'testIdenticalLink.some_link','some_content')
@@ -99,7 +99,7 @@ class BranchControllerTestCase(unittest.TestCase):
         success, result = self.controller.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(), 'testIdenticalLink.some_link', 'some_content')
         
         self.assertFalse(success)
-        self.assertTrue(result['has_identical_link'])
+        self.assertTrue('has_identical_link' in result)
         
     def testSaveBranch(self):
         success, result = self.controller.save_branch(self.user_info.username, self.parent_branch.key.urlsafe(), 'testBranch.unique_link', 'testBranch.unique_content' )
@@ -168,38 +168,38 @@ class TreeControllerTestCase(unittest.TestCase):
         success, result = self.controller.save_tree( 'some_name',None,'',None,None)
         
         self.assertFalse(success)
-        self.assertTrue(result['unauthenticated'])
+        self.assertTrue('unauthenticated' in result)
     
         success, result = self.controller.save_tree( 'some_name','DNE.','',None,None)
         
         self.assertFalse(success)
-        self.assertTrue(result['unauthenticated'])
+        self.assertTrue('unauthenticated' in result)
         
         success, result = self.controller.save_tree( 'some_name',self.invalid_username,'',None,None)
         
         self.assertFalse(success)
-        self.assertTrue(result['unauthenticated'])
+        self.assertTrue('unauthenticated' in result)
         
         success, result = self.controller.save_tree( None,self.user_info.username,'',None,None)
         
         self.assertFalse(success)
-        self.assertTrue(result['empty_name'])
+        self.assertTrue('empty_name' in result)
         
         success, result = self.controller.save_tree( '',self.user_info.username,'',None,None)
         
         self.assertFalse(success)
-        self.assertTrue(result['empty_name'])
+        self.assertTrue('empty_name' in result)
         
         success, result = self.controller.save_tree( 'q q q q q ',self.user_info.username,'',None,None)
         
         self.assertFalse(success)
-        self.assertTrue(result['invalid_name'])
+        self.assertTrue('invalid_name' in result)
     
         success, result = self.controller.save_tree( 'TestTree',self.user_info.username,None,None,None)
         
         self.assertFalse(success)
-        self.assertTrue(result['empty_root_branch_link'])
-        self.assertTrue(result['empty_root_branch_content'])
+        self.assertTrue('empty_root_branch_link' in result)
+        self.assertTrue('empty_root_branch_content' in result)
     
     def tearDown(self):
         
