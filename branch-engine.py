@@ -18,7 +18,6 @@ app_config = {
 
 handlers = [
     (r'/user/([\d\w_\-]+)', UserHandler),
-    ('/login', LoginHandler),
     ('/post_login', PostLoginHandler),
     ('/post_logout', PostLogoutHandler),
     ('/about', AboutHandler),
