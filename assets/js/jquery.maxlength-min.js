@@ -45,7 +45,7 @@
 				var valid = true;
 				
 				// Too many chars?
-				if(charactersLength >= settings.maxCharacters) 
+				if(charactersLength > settings.maxCharacters) 
 				{
 					// Too may chars, set the valid boolean to false
 					valid = false;

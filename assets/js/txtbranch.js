@@ -36,28 +36,24 @@ function updateLikeInfo(branch_key,value){
     var branch = branch_cache[branch_key];
     
     var like_div = $('#'+branch_key+'_like_div');
-    var like_count_span = $('#'+branch_key+'_like_count_span');
     if(value == 1){
         like_div.addClass("like_active");
         like_div.removeClass("like_inactive");
-        like_count_span.text(branch.like_count + 1);
     }else{
         like_div.removeClass("like_active");
         like_div.addClass("like_inactive");
-        like_count_span.text(branch.like_count);
     }
     
     var unlike_div = $('#'+branch_key+'_unlike_div');
-    var unlike_count_span = $('#'+branch_key+'_unlike_count_span');
     if(value == -1){
         unlike_div.addClass("unlike_active");
         unlike_div.removeClass("unlike_inactive");
-        unlike_count_span.text(branch.unlike_count + 1);
     }else{
         unlike_div.removeClass("unlike_active");
         unlike_div.addClass("unlike_inactive");
-        unlike_count_span.text(branch.unlike_count);
     }
+    var score_span = $('#'+branch_key+'_score_span');
+    score_span.text(branch.like_count - branch.unlike_count + branch.child_count + value);
     
 }
 
@@ -175,7 +171,10 @@ function showBranchLinks(links){
     $("#link_container").empty();
     if(0 < links.length){
         for(var i =0; i < links.length; i++){
-            appendLink(links[i]);
+            var branch = links[i];
+            appendLink(branch);
+            updateLikeInfo(branch.key,branch.like_value);
+
         }
     }else{
         var template = $("#no_links_template").html();
@@ -214,8 +213,7 @@ function prepareBranchHTML(branch){
     template = template.replace(/##branch\.content##/g,branch.content);
     template = template.replace(/##branch\.link##/g,branch.link);
     template = template.replace(/##branch\.key##/g,branch.key);
-    template = template.replace(/##branch\.child_count##/g,branch.child_count);
-    
+    template = template.replace(/##branch\.score##/g,(branch.child_count + branch.like_count - branch.unlike_count));
     
     var href = "javascript:window.open('/user/" +branch["authorname"]+ "', '_blank');";
         
@@ -227,19 +225,19 @@ function prepareBranchHTML(branch){
     template = template.replace("##like_div_id##",branch.key+"_like_div");
     template = template.replace("##unlike_div_id##",branch.key+"_unlike_div");
     
-    template = template.replace("##like_count_span_id##",branch.key+"_like_count_span");
-    template = template.replace("##unlike_count_span_id##",branch.key+"_unlike_count_span");
+    template = template.replace("##score_span_id##",branch.key+"_score_span");
     
     return template;
 }
 
 function appendLink(branch){
     var template = $("#branch_link_template").html();
-    var branch_link = template;
-    branch_link = branch_link.replace(/##branch\.link##/g,branch.link);
-    branch_link = branch_link.replace(/##branch\.key##/g,branch.key);
-    branch_link = branch_link.replace(/##branch\.score##/g,(branch.child_count + branch.like_count - branch.unlike_count));
-    $("#link_container").append(branch_link);
+    template = template.replace(/##branch\.link##/g,branch.link);
+    template = template.replace(/##branch\.key##/g,branch.key);
+    template = template.replace(/##branch\.score##/g,(branch.child_count + branch.like_count - branch.unlike_count));
+    template = template.replace("##like_div_id##",branch.key+"_like_div");
+    template = template.replace("##unlike_div_id##",branch.key+"_unlike_div");
+    $("#link_container").append(template);
 }
 function returnToBranch(branch_key){
     resetToBranch(branch_key);
@@ -415,4 +413,16 @@ var authentication_messages = {
     'add_branch':'You must be logged in to add a branch'
 };
 
+var active_branch_info = null;
 
+function branchInfoClickHandler(event){
+    if(active_branch_info != null){
+        $(active_branch_info).removeClass('active_branch_info');
+    }
+    if(active_branch_info != event.currentTarget){
+        $(event.currentTarget).addClass('active_branch_info');
+        active_branch_info = event.currentTarget;
+    }else{
+        active_branch_info = null;
+    }
+}

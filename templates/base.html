@@ -52,6 +52,12 @@
     <script id="add_tree_template" type="text/template">
 		<li id="add_tree_li"><a href="/tree/new">+ tree</a></li>
     </script>
+    <script id="login_template" type="text/template">
+		<a href="/login">Login</a>
+    </script>
+    <script id="logout_template" type="text/template">
+		<a href="/logout">Logout</a>
+    </script>
 
   </head>
   <body>
@@ -70,6 +76,7 @@
             <ul id="nav_ul" class="nav">
               <li id="home_li"><a href="/">Home</a></li>
               <li id="about_li"><a href="/about">About</a></li>
+              <li id="login_li"></li>
             </ul>
           </div><!--/.nav-collapse -->
 		  <script>
@@ -83,6 +90,11 @@
 				    $("#navbaritems").append(template);
 				    
 				    $("#nav_ul").append($("#add_tree_template").html());
+				    $("#login_li").empty();
+				    $("#login_li").append($("#logout_template").html());
+				}else{
+				    $("#login_li").empty();
+				    $("#login_li").append($("#login_template").html());
 				}
 				
 				if(location.pathname == "/"){
@@ -114,6 +126,11 @@
     <script type="text/javascript" src="/assets/js/bootstrap-collapse.js"></script>
     <script>
     	updateNavBarItems();
+    	if('ontouchstart' in document.documentElement){
+	    	$('body').addClass('touch');
+    	}else{
+	    	$('body').addClass('notouch');
+    	}
     </script>
   </body>
 </html>

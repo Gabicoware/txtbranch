@@ -177,15 +177,7 @@ class PostLoginHandler(RequestHandler):
             self.response.set_cookie('username',value=user_info.username,expires=then)
             
             self.redirect('/')
-            
-class LoginHandler(RequestHandler):
-    
-    def login(self):
-        self.render('login.html', {})
-    def google_login(self):
-        url = users.create_login_url('/post_login')
-        self.redirect(url, permanent=True)
-        
+                    
 class PostLogoutHandler(RequestHandler):
     
     def get(self):
@@ -301,6 +293,17 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
         self.auth.unset_session()
         self.redirect('/')
 
+    def login(self):
+        self.render('login.html', {})
+        
+    def google_login(self):
+        url = users.create_login_url('/post_login')
+        self.redirect(url, permanent=True)
+        
+    def google_logout(self):
+        url = users.create_logout_url('/')
+        self.redirect(url, permanent=True)
+        
     def handle_exception(self, exception, debug):
         logging.error(exception)
         self.render('error.html', {'exception': exception})
