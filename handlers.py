@@ -159,31 +159,7 @@ class UserHandler(RequestHandler):
             'user_info' : user_info,
         }
         self.render('user.html',template_values)
-        
-class PostLoginHandler(RequestHandler):
-    
-    def get(self):
-        
-        user_info = self.controller(BaseController).current_user_info()
-        if user_info is None:
-            self.render('post_login.html',{})
-        else:
-            #don't worry about redirects for now
-            
-            now = datetime.datetime.now()
-            delta = datetime.timedelta(days=28)
-            then = delta + now
-            
-            self.response.set_cookie('username',value=user_info.username,expires=then)
-            
-            self.redirect('/')
-                    
-class PostLogoutHandler(RequestHandler):
-    
-    def get(self):
-        self.redirect('/')
-        self.response.delete_cookie('username')
-
+                            
 class AuthHandler(RequestHandler, SimpleAuthHandler):
     """Authentication handler for OAuth 2.0, 1.0(a) and OpenID."""
 
@@ -281,8 +257,9 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
                 ok, user = self.auth.store.user_model.create_user(auth_id, **_attrs)
                 if ok:
                     self.auth.set_session(self.auth.store.user_to_dict(user))
-
-        if self.controller(BaseController).current_user_info() is not None:
+        user_info = self.controller(BaseController).current_user_info()
+        if user_info is not None:
+            self._set_username_cookie(user_info)
             #figure out where to send the user
             self.redirect('/')
         else:
@@ -291,6 +268,7 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
 
     def logout(self):
         self.auth.unset_session()
+        self.response.delete_cookie('username')
         self.redirect('/')
 
     def login(self):
@@ -302,8 +280,20 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
         
     def google_logout(self):
         url = users.create_logout_url('/')
+        self.response.delete_cookie('username')
         self.redirect(url, permanent=True)
+    
+    def post_login(self):
         
+        user_info = self.controller(BaseController).current_user_info()
+        if user_info is None:
+            self.render('post_login.html',{})
+        else:
+            #don't worry about redirects for now
+            self._set_username_cookie(user_info)
+            
+            self.redirect('/')
+            
     def handle_exception(self, exception, debug):
         logging.error(exception)
         self.render('error.html', {'exception': exception})
@@ -323,3 +313,9 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
             user_attrs.setdefault(*attr)
 
         return user_attrs
+    def _set_username_cookie(self,user_info):
+        now = datetime.datetime.now()
+        delta = datetime.timedelta(days=28)
+        then = delta + now
+        
+        self.response.set_cookie('username',value=user_info.username,expires=then)

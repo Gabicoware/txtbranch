@@ -18,8 +18,6 @@ app_config = {
 
 handlers = [
     (r'/user/([\d\w_\-]+)', UserHandler),
-    ('/post_login', PostLoginHandler),
-    ('/post_logout', PostLogoutHandler),
     ('/about', AboutHandler),
     ('/', MainHandler),
     ('/tree/new', CreateTreeHandler),
@@ -29,6 +27,7 @@ handlers = [
   Route('/google_login', handler='handlers.AuthHandler:google_login', name='google_login'),
   Route('/logout', handler='handlers.AuthHandler:logout', name='logout'),
   Route('/google_logout', handler='handlers.AuthHandler:google_logout', name='google_logout'),
+  Route('/post_login', handler='handlers.AuthHandler:post_login', name='post_login'),
   Route('/auth/<provider>', 
     handler='handlers.AuthHandler:_simple_auth', name='auth_login'),
   Route('/auth/<provider>/callback', 
