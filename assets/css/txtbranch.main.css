@@ -121,6 +121,14 @@ div.branch_info{
 	}
 }
 @media (min-width:480px) {
+	div.branch_info, div.branch_link_info{
+		opacity:0.8;
+		transition: opacity 0.2s;
+		-webkit-transition: opacity 0.2s; /* Safari */
+	}
+	div.branch_info:hover, div.branch_link_info:hover{
+		opacity:1.0;
+	}
 	div.branch_info_handle{
 		display:none;
 	}

@@ -168,10 +168,11 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
     
     USER_ATTRS = {
         'facebook' : {
-            'id'     : lambda id: ('avatar_url', 
-                'http://graph.facebook.com/{0}/picture?type=large'.format(id)),
             'name'   : 'name',
-            'link'   : 'link'
+            'link'   : 'link',
+            '_attrs' : [
+                ('id' , lambda id: ('avatar_url', 'http://graph.facebook.com/{0}/picture?type=large'.format(id)))
+            ]
         },
         'google'   : {
             'picture': 'avatar_url',
@@ -188,6 +189,13 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
             'screen_name'      : 'name',
             'link'             : 'link'
         },
+        'reddit'  : {
+            'name'             : 'name',
+            '_attrs'           : [
+                  ('id', lambda id: ('avatar_url', '/img/missing-avatar.png') ),
+                  ('name', lambda name: ('link', 'http://reddit.com/u/{0}'.format(name)) )
+            ]
+        },
         'linkedin' : {
             'picture-url'       : 'avatar_url',
             'first-name'        : 'name',
@@ -199,16 +207,20 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
             'public-profile-url': 'link'
         },
         'foursquare'   : {
-            'photo'    : lambda photo: ('avatar_url', photo.get('prefix') + '100x100' + photo.get('suffix')),
             'firstName': 'firstName',
             'lastName' : 'lastName',
-            'contact'  : lambda contact: ('email',contact.get('email')),
-            'id'       : lambda id: ('link', 'http://foursquare.com/user/{0}'.format(id))
+            '_attrs' : [
+                ('photo'    , lambda photo: ('avatar_url', photo.get('prefix') + '100x100' + photo.get('suffix'))),
+                ('contact'  , lambda contact: ('email',contact.get('email'))),
+                ('id'       , lambda id: ('link', 'http://foursquare.com/user/{0}'.format(id))),
+            ]
         },
         'openid'   : {
-            'id'      : lambda id: ('avatar_url', '/img/missing-avatar.png'),
             'nickname': 'name',
-            'email'   : 'link'
+            'email'   : 'link',
+            '_attrs' : [
+                ('id'      , lambda id: ('avatar_url', '/img/missing-avatar.png'))
+            ]
         }
     }
     
@@ -295,7 +307,7 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
             self.redirect('/')
             
     def handle_exception(self, exception, debug):
-        logging.error(exception)
+        logging.exception(exception)
         self.render('error.html', {'exception': exception})
         
     def _callback_uri_for(self, provider):
@@ -309,7 +321,11 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
         """Get the needed information from the provider dataset."""
         user_attrs = {}
         for k, v in attrs_map.iteritems():
-            attr = (v, data.get(k)) if isinstance(v, str) else v(data.get(k))
+            if k == '_attrs':
+                for key, lamb in v:
+                    attr = lamb(data.get(key))
+            else:
+                attr = (v, data.get(k))
             user_attrs.setdefault(*attr)
 
         return user_attrs
