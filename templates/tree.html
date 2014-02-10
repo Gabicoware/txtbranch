@@ -18,9 +18,9 @@
     <script id="branch_template" type="text/template">
     	<div id="##branch_div_id##">
             <div class="branch_info" onclick="branchInfoClickHandler(event)">
+                <div class="stats" id="##score_span_id##" >##branch.score##</div>
                 <div id="##like_div_id##" class="like_div vote" onclick="toggleLike('##branch.key##',1);" > </div>
                 <div id="##unlike_div_id##" class="unlike_div vote" onclick="toggleLike('##branch.key##',-1);" > </div>
-                <div class="stats" id="##score_span_id##" >##branch.score##</div>
                 <div class="byline">##author_info##</div>
                 <div class="branch_info_handle">
 	                <div class="handle_ridge"></div>
@@ -37,9 +37,9 @@
     <script id="branch_link_template" type="text/template">
         <div class="branch_link">
         	<div class="branch_link_info">
+                <div class="stats" id="##score_span_id##" >##branch.score##</div>
                 <div id="##like_div_id##" class="like_div vote" onclick="toggleLike('##branch.key##',1);" > </div>
                 <div id="##unlike_div_id##" class="unlike_div vote" onclick="toggleLike('##branch.key##',-1);" > </div>
-                <div class="stats" id="##score_span_id##" >##branch.score##</div>
         	</div>
             <a href="javascript:void(0)" onclick="openBranch('##branch.key##')">##branch.link##</a>
         </div>

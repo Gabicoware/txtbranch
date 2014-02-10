@@ -12,7 +12,6 @@ install-production: install-base
 	cp production-secrets.py ${dest_folder}/secrets.py
 
 install-base: prep
-	cp *.* ${dest_folder}
 	cp -r httplib2 ${dest_folder}
 	cp -r oauth2 ${dest_folder}
 	cp -r simpleauth ${dest_folder}
@@ -24,6 +23,6 @@ install-base: prep
 	cp controllers.py ${dest_folder}
 	cp defaulttext.py ${dest_folder}
 	cp handlers.py ${dest_folder}
-	cp models.py ${dest_folder}
 	cp index.yaml ${dest_folder}
+	cp models.py ${dest_folder}
 	

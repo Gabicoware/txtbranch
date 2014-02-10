@@ -115,7 +115,7 @@
 					    	
 				        	for (var index = 0; index < keys.length; index++){
 				        		var key = keys[index];
-				        		if( errors[key] ){
+				        		if( errors.indexOf(key) != -1 ){
 				                	message = messages[key];
 				            	}
 				        	}

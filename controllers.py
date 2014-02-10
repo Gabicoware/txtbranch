@@ -101,12 +101,15 @@ class TreeController(BaseController):
     def save_tree(self,tree_name,moderatorname,conventions,root_branch_link,root_branch_content):
         
         if moderatorname is None:
-            return False, ['unauthenticated']
+            return False, ['unauthenticated','no_moderator']
         
         author_info = UserInfo.get_by_username(moderatorname)
         
-        if author_info is None or not self.is_user_info_current(author_info):
-            return False, ['unauthenticated']
+        if author_info is None:
+            return False, ['unauthenticated','moderator_not_found']
+        
+        if not self.is_user_info_current(author_info):
+            return False, ['unauthenticated','moderator_not_current']
         
         if author_info.username is None:
             return False, ['invalid_user']
