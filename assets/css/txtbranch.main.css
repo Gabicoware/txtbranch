@@ -175,4 +175,7 @@ div.branch_info{
 		margin-left:-60px;
 		width:50px;
 	}
+	div.unlike_div, div.byline{
+		margin-right:20px;
+	}
 }
