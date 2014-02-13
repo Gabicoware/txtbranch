@@ -56,27 +56,12 @@
         <b>Add a Branch</b>
         <form id="##branch.key##_child_add_branch_form" action="/api/v1/branchs" method="post">
             <input name="parent_branch_key" type="hidden" value="##branch.key##" />
-            <div id="show_conventions_div">
-                <a href="javascript:void(0)" onclick="showConventions()" style="font-size:smaller">(show conventions)</a>
-            </div>
-            <div id="hide_conventions_div">
-                Tree Conventions <a href="javascript:void(0)" onclick="hideConventions()" style="font-size:smaller">(hide)</a>
-            </div>
-            <div id="conventions_div">
-		        <pre class="form_conventions" >{{tree.conventions}}</pre>
-            </div>
-            <br />
             <div>
-                <label for="##branch.key##_child_link">Link</label>
+                <div class="form_link_hint" id="##branch.key##_child_link_hint" >Enter a teaser...</div>
+                <textarea class="form_link" id="##branch.key##_child_link" name="link" rows="1" cols="60" ></textarea>
             </div>
             <div>
-                <input class="form_link" id="##branch.key##_child_link" name="link" rows="1" type="text" />
-            </div>
-            <br />
-            <div>
-                <label for="##branch.key##_child_content">Content</label>
-            </div>
-            <div>
+                <div class="form_content_hint" id="##branch.key##_child_content_hint" >...then continue with text</div>
                 <textarea class="form_content" id="##branch.key##_child_content" name="content" rows="3" cols="60" ></textarea>
             </div>
             <br />

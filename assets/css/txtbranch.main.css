@@ -1,9 +1,29 @@
 div.title {display:block;}
 div.no_links{color:#888888;font-style:italic}
-.chars_left{font-size:90%; text-align:right; width:100%; max-width:600px;}
+.chars_left{
+	font-size:90%; 
+	text-align:right; 
+	width:100%;
+	max-width:600px;
+	position: relative; 
+	top: -20px; 
+	pointer-events: none;
+	margin-bottom:-25px;
+}
 input.invalid{background-color:#FF8888}
 textarea.invalid{background-color:#FF8888}
 .form_link, .form_content, .form_conventions{ margin-bottom:2px; width:100%; max-width:600px;}
+.form_link, .form_link_hint{
+	color:blue;
+}
+.form_content_hint, .form_link_hint{
+	opacity:0.5;
+	position: relative;
+	top: 25px;
+	left: 7px;
+	margin-top:-20px;
+	pointer-events: none;
+}
 a.vote:hover {text-decoration:none;}
 
 div.invalid{

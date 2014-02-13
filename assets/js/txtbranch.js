@@ -390,7 +390,7 @@ function showAddBranchForm(){
     
     for(var i =0; i < form_textareas.length; i++){ var 
         textarea = form_textareas[i];  
-        $(textarea.textareaId).maxlength(textarea);  
+        setupTextArea(textarea);
     } 
     
     if( $.cookie("conventions_show_"+tree_name) == "0" ){
@@ -401,8 +401,16 @@ function showAddBranchForm(){
     
     $("html, body").animate({scrollTop:$(document).height()},1000);
     
-    
 }
+
+function setupTextArea(textarea){
+    $(textarea.textareaId).maxlength(textarea);  
+    var hintId = textarea.textareaId+"_hint";
+    $(textarea.textareaId).focus(function(){
+        $(hintId).css('visibility','hidden');
+    });
+}
+
 var add_branch_messages = {
     'has_branches':'The branch could not be added. You can not create any more branches for this branch.',
     'has_identical_link':'The branch could not be added. A branch with an identical link already exists.',

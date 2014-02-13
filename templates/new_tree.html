@@ -17,6 +17,7 @@
             document.getElementById('add_branch_link').className='add_branch_inactive';
         }
     </script>
+    <script type="text/javascript" src="/assets/js/txtbranch.js"></script>
 
 {% endblock %}
 
@@ -37,25 +38,24 @@
             </div>
             
             <div>
-                <label for="root_branch_link">First Branch Link <b>*</b></label>
+                <label for="root_branch_link">First Branch <b>*</b></label>
             </div>
             <div>
-                <input type="text"  id="root_branch_link" name="root_branch_link" value="{{root_branch_link}}" />
+                <div class="form_link_hint" id="root_branch_link_hint" >Enter a teaser...</div>
+                <textarea class="form_link" id="root_branch_link" name="root_branch_link" rows="1" cols="60" >{{root_branch_link}}</textarea>
             </div>
             {% if 'empty_root_branch_link' in errors %}
             <div class="invalid_message">
-                A first branch link is required.
+                Teaser is required.
             </div>
             {% endif %}
             <div>
-                <label for="root_branch_content">First Branch Content <b>*</b></label>
-            </div>
-            <div>
-                <textarea id="root_branch_content" name="root_branch_content" rows="3" >{{root_branch_content}}</textarea>
+                <div class="form_content_hint" id="root_branch_content_hint" >...then continue with text</div>
+                <textarea class="form_content" id="root_branch_content" name="root_branch_content" rows="3" >{{root_branch_content}}</textarea>
             </div>
             {% if 'empty_root_branch_content' in errors %}
             <div class="invalid_message">
-                A first branch content is required.
+                Text is required.
             </div>
             {% endif %}
             <div>
@@ -73,16 +73,16 @@
         </form>
 		<script>
 		    
-		    {% if errors %}
         	var errors = {{errors}};
-		    {% else %}
-        	var errors = {};
-		    {% endif %}
+        	
+        	if(!(errors instanceof Array)){
+        		errors = [];
+        	}
 			
-			if( errors.contains('empty_root_branch_content') ){
+			if( errors.indexOf('empty_root_branch_content') != -1){
 	        	$("#root_branch_content").addClass('invalid')
         	}
-			if( errors.contains('empty_root_branch_link') ){
+			if( errors.indexOf('empty_root_branch_link') != -1){
 	        	$("#root_branch_link").addClass('invalid')
         	}
 			
@@ -102,7 +102,7 @@
 			var message = messages['valid_tree_name']
 			
         	for (var key in messages){
-        		if( errors.contains(key) ){
+        		if( errors.indexOf(key) != -1 ){
                 	message = messages[key];
 		        	$("#tree_name_message").addClass('invalid_message')
 			        $("#tree_name_message").removeClass('message')
@@ -139,6 +139,11 @@
                 notificationClass: "invalid", 
                 statusText: "", // The status text 
             }];
+		    for(var i =0; i < textareas.length; i++){ var 
+	    	    textarea = textareas[i];  
+	        	setupTextArea(textarea);
+	    	} 
+    
         </script>
     {% else %}
         <div class="no_links">You must <a href="/login">Login</a> to add a Tree.</div>

@@ -142,5 +142,3 @@
 		});
 	};
 })(jQuery);
-
- if(textareas != null){  for(var i =0; i < textareas.length; i++){ var textarea = textareas[i];  $(textarea.textareaId).maxlength(textarea);  }  }
