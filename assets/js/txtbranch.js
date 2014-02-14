@@ -102,6 +102,8 @@ function openParentBranch(parent_branch_key){
 
 function loadParent(branch){
     
+    $("#parent_container").empty();
+        
     if(branch["parent_branch"] == null){
         $("#parent_container").hide();
     }else{
@@ -136,6 +138,8 @@ function showParent(parent_branch){
 }
 
 function updateBranchLinks(branch_key){
+    
+    $("#branch_count_span").empty();
     
     var child_keys = child_key_cache[branch_key];
     if(child_keys!= null && 0 < child_keys.length){
