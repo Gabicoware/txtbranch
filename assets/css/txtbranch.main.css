@@ -13,7 +13,9 @@ div.no_links{color:#888888;font-style:italic}
 input.invalid{background-color:#FF8888}
 textarea.invalid{background-color:#FF8888}
 .form_link, .form_content, .form_conventions{ margin-bottom:2px; width:100%; max-width:600px;}
-.form_link, .form_link_hint{}
+.form_link, .form_link_hint{
+	color:blue;
+}
 .form_content_hint, .form_link_hint{
 	opacity:0.5;
 	position: relative;
@@ -43,15 +45,6 @@ word-break: normal;
 word-wrap: hyphenate;
 white-space: pre;
 white-space: pre-wrap;
-font-size:larger;
-font-weight:200;
-}
-.parent_branch_link a{
-	color:black;
-}
-.byline a{
-	color:black;
-	font-weight:500;
 }
 div.like_inactive{
     background-image:url("/assets/img/up_arrow_gray.png");
@@ -74,7 +67,6 @@ div.branch_link{
 }
 div.branch_link a{
 	font-size:larger;
-	color:black;
 }
 div.branch_link span{
 	font-size:smaller;
