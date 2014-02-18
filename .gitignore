@@ -38,12 +38,6 @@ Icon?
 ehthumbs.db
 Thumbs.db
 
-# Libraries #
-#############
-httplib2
-oauth2
-simpleauth
-
 # Secret Things #
 #################
 *secrets.py
