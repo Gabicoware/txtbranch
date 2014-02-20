@@ -109,14 +109,21 @@ class Like(ndb.Model):
     def create_key(cls, branch_key, username):
         return ndb.Key('Like', username+"_"+branch_key.urlsafe())
     
+class BranchVersion(ndb.Model):
+    content = ndb.StringProperty(indexed=False)
+    link = ndb.StringProperty(indexed=False)
+    date = ndb.DateTimeProperty(auto_now_add=True)
+    
 class Branch(ndb.Model):
     authorname = ndb.StringProperty(indexed=True)
     tree_name = ndb.StringProperty(indexed=True)
     content = ndb.StringProperty(indexed=False, validator=string_validator)
     link = ndb.StringProperty(indexed=False, validator=string_validator)
     date = ndb.DateTimeProperty(auto_now_add=True)
+    update = ndb.DateTimeProperty(auto_now=True)
     parent_branch = ndb.KeyProperty(kind='Branch',indexed=True)
     parent_branch_authorname = ndb.StringProperty(indexed=True)
+    revision = ndb.IntegerProperty(indexed=True)
     
     _like_count = None
     _unlike_count = None

@@ -151,12 +151,39 @@ class BranchHandler(base.BaseRequestHandler):
         else:
             self.response.write(json.dumps({'status':'ERROR','result':result}))
         
+    def put(self):
+        urlsafe_key = self.request.get('branch_key')
+        
+        success, result = self.controller(BranchController).update_branch(
+          self.request.cookies.get('username'),
+          urlsafe_key,
+          self.request.get('link',''),
+          self.request.get('content',''))
+         
+        if success:
+            
+            branch_dict = self.expanded_branch(result)
+            
+            self.response.write(json.dumps({'status':'OK','result':branch_dict},cls=ModelEncoder))
+        else:
+            self.response.write(json.dumps({'status':'ERROR','result':result}))
 #        redirect_url = '/branch?' + urllib.urlencode(query_params)
         
 #        self.redirect(redirect_url)
 
 
-
+class ExportHandler(base.BaseRequestHandler):
+    
+    def get(self):
+        
+        tree = self.request.get('tree')
+        
+        if tree is not None:
+            branchdatas = Branch.query( Branch.tree_name==tree).fetch()
+        
+            self.response.write(json.dumps({'status':'OK','result':branchdatas},cls=ModelEncoder))
+        else:
+            self.response.write(json.dumps({'status':'ERROR','result':['no_tree']}))
 
 # webapp2 config
 app_config = {
@@ -171,6 +198,7 @@ app_config = {
 
 
 handlers = [
+    ('/api/v1/export', ExportHandler),
     ('/api/v1/likes', LikeHandler),
     ('/api/v1/branchs', BranchHandler),
     ('/api/v1/userinfos', UserInfoHandler),

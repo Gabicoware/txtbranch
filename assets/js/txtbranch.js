@@ -89,6 +89,90 @@ function openBranch(branch_key){
         showAddBranchLink();
     }
     window.location.hash = "branch_key="+branch_key;
+    
+    updateOptions(false);
+    
+    
+}
+function updateOptions(isEditing){
+    
+    var branch = branch_cache[active_branch_key];
+    var username = $.cookie("username");
+    if(branch.authorname == username && !isEditing){
+        $("#current_branch_options_div").show();
+    }else{
+        $("#current_branch_options_div").hide();
+    }
+    
+}
+
+function editActiveBranch(shouldEdit){
+    $("#edit_branch_div").empty();
+        
+    updateOptions(shouldEdit);
+    if(shouldEdit){
+        $('#'+active_branch_key+'_branch_div').hide();
+            
+        var branch = branch_cache[active_branch_key];
+        
+        $('#edit_branch_div').show();
+        
+        
+        var template = $("#edit_branch_form_template").html();
+        
+        template = template.replace(/##branch\.key##/g,branch.key);
+        template = template.replace(/##branch\.content##/g,branch.content);
+        template = template.replace(/##branch\.link##/g,branch.link);
+        
+        $("#edit_branch_div").append(template);
+        
+        var formId = "#"+branch.key+"_edit_branch_form";
+        var form = $(formId);
+        
+        form.ajaxForm({
+            type : 'put',
+            success : updateBranchCompleteHandler
+        });
+        
+        linkId = "#"+branch.key+"_link";
+        contentId = "#"+branch.key+"_content";
+        
+        setupForm( formId, linkId, contentId );
+    
+    }else{
+        $('#edit_branch_div').hide();
+        $('#'+active_branch_key+'_branch_div').show();
+    }
+}
+
+function updateBranchCompleteHandler(data, status, xhr){
+    branchCompleteHandler(data,status,xhr);
+    editActiveBranch(false);
+    updateOptions(false);
+}
+
+
+function branchCompleteHandler(data, status, xhr){
+    var response = JSON.parse(data);
+    if(response.status == "OK"){
+        showAddBranchLink();
+        
+        var added_branch = response.result;
+        
+        branch_cache[added_branch.key] = added_branch;
+        
+        openBranch(added_branch.key);
+    }else{
+        resetToBranch(branch.key);
+        for(var key in response.result){
+            if(response.result.hasOwnProperty(key) && add_branch_messages[key] != null){
+                //$("#add_branch_div").empty();
+                var template = $("#has_links_template").html();
+                template = template.replace(/##message##/g,add_branch_messages[key]);
+                $("#add_branch_div").prepend(template);
+            }
+        }
+    }
 }
 
 function openParentBranch(parent_branch_key){
@@ -315,7 +399,11 @@ var linkId = null;
 var contentId = null;
 
 function hasAddBranchFormContent(){
-    return linkId != null && contentId != null && (0 < $(linkId).val().length || 0 < $(contentId).val().length);
+    
+    var linkValue = linkId != null ? $(linkId).val() : null;
+    var contentValue = contentId != null ? $(contentId).val() : null;
+    
+    return linkValue != null && contentValue != null && (0 < contentValue.length || 0 < linkValue.length);
 }
 
 function showAddBranchForm(){
@@ -333,37 +421,32 @@ function showAddBranchForm(){
     
     $("#add_branch_div").append(template);
     
+    var formId = "#"+branch.key+"_child_add_branch_form";
     
-    var form = $("#"+branch.key+"_child_add_branch_form");
+    var form = $(formId);
     
     form.ajaxForm({
         type : 'post',
-        success : function(data, status, xhr){
-            var response = JSON.parse(data);
-            if(response.status == "OK"){
-                showAddBranchLink();
-                
-                var added_branch = response.result;
-                
-                branch_cache[added_branch.key] = added_branch;
-                
-                openBranch(added_branch.key);
-            }else{
-                resetToBranch(branch.key);
-                for(var key in response.result){
-                    if(response.result.hasOwnProperty(key) && add_branch_messages[key] != null){
-                        //$("#add_branch_div").empty();
-                        var template = $("#has_links_template").html();
-                        template = template.replace(/##message##/g,add_branch_messages[key]);
-                        $("#add_branch_div").prepend(template);
-                    }
-                }
-            }
-        }
+        success : branchCompleteHandler
     });
     
     linkId = "#"+branch.key+"_child_link";
     contentId = "#"+branch.key+"_child_content";
+    
+    setupForm( formId, linkId, contentId );
+        
+    if( $.cookie("conventions_show_"+tree_name) == "0" ){
+        hideConventions();
+    }else{
+        showConventions();
+    }
+    
+    $("html, body").animate({scrollTop:$(document).height()},1000);
+    
+}
+
+function setupForm(formId,linkId,contentId){
+    var form = $(formId);
     
     form.submit(function() {
         
@@ -395,24 +478,19 @@ function showAddBranchForm(){
     for(var i =0; i < form_textareas.length; i++){ var 
         textarea = form_textareas[i];  
         setupTextArea(textarea);
-    } 
-    
-    if( $.cookie("conventions_show_"+tree_name) == "0" ){
-        hideConventions();
-    }else{
-        showConventions();
     }
-    
-    $("html, body").animate({scrollTop:$(document).height()},1000);
-    
 }
 
 function setupTextArea(textarea){
     $(textarea.textareaId).maxlength(textarea);  
     var hintId = textarea.textareaId+"_hint";
-    $(textarea.textareaId).focus(function(){
+    if($(textarea.textareaId).val().length == 0){
+        $(textarea.textareaId).focus(function(){
+            $(hintId).css('visibility','hidden');
+        });
+    }else{
         $(hintId).css('visibility','hidden');
-    });
+    }
 }
 
 var add_branch_messages = {

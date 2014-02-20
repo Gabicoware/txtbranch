@@ -73,7 +73,7 @@
         </form>
 		<script>
 		    
-        	var errors = {{errors}};
+        	var errors = {{errors|safe}};
         	
         	if(!(errors instanceof Array)){
         		errors = [];

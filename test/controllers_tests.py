@@ -101,6 +101,38 @@ class BranchControllerTestCase(unittest.TestCase):
         self.assertFalse(success)
         self.assertTrue('has_identical_link' in result)
         
+    def testUpdate(self):
+        success, result = self.controller.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(),'testIdenticalLink.some_link','some_content')
+        
+        self.assertTrue(success)
+        
+        if success and result.key:
+            self.child_branchs.append(result)
+            
+        newlink = 'testIdenticalLink.different_link'
+        newcontent = 'different_content'
+        success, result = self.controller.update_branch(self.user_info.username,result.key.urlsafe(),newlink,newcontent)
+        
+        self.assertTrue(success)
+        
+        branch = result.key.get();
+        
+        self.assertTrue(branch.link == newlink)
+                
+        self.assertTrue(branch.content == newcontent)
+        
+    def testUpdateSameLink(self):
+        success, result = self.controller.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(),'testIdenticalLink.some_link','some_content')
+        
+        self.assertTrue(success)
+        
+        if success and result.key:
+            self.child_branchs.append(result)
+            
+        success, result = self.controller.update_branch(self.user_info.username,result.key.urlsafe(),result.link,result.content)
+        
+        self.assertTrue(success)
+        
     def testSaveBranch(self):
         success, result = self.controller.save_branch(self.user_info.username, self.parent_branch.key.urlsafe(), 'testBranch.unique_link', 'testBranch.unique_content' )
         

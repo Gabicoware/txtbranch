@@ -1,6 +1,7 @@
 import re
+import logging
 
-from models import Branch, UserInfo, Tree, Like
+from models import Branch, UserInfo, Tree, Like, BranchVersion
 from google.appengine.ext import ndb
 
 class BaseController:
@@ -41,12 +42,13 @@ class BaseController:
         return False
 
 class BranchController(BaseController):
+    
     def save_branch(self,authorname,parent_urlsafe_key,link,content):
         
         userinfo = UserInfo.get_by_username(authorname)    
         if userinfo is None or not self.is_user_info_current(userinfo):
             
-            return False, { 'unauthenticated':True }
+            return False, [ 'unauthenticated' ]
         
         errors = []
         
@@ -85,16 +87,76 @@ class BranchController(BaseController):
             errors.append('has_branches')
         
         if len(errors) == 0:
+            branch.revision = 0
             branch.parent_branch = parent_key
             branch.authorname = authorname
             branch.parent_branch_authorname = parent_branch.authorname
             branch.put()
+            self.create_branch_version(branch)
             
             parent_branch.append_child(branch)
             
             return True, branch
         else:
             return False, errors
+        
+    
+    def update_branch(self,authorname,urlsafe_key,link,content):
+        
+        userinfo = UserInfo.get_by_username(authorname)    
+        logging.info(authorname)
+        logging.info(userinfo)
+        if userinfo is None or not self.is_user_info_current(userinfo):
+            return False, [ 'unauthenticated' ]
+        
+        
+        branch = ndb.Key(urlsafe=urlsafe_key).get()
+        
+        if branch.authorname != authorname:
+            return False, [ 'not_author' ]
+        
+        errors = []
+        
+        branch.link = link
+        branch.content = content
+                
+        if len(branch.link) == 0:
+            errors.append('empty_branch_link')
+        
+        if len(branch.content) == 0:
+            errors.append('empty_branch_content')
+        
+        
+#Comment on thread safety:
+#Branch creation will be a VERY frequent operation. Multiple branchs with identical links
+#Isn't an application error, just an annoyance for the user. So we allow this to occur
+#without a lock in place
+        parent_branch = branch.parent_branch.get();
+                
+        branchs = parent_branch.children()
+        
+        for branch_branch in branchs:
+            if branch_branch.link == branch.link and branch.key != branch_branch.key:
+                errors.append('has_identical_link')
+        
+        if len(errors) == 0:
+            if branch.revision is None:
+                branch.revision = 1
+            else:
+                branch.revision = branch.revision + 1
+                
+            branch.put()
+            self.create_branch_version(branch)
+            parent_branch.append_child(branch)
+            return True, branch
+        else:
+            return False, errors
+        
+    def create_branch_version(self,branch):
+        branch_version = BranchVersion(id=branch.revision,parent=branch.key)
+        branch_version.content = branch.content
+        branch_version.link = branch.link
+        branch_version.put()
         
 class TreeController(BaseController):
     
