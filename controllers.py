@@ -147,7 +147,7 @@ class BranchController(BaseController):
                 
             branch.put()
             self.create_branch_version(branch)
-            parent_branch.append_child(branch)
+            parent_branch.update_child(branch)
             return True, branch
         else:
             return False, errors

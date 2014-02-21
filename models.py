@@ -185,7 +185,26 @@ class Branch(ndb.Model):
                 logging.info('append_child - replace succeeded')
         else:
             logging.info('append_child - child exists')
+    
+    def update_child(self,child):
+        memcache_key = self.children_key()
+        data = memcache.get(memcache_key)  # @UndefinedVariable
+        
+        if data is not None:
+            for other_child in data:
+                if other_child.key.urlsafe() == child.key.urlsafe():
+                    original_child = other_child
+            if original_child is not None:
+                data.remove(original_child)
             
+            data.append(child)
+            if not memcache.replace(key=memcache_key, value=data, time=60):  # @UndefinedVariable
+                logging.error('append_child - memcache replace failed.')
+            else:
+                logging.info('append_child - replace succeeded')
+        else:
+            logging.info('append_child - child exists')
+    
     @classmethod
     def main_branchdatas(cls):
             memcache_key = 'main_branchs_key'

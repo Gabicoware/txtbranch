@@ -12,6 +12,7 @@ function getParameterByName(name){
 var tree_name = null;
 var active_branch_key = null;
 var branch_cache = {};
+var edited_branch_key = null;
 var child_key_cache = {};
 
 function toggleLike(branch_key,param_value){
@@ -94,6 +95,16 @@ function openBranch(branch_key){
     
     
 }
+
+function reloadBranch(branch_key){
+    
+    var branch = branch_cache[branch_key];
+    
+    $("#"+branch_key+"_branch_div").replaceWith(prepareBranchHTML(branch));
+    
+}
+
+
 function updateOptions(isEditing){
     
     var branch = branch_cache[active_branch_key];
@@ -138,6 +149,8 @@ function editActiveBranch(shouldEdit){
         contentId = "#"+branch.key+"_content";
         
         setupForm( formId, linkId, contentId );
+        
+        edited_branch_key = active_branch_key;
     
     }else{
         $('#edit_branch_div').hide();
@@ -161,7 +174,12 @@ function branchCompleteHandler(data, status, xhr){
         
         branch_cache[added_branch.key] = added_branch;
         
-        openBranch(added_branch.key);
+        if( edited_branch_key == added_branch.key){
+            edited_branch_key = null;
+            reloadBranch(added_branch.key);
+        }else{
+            openBranch(added_branch.key);
+        }
     }else{
         resetToBranch(branch.key);
         for(var key in response.result){
