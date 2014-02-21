@@ -167,9 +167,6 @@ class BranchHandler(base.BaseRequestHandler):
             self.response.write(json.dumps({'status':'OK','result':branch_dict},cls=ModelEncoder))
         else:
             self.response.write(json.dumps({'status':'ERROR','result':result}))
-#        redirect_url = '/branch?' + urllib.urlencode(query_params)
-        
-#        self.redirect(redirect_url)
 
 
 class ExportHandler(base.BaseRequestHandler):
@@ -180,8 +177,34 @@ class ExportHandler(base.BaseRequestHandler):
         
         if tree is not None:
             branchdatas = Branch.query( Branch.tree_name==tree).fetch()
-        
-            self.response.write(json.dumps({'status':'OK','result':branchdatas},cls=ModelEncoder))
+            
+            all_branch_dict = {};
+            
+            #there's likely a map function for this
+            
+            for branch in branchdatas:
+                branch_dict = branch.to_dict()
+                branch_dict['children'] = []
+                all_branch_dict[branch.key.urlsafe()] = branch_dict
+                if branch.parent_branch is None:
+                    root_branch = branch_dict
+            
+            if root_branch is None:
+                self.response.write(json.dumps({'status':'ERROR','result':['no_root']}))
+            else:
+                                    
+                for key in all_branch_dict:
+                    
+                    branch_dict = all_branch_dict[key]
+                    
+                    if branch_dict['parent_branch']:
+                        parent_branch_key = branch_dict['parent_branch'].urlsafe()
+                        
+                        parent_branch = all_branch_dict[parent_branch_key]
+                    
+                        parent_branch['children'].append(branch_dict)
+                    
+                self.response.write(json.dumps({'status':'OK','result':root_branch},cls=ModelEncoder))
         else:
             self.response.write(json.dumps({'status':'ERROR','result':['no_tree']}))
 
