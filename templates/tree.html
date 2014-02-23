@@ -104,7 +104,12 @@
 {% endblock %}
 
 {% block content %}
-        <h2>{{tree.name}}</h2>
+    <h2>{{tree.name}}</h2>
+	<div class="conventions">
+		<h4>about</h4>
+		{{tree.conventions}}
+	</div>
+	<div class="subcontainer">
         <div id="parent_container"></div>
         <div id="content_container"></div>
         <div style="font-size:smaller" id="current_branch_options_div" >
@@ -121,6 +126,7 @@
         </div>
         <div id="add_branch_div" class="add_branch_inactive"></div>
         <br />
+</div>
         <script>
         	
         	var branch_key = getParameterByName("branch_key");

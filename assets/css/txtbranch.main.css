@@ -122,6 +122,21 @@ div.branch_link_info, div.branch_info{
 div.branch_info{
 	min-height:30px;
 }
+
+.subcontainer{
+	max-width:480px;
+}
+.conventions{
+	background-color: #EEEEEE;
+	padding: 5px 5px 5px 5px;
+}
+@media (min-width: 820px) {
+	.conventions{
+		position: absolute;
+		width: 200px;
+		margin-left: 500px;
+	}
+}
 @media (min-width: 980px) {
 	.container{
 		padding-left:100px;
