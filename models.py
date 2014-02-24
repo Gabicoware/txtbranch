@@ -191,6 +191,7 @@ class Branch(ndb.Model):
         data = memcache.get(memcache_key)  # @UndefinedVariable
         
         if data is not None:
+            original_child = None
             for other_child in data:
                 if other_child.key.urlsafe() == child.key.urlsafe():
                     original_child = other_child

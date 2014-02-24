@@ -131,14 +131,17 @@ class BranchController(BaseController):
 #Branch creation will be a VERY frequent operation. Multiple branchs with identical links
 #Isn't an application error, just an annoyance for the user. So we allow this to occur
 #without a lock in place
-        parent_branch = branch.parent_branch.get();
-                
-        branchs = parent_branch.children()
-        
-        for branch_branch in branchs:
-            if branch_branch.link == branch.link and branch.key != branch_branch.key:
-                errors.append('has_identical_link')
-        
+        parent_branch = None
+
+        if branch.parent_branch is not None:
+            parent_branch = branch.parent_branch.get();
+                    
+            branchs = parent_branch.children()
+            
+            for branch_branch in branchs:
+                if branch_branch.link == branch.link and branch.key != branch_branch.key:
+                    errors.append('has_identical_link')
+            
         if len(errors) == 0:
             if branch.revision is None:
                 branch.revision = 1
@@ -147,7 +150,8 @@ class BranchController(BaseController):
                 
             branch.put()
             self.create_branch_version(branch)
-            parent_branch.update_child(branch)
+            if parent_branch is not None:
+                parent_branch.update_child(branch)
             return True, branch
         else:
             return False, errors

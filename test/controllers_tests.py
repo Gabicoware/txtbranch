@@ -50,6 +50,7 @@ class BranchControllerTestCase(unittest.TestCase):
         
         self.parent_branch = Branch(id=tree_name)
         
+        self.parent_branch.authorname = username
         self.parent_branch.link = ''
         self.parent_branch.content = ''
         self.parent_branch.tree = self.tree.key
@@ -100,6 +101,19 @@ class BranchControllerTestCase(unittest.TestCase):
         
         self.assertFalse(success)
         self.assertTrue('has_identical_link' in result)
+        
+    def testRootBranchUpdate(self):
+        newlink = 'testIdenticalLink.different_link'
+        newcontent = 'different_content'
+        success, result = self.controller.update_branch(self.user_info.username,self.parent_branch.key.urlsafe(),newlink,newcontent)
+        
+        self.assertTrue(success)
+        
+        branch = result.key.get();
+        
+        self.assertTrue(branch.link == newlink)
+                
+        self.assertTrue(branch.content == newcontent)
         
     def testUpdate(self):
         success, result = self.controller.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(),'testIdenticalLink.some_link','some_content')
