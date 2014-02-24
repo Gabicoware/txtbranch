@@ -29,7 +29,7 @@
         <b>Add a Tree</b>
         <form id="new_tree_form" action="{{new_tree_endpoint}}" method="post">
             <div>
-                <label for="tree_name">Tree Name <b>*</b></label>
+                <label for="tree_name">Name <b>*</b></label>
             </div>
             <div>
                 <input type="text" id="tree_name" name="tree_name" value="{{tree_name}}" />
@@ -59,7 +59,7 @@
             </div>
             {% endif %}
             <div>
-                <label for="conventions">Tree Conventions</label>
+                <label for="conventions">About</label>
             </div>
             <div>
                 <textarea id="conventions" name="conventions" rows="6" >{{conventions}}</textarea>
