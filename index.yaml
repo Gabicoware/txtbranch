@@ -6,3 +6,8 @@ indexes:
   - name: branch
   - name: user
   - name: value
+  
+- kind: Branch
+  properties:
+  - name: parent_branch_authorname
+  - name: authorname
