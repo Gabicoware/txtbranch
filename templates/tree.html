@@ -16,22 +16,21 @@
         <hr />
     </script>
     <script id="branch_template" type="text/template">
-    	<div id="##branch_div_id##">
-            <div class="branch_info" onclick="branchInfoClickHandler(event)">
-                <div class="stats" id="##score_span_id##" >##branch.score##</div>
-                <div id="##like_div_id##" class="like_div vote" onclick="toggleLike('##branch.key##',1);" > </div>
-                <div id="##unlike_div_id##" class="unlike_div vote" onclick="toggleLike('##branch.key##',-1);" > </div>
-                <div class="byline">##author_info##</div>
-                <div class="branch_info_handle">
-	                <div class="handle_ridge"></div>
-                </div>
-            </div>
+    	<div id="##branch_div_id##" class="branch">
             <div class="branch_text" >
 	            <div class="branch_link" >
 	                <a href="javascript:void(0)" onclick="returnToBranch('##branch.key##')">##branch.link##</a>
 	            </div>
 		        <div class="branch_content">##branch.content##</div>
 	        </div>
+            <div class="branch_info" onclick="branchInfoClickHandler(event)">
+            	<div class="divider" > </div>
+                <div id="##like_div_id##" class="like_div vote" onclick="toggleLike('##branch.key##',1);" > </div>
+                <div class="stats" id="##score_span_id##" >##branch.score##</div>
+                <div id="##unlike_div_id##" class="unlike_div vote" onclick="toggleLike('##branch.key##',-1);" > </div>
+                :
+                <div class="byline">##author_info##</div>
+            </div>
        	</div>
     </script>
     <script id="edit_branch_form_template" type="text/template">
@@ -54,11 +53,7 @@
     </script>
     <script id="branch_link_template" type="text/template">
         <div class="branch_link">
-        	<div class="branch_link_info">
-                <div class="stats" id="##score_span_id##" >##branch.score##</div>
-                <div id="##like_div_id##" class="like_div vote" onclick="toggleLike('##branch.key##',1);" > </div>
-                <div id="##unlike_div_id##" class="unlike_div vote" onclick="toggleLike('##branch.key##',-1);" > </div>
-        	</div>
+            <div class="stats" id="##score_span_id##" >##branch.score##</div>
             <a href="javascript:void(0)" onclick="openBranch('##branch.key##')">##branch.link##</a>
         </div>
     </script>

@@ -14,6 +14,7 @@ var active_branch_key = null;
 var branch_cache = {};
 var edited_branch_key = null;
 var child_key_cache = {};
+var first_branch_key = null;
 
 function toggleLike(branch_key,param_value){
     
@@ -78,13 +79,23 @@ function openBranch(branch_key){
     
     tree_name = branch.tree_name;
     
+    if(branch_key != active_branch_key){
+        $("#"+active_branch_key+"_branch_div").removeClass("active_branch");
+    }
+    
     active_branch_key = branch_key;
     
+    if(first_branch_key == null){
+        first_branch_key = active_branch_key;
+    }
+        
     appendBranch(branch);
     
     updateBranchLinks(branch_key);
     
     loadParent(branch);
+    
+    $("#"+active_branch_key+"_branch_div").addClass("active_branch");
     
     if(!hasAddBranchFormContent()){
         showAddBranchLink();
@@ -197,6 +208,7 @@ function openParentBranch(parent_branch_key){
     
     var branch = branch_cache[parent_branch_key];
     
+    first_branch_key = parent_branch_key;
     prependBranch(branch);
     
     loadParent(branch);
@@ -204,8 +216,11 @@ function openParentBranch(parent_branch_key){
 
 function loadParent(branch){
     
-    $("#parent_container").empty();
-        
+    if(branch.key != first_branch_key)
+        return;
+    
+    //get the key of the furthest back branch
+    
     if(branch["parent_branch"] == null){
         $("#parent_container").hide();
     }else{
@@ -213,6 +228,8 @@ function loadParent(branch){
         var div_id = branch.parent_branch+"_branch_div";
         
         if(0 == $("#"+div_id).length){
+            
+            $("#parent_container").empty();
             
             var parent_branch = branch_cache[branch.parent_branch];
             
@@ -323,7 +340,7 @@ function prepareBranchHTML(branch){
     
     var href = "javascript:window.open('/user/" +branch["authorname"]+ "', '_blank');";
         
-    var author_info = "by <a href=\""+href+"\">"+branch["authorname"]+"</a>";
+    var author_info = "<a href=\""+href+"\">"+branch["authorname"]+"</a>";
     
     template = template.replace("##author_info##",author_info);
     
@@ -350,9 +367,23 @@ function returnToBranch(branch_key){
     showAddBranchLink();
 }
 function resetToBranch(branch_key){
+    
+    if(branch_key != active_branch_key){
+        $("#"+active_branch_key+"_branch_div").removeClass("active_branch");
+    }
+    
     active_branch_key = branch_key;
     $('#'+branch_key+'_branch_div').nextAll('div').remove();
+    
+    $("#"+active_branch_key+"_branch_div").addClass("active_branch");
+
+    var branch = branch_cache[branch_key];
+    loadParent(branch);
+    
     updateBranchLinks(branch_key);
+    
+    window.location.hash = "branch_key="+branch_key;
+
 }
 function showAddBranchLink(){
     

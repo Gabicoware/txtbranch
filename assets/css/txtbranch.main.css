@@ -35,11 +35,19 @@ span.invalid{
 }
 div.vote{
     display:inline-block;
-    width:8px;
-    height:10px;
     cursor:pointer;
     background-size:contain;
+    background-repeat: no-repeat;
+    background-position: center center;
+    width:16px;
+    height:16px;
 }
+
+.touch .vote{
+    width:22px;
+    height:22px;
+}
+
 div.branch_content{
 word-break: normal;
 word-wrap: hyphenate;
@@ -47,20 +55,21 @@ white-space: pre;
 white-space: pre-wrap;
 }
 div.like_inactive{
-    background-image:url("/assets/img/up_arrow_gray.png");
+    background-image:url("/assets/img/upvote_normal.png");
 }
 div.unlike_inactive{
-    background-image:url("/assets/img/down_arrow_gray.png");
+    background-image:url("/assets/img/downvote_normal.png");
 }
 div.like_active{
-    background-image:url("/assets/img/up_arrow_green.png");
+    background-image:url("/assets/img/upvote_on.png");
 }
 div.unlike_active{
-    background-image:url("/assets/img/down_arrow_red.png");
+    background-image:url("/assets/img/downvote_on.png");
 }
 div.stats{
     display:inline-block;
     height:20px;
+    size:large;
 }
 div.branch_link{
 	display:block;
@@ -101,7 +110,7 @@ span.tree_header_info{
 	font-size:normal;
 }
 div.byline{
-	
+	display:inline;
 }
 div.recent_branchs{
 	padding:4px 0px 4px 0px;
@@ -112,15 +121,22 @@ div.recent_branchs{
 	padding:0px 0px 0px 0px;
 }
 div.branch_link_info, div.branch_info{
-	display:block;
-	float:left;
-	text-align: right;
-	font-size:smaller;
+	font-size:larger;
 	color:#555555;
-	width:100px;
 }
 div.branch_info{
-	min-height:30px;
+	height: 0px;
+	overflow: hidden;
+}
+.active_branch div.branch_info{
+	height:auto;
+}
+
+div.branch_info div.divider{
+	height:1px;
+	width:100%;
+	background-color:#BBBBBB;
+	margin-bottom:2px;
 }
 
 .subcontainer{
@@ -129,30 +145,21 @@ div.branch_info{
 .conventions{
 	background-color: #EEEEEE;
 	padding: 5px 5px 5px 5px;
+	max-width: 480px;
+	margin: 0px -5px 5px -5px;
 }
+.active_branch{
+	padding: 0px 10px 0px 10px;
+	margin: 0px -10px 0px -10px;
+	background-color: #EEEEEE;
+	border-radius: 10px;
+}
+
 @media (min-width: 820px) {
 	.conventions{
 		position: absolute;
 		width: 200px;
 		margin-left: 500px;
-	}
-}
-@media (min-width: 980px) {
-	.container{
-		padding-left:100px;
-	}
-	div.branch_info, div.branch_link_info{
-		margin-left:-110px;
-		width:100px;
-	}
-}
-@media (max-width: 978px) and (min-width:480px) {
-	.container{
-		padding-left:80px;
-	}
-	div.branch_info, div.branch_link_info{
-		margin-left:-60px;
-		width:50px;
 	}
 }
 @media (min-width:480px) {
@@ -173,42 +180,8 @@ div.branch_info{
 		padding-left:0px;
 	}
 	div.branch_info{
-		display:block;
-		position:absolute;
-		z-index:2;
-		margin-left:-133px;
-		margin-top:0px;
-		width: 120px;
-		padding-left: 10px;
-		padding-right: 20;
-	    border-color: #AAAAAA;
-		border-width: 1px 1px 1px 0px;
-	    border-style: solid;
-		border-radius: 0px 4px 4px 0px;
-		background-color: #FFFFFF;
+		padding:1px 1px 1px 1px;
 		line-height: 17px;
-		transition: margin-left 1s;
-		-webkit-transition: margin-left 1s; /* Safari */
-	}
-	div.branch_info_handle{
-		display:block;
-		position:absolute;
-		margin-left:110px;
-		margin-top:-30px;
-		width: 0px;
-		height: 20px;
-	    border-color: #AAAAAA;
-		border-width: 2px;
-	    border-style: solid;
-		border-radius: 2px;
-		background-color: #AAAAAA;
-	}
-	body.touch div.active_branch_info, body.notouch div.branch_info:hover{
-		margin-left:-20px;
-	}
-	div.branch_link_info{
-		margin-left:-60px;
-		width:50px;
 	}
 	div.unlike_div, div.byline{
 		margin-right:20px;
