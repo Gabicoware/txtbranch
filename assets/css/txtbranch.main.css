@@ -69,7 +69,7 @@ div.unlike_active{
 div.stats{
     display:inline-block;
     height:20px;
-    size:large;
+    font-size:16pt;
 }
 div.branch_link{
 	display:block;
@@ -182,8 +182,5 @@ div.branch_info div.divider{
 	div.branch_info{
 		padding:1px 1px 1px 1px;
 		line-height: 17px;
-	}
-	div.unlike_div, div.byline{
-		margin-right:20px;
 	}
 }
