@@ -29,6 +29,8 @@ function toggleLike(branch_key,param_value){
         if(jsondata.status == 'OK'){
             branch.like_value = param_value;
             updateLikeInfo(branch_key,branch.like_value);
+        }else if(jsondata.result.indexOf('unauthenticated') != -1){
+            alert("You must be logged in to do that.");
         }
     });
 }
@@ -308,6 +310,15 @@ function showBranchLinks(links){
     $("#branch_count_span").append(links.length);
 }
 
+function toggleActivateBranch(branch_key){
+    if(branch_key != active_branch_key){
+        if($("#"+branch_key+"_branch_div").hasClass('active_branch')){
+            $("#"+branch_key+"_branch_div").removeClass('active_branch');
+        }else{
+            $("#"+branch_key+"_branch_div").addClass('active_branch');
+        }
+    }
+}
 
 function appendBranch(branch){
     var branchHTML = prepareBranchHTML(branch);
@@ -360,6 +371,7 @@ function appendLink(branch){
     template = template.replace(/##branch\.score##/g,(branch.child_count + branch.like_count - branch.unlike_count));
     template = template.replace("##like_div_id##",branch.key+"_like_div");
     template = template.replace("##unlike_div_id##",branch.key+"_unlike_div");
+    template = template.replace("##score_span_id##",branch.key+"_score_span");
     $("#link_container").append(template);
 }
 function returnToBranch(branch_key){
@@ -540,6 +552,12 @@ function setupTextArea(textarea){
     }else{
         $(hintId).css('visibility','hidden');
     }
+    $(textarea.textareaId).bind('input propertychange', function() {
+        var t = $(textarea.textareaId)[0];
+        while (t.scrollHeight > t.offsetHeight){
+            t.rows++;
+        }
+    });
 }
 
 var add_branch_messages = {

@@ -119,20 +119,20 @@ div.recent_branchs{
 }
 #link_container, #add_branch_link{
 	padding:0px 0px 0px 0px;
+	margin-left:20px;
 }
 div.branch_link_info, div.branch_info{
 	font-size:larger;
 	color:#555555;
 }
 div.branch_info{
-	height: 0px;
-	overflow: hidden;
+	display:none;
 }
 .active_branch div.branch_info{
-	height:auto;
+	display:block;
 }
 
-div.branch_info div.divider{
+div.divider{
 	height:1px;
 	width:100%;
 	background-color:#BBBBBB;
@@ -148,11 +148,20 @@ div.branch_info div.divider{
 	max-width: 480px;
 	margin: 0px -5px 5px -5px;
 }
-.active_branch{
+.active_branch, .branch{
 	padding: 0px 10px 0px 10px;
-	margin: 0px -10px 0px -10px;
-	background-color: #EEEEEE;
+	margin: 2px -10px 2px -10px;
 	border-radius: 10px;
+}
+/* hover is retained in same location after touch */
+.notouch .branch:hover{
+	background-color:#FFFCBE;
+}
+.branch{
+	background-color:#FFFFFF;
+}
+.active_branch, .active_branch:hover, .notouch .active_branch:hover{
+	background-color: #EEEEEE;
 }
 
 @media (min-width: 820px) {
@@ -160,19 +169,6 @@ div.branch_info div.divider{
 		position: absolute;
 		width: 200px;
 		margin-left: 500px;
-	}
-}
-@media (min-width:480px) {
-	div.branch_info, div.branch_link_info{
-		opacity:0.8;
-		transition: opacity 0.2s;
-		-webkit-transition: opacity 0.2s; /* Safari */
-	}
-	div.branch_info:hover, div.branch_link_info:hover{
-		opacity:1.0;
-	}
-	div.branch_info_handle{
-		display:none;
 	}
 }
 @media (max-width: 479px) {

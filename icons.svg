@@ -32,7 +32,7 @@
      showgrid="false"
      inkscape:window-width="996"
      inkscape:window-height="757"
-     inkscape:window-x="4"
+     inkscape:window-x="32"
      inkscape:window-y="0"
      inkscape:window-maximized="0" />
   <metadata
@@ -58,9 +58,9 @@
        height="100"
        x="84.999992"
        y="152.36218"
-       inkscape:export-filename="/Users/saltymule/Projects/txtbranch_workspace/txtbranch/assets/img/up_arrow_green.png"
-       inkscape:export-xdpi="19.799999"
-       inkscape:export-ydpi="19.799999" />
+       inkscape:export-filename="/Users/saltymule/Projects/txtbranch_workspace/txtbranch/assets/img/upvote_on.png"
+       inkscape:export-xdpi="45"
+       inkscape:export-ydpi="45" />
     <rect
        style="fill:#00ff00;fill-opacity:1;stroke:none"
        id="rect2994-8"
@@ -69,9 +69,9 @@
        x="187.36218"
        y="-150"
        transform="matrix(0,1,-1,0,0,0)"
-       inkscape:export-filename="/Users/saltymule/Projects/txtbranch_workspace/txtbranch/assets/img/up_arrow_green.png"
-       inkscape:export-xdpi="19.799999"
-       inkscape:export-ydpi="19.799999" />
+       inkscape:export-filename="/Users/saltymule/Projects/txtbranch_workspace/txtbranch/assets/img/upvote_on.png"
+       inkscape:export-xdpi="45"
+       inkscape:export-ydpi="45" />
     <rect
        style="fill:#ff0000;fill-opacity:1;stroke:none"
        id="rect2994-8-0"
@@ -80,9 +80,9 @@
        x="320.53052"
        y="-153.96039"
        transform="matrix(0,1,-1,0,0,0)"
-       inkscape:export-filename="/Users/saltymule/Projects/txtbranch_workspace/txtbranch/assets/img/down_arrow_red.png"
-       inkscape:export-xdpi="19.799999"
-       inkscape:export-ydpi="19.799999" />
+       inkscape:export-filename="/Users/saltymule/Projects/txtbranch_workspace/txtbranch/assets/img/downvote_on.png"
+       inkscape:export-xdpi="45"
+       inkscape:export-ydpi="45" />
     <rect
        style="fill:#808080;fill-opacity:1;stroke:none"
        id="rect2994-0"
@@ -90,9 +90,9 @@
        height="100"
        x="286.98019"
        y="155.25821"
-       inkscape:export-filename="/Users/saltymule/Projects/txtbranch_workspace/txtbranch/assets/img/up_arrow_gray.png"
-       inkscape:export-xdpi="19.799999"
-       inkscape:export-ydpi="19.799999" />
+       inkscape:export-filename="/Users/saltymule/Projects/txtbranch_workspace/txtbranch/assets/img/upvote_normal.png"
+       inkscape:export-xdpi="45"
+       inkscape:export-ydpi="45" />
     <rect
        style="fill:#808080;fill-opacity:1;stroke:none"
        id="rect2994-8-4"
@@ -101,9 +101,9 @@
        x="190.25821"
        y="-351.98019"
        transform="matrix(0,1,-1,0,0,0)"
-       inkscape:export-filename="/Users/saltymule/Projects/txtbranch_workspace/txtbranch/assets/img/up_arrow_gray.png"
-       inkscape:export-xdpi="19.799999"
-       inkscape:export-ydpi="19.799999" />
+       inkscape:export-filename="/Users/saltymule/Projects/txtbranch_workspace/txtbranch/assets/img/upvote_normal.png"
+       inkscape:export-xdpi="45"
+       inkscape:export-ydpi="45" />
     <rect
        style="fill:#808080;fill-opacity:1;stroke:none"
        id="rect2994-8-0-8"
@@ -112,8 +112,8 @@
        x="323.42654"
        y="-355.94058"
        transform="matrix(0,1,-1,0,0,0)"
-       inkscape:export-filename="/Users/saltymule/Projects/txtbranch_workspace/txtbranch/assets/img/down_arrow_gray.png"
-       inkscape:export-xdpi="19.799999"
-       inkscape:export-ydpi="19.799999" />
+       inkscape:export-filename="/Users/saltymule/Projects/txtbranch_workspace/txtbranch/assets/img/downvote_normal.png"
+       inkscape:export-xdpi="45"
+       inkscape:export-ydpi="45" />
   </g>
 </svg>
