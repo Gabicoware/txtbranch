@@ -169,6 +169,9 @@ class TreeController(BaseController):
         if moderatorname is None:
             return False, ['unauthenticated','no_moderator']
         
+        if tree_name is None:
+            return False, ['empty_name']
+        
         author_info = UserInfo.get_by_username(moderatorname)
         
         if author_info is None:

@@ -208,6 +208,22 @@ class ExportHandler(base.BaseRequestHandler):
         else:
             self.response.write(json.dumps({'status':'ERROR','result':['no_tree']}))
 
+class TreeHandler(base.BaseRequestHandler):
+    
+    def get(self):
+        
+        tree_name = self.request.get('name')
+        tree = ndb.Key('Tree', tree_name).get()
+        
+        if tree is not None:
+            tree_dict = tree.to_dict()
+            
+            tree_dict['root_branch_key'] = tree.get_root_branch_key().urlsafe()
+        
+            self.response.write(json.dumps({'status':'OK','result':tree_dict}))
+        else:
+            self.response.write(json.dumps({'status':'ERROR','result':['not_found']}))
+            
 # webapp2 config
 app_config = {
   'webapp2_extras.sessions': {
@@ -224,6 +240,7 @@ handlers = [
     ('/api/v1/export', ExportHandler),
     ('/api/v1/likes', LikeHandler),
     ('/api/v1/branchs', BranchHandler),
+    ('/api/v1/trees', TreeHandler),
     ('/api/v1/userinfos', UserInfoHandler),
 ]
 
