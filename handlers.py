@@ -115,7 +115,6 @@ class TreeHandler(RequestHandler):
         tree = key.get()
         
         if tree:
-        
             
             template_values = {
                 'root_branch_key': tree.get_root_branch_key(),

@@ -9,8 +9,8 @@ import base
 from secrets import SESSION_KEY
 from json import JSONEncoder
 
-from models import Like, UserInfo, Branch
-from controllers import UserInfoController, BranchController, LikeController
+from models import UserInfo, Branch, Tree
+from controllers import UserInfoController, BranchController, LikeController, BaseController
 
 class ModelEncoder(JSONEncoder):
 #TODO make non models passthrough objects
@@ -45,31 +45,39 @@ class UserInfoHandler(base.BaseRequestHandler):
         if username:
             user_info = UserInfo.get_by_username(username)
         else:
-            username = self.request.cookies.get('username')
-            if username:
-                user_info = UserInfo.get_by_username(username)
+            if self.request.get('set_cookie'):
+                user_info = self.controller(BaseController).current_user_info()
+                if user_info is not None:
+                    self.set_cookie(user_info)
             else:
-                user_info = self.current_user_info()
-        
+                username = self.request.cookies.get('username')
+                
+                if username:
+                    user_info = UserInfo.get_by_username(username)
+                                    
         if user_info is not None:
             self.response.write(json.dumps({'status':'OK','result':user_info.to_dict()},cls=ModelEncoder))
         else:
-            self.response.write(json.dumps({'status':'ERROR','result':None}))
+            self.response.write(json.dumps({'status':'ERROR','result':[]}))
 
     def post(self):
         username = self.request.get('username')
         success, result = self.controller(UserInfoController).set_username(username)
         
         if success:
-            now = datetime.datetime.now()
-            delta = datetime.timedelta(days=28)
-            then = delta + now
-            
-            self.response.set_cookie('username',value=result.username,expires=then)
+            self.set_cookie(result)
             
             self.response.write(json.dumps({'status':'OK','result':result.to_dict()},cls=ModelEncoder))
         else:
             self.response.write(json.dumps({'status':'ERROR','result':result}))
+    
+    def set_cookie(self,user_info):
+        now = datetime.datetime.now()
+        delta = datetime.timedelta(days=28)
+        then = delta + now
+        
+        self.response.set_cookie('username',value=user_info.username,expires=then)
+        
     
 class BranchHandler(base.BaseRequestHandler):
 
@@ -212,7 +220,23 @@ class TreeHandler(base.BaseRequestHandler):
     
     def get(self):
         
+        list_type = self.request.get('list')
+        
         tree_name = self.request.get('name')
+        
+        if list_type == "main":
+            self.get_main_list()
+        elif tree_name is not None:
+            self.get_tree(tree_name)
+        else:
+            self.abort(404)
+    
+    def get_main_list(self):
+        trees = Tree.main_trees()
+        self.response.write(json.dumps({'status':'OK','result':trees},cls=ModelEncoder))
+        
+        
+    def get_tree(self,tree_name):
         tree = ndb.Key('Tree', tree_name).get()
         
         if tree is not None:
@@ -223,7 +247,8 @@ class TreeHandler(base.BaseRequestHandler):
             self.response.write(json.dumps({'status':'OK','result':tree_dict}))
         else:
             self.response.write(json.dumps({'status':'ERROR','result':['not_found']}))
-            
+        
+    
 # webapp2 config
 app_config = {
   'webapp2_extras.sessions': {
