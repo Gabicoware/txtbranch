@@ -195,7 +195,15 @@ class TreeControllerTestCase(unittest.TestCase):
         millis = int(round(time.time() * 1000))
         tree_name = 's' + str(millis)
         
-        success, result = self.controller.save_tree( tree_name,self.user_info.username,'', 'testSaveTree.unique_link', 'testSaveTree.unique_content' )
+        tree_dict = {
+            "tree_name":tree_name,
+            "moderatorname":self.user_info.username,
+            "conventions":'', 
+            "root_branch_link":'testSaveTree.unique_link', 
+            "root_branch_content":'testSaveTree.unique_content'
+        }
+        
+        success, result = self.controller.save_tree( tree_dict )
         
         if success == False:
             logging.info(result)
@@ -211,37 +219,59 @@ class TreeControllerTestCase(unittest.TestCase):
     
     def testErrors(self):
         
-        success, result = self.controller.save_tree( 'some_name',None,'',None,None)
+        tree_dict = {
+            "tree_name":'some_name',
+            "moderatorname":None,
+            "conventions":'', 
+            "root_branch_link":None, 
+            "root_branch_content":None,
+            "links_moderator_only":False,
+            "link_max_length":0,
+            "link_prompt":None,
+            "content_moderator_only":False,
+            "content_max_length":0,
+            "content_prompt":None
+        }
+        
+        success, result = self.controller.save_tree( tree_dict )
         
         self.assertFalse(success)
         self.assertTrue('unauthenticated' in result)
-    
-        success, result = self.controller.save_tree( 'some_name','DNE.','',None,None)
+        
+        tree_dict["moderatorname"] = 'DNE.'
+        success, result = self.controller.save_tree( tree_dict )
         
         self.assertFalse(success)
         self.assertTrue('unauthenticated' in result)
         
-        success, result = self.controller.save_tree( 'some_name',self.invalid_username,'',None,None)
+        tree_dict["moderatorname"] = self.invalid_username
+        success, result = self.controller.save_tree( tree_dict )
         
         self.assertFalse(success)
         self.assertTrue('unauthenticated' in result)
         
-        success, result = self.controller.save_tree( None,self.user_info.username,'',None,None)
+        tree_dict["tree_name"] = None
+        tree_dict["moderatorname"] = self.user_info.username
+        success, result = self.controller.save_tree( tree_dict )
         
         self.assertFalse(success)
         self.assertTrue('empty_name' in result)
         
-        success, result = self.controller.save_tree( '',self.user_info.username,'',None,None)
+        tree_dict["tree_name"] = ''
+        success, result = self.controller.save_tree( tree_dict)
         
         self.assertFalse(success)
         self.assertTrue('empty_name' in result)
         
-        success, result = self.controller.save_tree( 'q q q q q ',self.user_info.username,'',None,None)
+        tree_dict["tree_name"] = 'q q q q q '
+        success, result = self.controller.save_tree( tree_dict)
         
         self.assertFalse(success)
         self.assertTrue('invalid_name' in result)
     
-        success, result = self.controller.save_tree( 'TestTree',self.user_info.username,None,None,None)
+        tree_dict["tree_name"] = 'TestTree'
+        tree_dict["conventions"] = None
+        success, result = self.controller.save_tree( tree_dict)
         
         self.assertFalse(success)
         self.assertTrue('empty_root_branch_link' in result)

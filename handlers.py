@@ -43,16 +43,18 @@ class CreateTreeHandler(RequestHandler):
         self.render_create_tree_form()
         
     def post(self):
-        tree_name = self.request.get('tree_name',config['trees']['default_name'])
         
-        success, tree = self.controller(TreeController).save_tree(tree_name,
-          self.username(),
-          self.request.get('conventions', DEFAULT_CONVENTIONS),
-          self.request.get('root_branch_link',''),
-          self.request.get('root_branch_content',''))
+        tree_dict = {}
+        
+        for key, value in self.request.POST.items():
+            tree_dict[key] = value
+        
+        tree_dict['moderatorname'] = self.username()
+                
+        success, tree = self.controller(TreeController).save_tree(tree_dict)
         
         if success:
-            redirect_url = '/tree/' + tree_name
+            redirect_url = '/tree/' + tree_dict['tree_name']
             self.redirect(redirect_url)
         else:
             self.render_create_tree_form(tree)

@@ -13,15 +13,16 @@
 	{
 		var settings = jQuery.extend(
 		{
-			events:				      [], // Array of events to be triggerd
-			maxCharacters:		  10, // Characters limit
-			status:				      true, // True to show status indicator bewlow the element
+			events:				    [], // Array of events to be triggerd
+			maxCharacters:		    10, // Characters limit
+            maxCharactersFunction:  null, // Characters limit function
+			status:				    true, // True to show status indicator bewlow the element
 			statusClass:		    "status", // The class on the status div
 			statusText:			    "character left", // The status text
-			notificationClass:	"notification",	// Will be added to the emement when maxlength is reached
+			notificationClass:	    "notification",	// Will be added to the emement when maxlength is reached
 			showAlert: 			    false, // True to show a regular alert message
 			alertText:			    "You have typed too many characters.", // Text in the alert message
-			slider:				      false // Use counter slider
+			slider:				    false // Use counter slider
 		}, options );
 		
 		// Add the default event
@@ -35,8 +36,14 @@
       // Update the status text
 			function updateStatus()
 			{
-				var charactersLeft = settings.maxCharacters - charactersLength;
-				
+                var maxChars = settings.maxCharacters;
+                
+                if(settings.maxCharactersFunction != null){
+                    maxChars = settings.maxCharactersFunction();
+                }
+                
+                var charactersLeft = maxChars - charactersLength;
+                
 				item.next("div").html(charactersLeft + " " + settings.statusText);
 			}
 
@@ -44,8 +51,14 @@
 			{
 				var valid = true;
 				
+                var maxChars = settings.maxCharacters;
+                
+                if(settings.maxCharactersFunction != null){
+                    maxChars = settings.maxCharactersFunction();
+                }
+                
 				// Too many chars?
-				if(charactersLength > settings.maxCharacters) 
+                if(charactersLength > maxChars) 
 				{
 					// Too may chars, set the valid boolean to false
 					valid = false;

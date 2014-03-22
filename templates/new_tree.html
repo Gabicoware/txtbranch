@@ -10,6 +10,20 @@
         textarea.invalid{background-color:#FF8888}
         div.invalid_message{ color:#FF8888; font-size:90%; }
         div.message{ font-size:90%; color:#888888;}
+        div.options label{
+        	display:inline;
+        }
+        div.options{
+        	padding-top:10px
+        }
+        #new_tree_form hr{
+        	max-width:615px;
+        }
+        
+      input[type="number"]{
+      	width:50px;
+      }
+        
     </style>
     <script>
         function showAddBranchLink(){
@@ -27,42 +41,49 @@
     <div id="add_tree_div">
     {% if logged_in %}
         <b>Add a Tree</b>
-        <form id="new_tree_form" action="{{new_tree_endpoint}}" method="post">
+        <form action="/api/v1/trees" id="new_tree_form" method="post">
             <div>
                 <label for="tree_name">Name <b>*</b></label>
             </div>
             <div>
-                <input type="text" id="tree_name" name="tree_name" value="{{tree_name}}" />
+                <input type="text" id="tree_name" name="tree_name" />
             </div>
             <div id="tree_name_message" class="message">
             </div>
-            
+            <hr />
+            <h5>Links</h5>
             <div>
-                <label for="root_branch_link">First Branch <b>*</b></label>
+            	<label for="links_moderator_only">Moderator Only</label>
+            	<input type="checkbox" value="1" id="links_moderator_only" name="links_moderator_only" />
+            	<label for="link_max_length">Max Chars</label>
+            	<input type="number" min="16" value="64" max="10000" id="link_max_length" name="link_max_length" />
+            	<label for="link_prompt">Prompt</label>
+                <textarea class="form_link" id="link_prompt" name="link_prompt" rows="1" cols="60" >Enter a teaser...</textarea>
             </div>
+            <hr />
+            <h5>Content</h5>
+            <div>
+            	<label for="content_moderator_only">Moderator Only</label>
+            	<input type="checkbox" value="1" id="content_moderator_only" name="content_moderator_only" />
+            	<label for="content_max_length">Max Chars</label>
+            	<input type="number" min="16" value="256" max="10000" id="content_max_length" name="content_max_length" />
+            	<label for="content_prompt">Prompt</label>
+                <textarea class="form_content" id="content_prompt" name="content_prompt" rows="1" cols="60" >...then continue with text</textarea>
+            </div>
+            <hr />
+            <h5>First Branch</h5>
             <div>
                 <div class="form_link_hint" id="root_branch_link_hint" >Enter a teaser...</div>
-                <textarea class="form_link" id="root_branch_link" name="root_branch_link" rows="1" cols="60" >{{root_branch_link}}</textarea>
+                <textarea class="form_link" id="root_branch_link" name="root_branch_link" rows="1" cols="60" ></textarea>
             </div>
-            {% if 'empty_root_branch_link' in errors %}
-            <div class="invalid_message">
-                Teaser is required.
-            </div>
-            {% endif %}
             <div>
                 <div class="form_content_hint" id="root_branch_content_hint" >...then continue with text</div>
-                <textarea class="form_content" id="root_branch_content" name="root_branch_content" rows="3" >{{root_branch_content}}</textarea>
+                <textarea class="form_content" id="root_branch_content" name="root_branch_content" rows="3" ></textarea>
             </div>
-            {% if 'empty_root_branch_content' in errors %}
-            <div class="invalid_message">
-                Text is required.
-            </div>
-            {% endif %}
+            <hr />
+            <h5>About</h5>
             <div>
-                <label for="conventions">About</label>
-            </div>
-            <div>
-                <textarea id="conventions" name="conventions" rows="6" >{{conventions}}</textarea>
+                <textarea id="conventions" name="conventions" rows="6" ></textarea>
             </div>
             <br />
             <div>Once added, you may only edit the conventions of a tree.</div>
@@ -72,77 +93,138 @@
             <div><input type="submit" value="Add Tree"></div>
         </form>
 		<script>
-		    
-        	var errors = {{errors|safe}};
-        	
-        	if(!(errors instanceof Array)){
-        		errors = [];
-        	}
-			
+		    /*
 			if( errors.indexOf('empty_root_branch_content') != -1){
 	        	$("#root_branch_content").addClass('invalid')
         	}
 			if( errors.indexOf('empty_root_branch_link') != -1){
 	        	$("#root_branch_link").addClass('invalid')
         	}
-			
+			*/
         	var messages = {
 		    	'valid_tree_name':"Names must be between 4 and 20 characters, and contain only numbers, letters, dashes, and underscores.",
 		    	'invalid_name':"Names must be between 4 and 20 characters, and contain only numbers, letters, dashes, and underscores.",
 		    	'tree_exists':"There is already a tree with this name."
+		    };
+		    
+		    $("#tree_name").focusin(function(value) {
+		    	updateTreenameError(true);
+		    });
+		    
+			
+		    $("#tree_name").focusout(function() {
+		    	
+		    	var treename = $('#tree_name').val();
+		    	
+				var isvalid = (/^[\d\w_\-]+$/.test(treename) && 4 <= treename.length && treename.length <= 20) || treename.length == 0;
+		    	updateTreenameError(isvalid);
+		    });
+		    
+		    $("#tree_name").keyup(function() {
+		    	
+		    	var treename = $('#tree_name').val();
+		    	
+				var isvalid = (/^[\d\w_\-]+$/.test(treename) && treename.length <= 20) || treename.length == 0;
+		    	updateTreenameError(isvalid);
+		    });
+		    
+		    function updateTreenameError(isvalid){
+		    	if(isvalid){
+		    		
+			        $("#tree_name_message").text(messages['valid_tree_name']);
+			        $("#tree_name_message").removeClass('invalid_message');
+			        $("#tree_name_message").addClass('message');
+			        $("#tree_name").removeClass('invalid');
+		    	}else{
+			        $("#tree_name_message").text(messages['valid_tree_name']);
+			        $("#tree_name_message").addClass('invalid_name');
+			        $("#tree_name_message").removeClass('message');
+			        $("#tree_name").addClass('invalid');
+		    	}
+		    	
 		    }
 		    
-		    $("#tree_name").focus(function() {
-		        $("#tree_name_message").text(messages['valid_tree_name'])
-		        $("#tree_name_message").removeClass('invalid_message')
-		        $("#tree_name_message").addClass('message')
-		        $("#tree_name").removeClass('invalid')
-		    });
+			var message = messages['valid_tree_name'];
 			
-			var message = messages['valid_tree_name']
-			
-        	for (var key in messages){
-        		if( errors.indexOf(key) != -1 ){
-                	message = messages[key];
-		        	$("#tree_name_message").addClass('invalid_message')
-			        $("#tree_name_message").removeClass('message')
-	        		$("#tree_name").addClass('invalid')
-            	}
-        	}
-        	
             $("#tree_name_message").text(message);
         	
-            $("#new_tree_form").submit(function() {
+            $("#link_max_length").prop("target",'#root_branch_link');
+            $("#content_max_length").prop("target",'#root_branch_content');
+            
+            var eventHandler = function(event){
+            	var item = $($(event.currentTarget).prop("target"));
+            	item.prop("maxCharacters",event.currentTarget.value);
+            	item.trigger('keyup');
+            };
+            
+            var textareas={
+            	"link":{
+	                maxlengthInputId:'#link_max_length',
+	                textareaId:'#root_branch_link',
+	                maxCharacters: 64, // Characters limit  
+	                statusClass: "chars_left", // The class on the status div 
+	                maxCharactersFunction:function(){ return $("#root_branch_link").prop("maxCharacters"); },
+	                notificationClass: "invalid", 
+	                statusText: "", // The status text 
+	            },
+	            "content":{
+	                maxlengthInputId:'#content_max_length',
+	                textareaId:'#root_branch_content',
+	                maxCharacters: 256, // Characters limit  
+	                statusClass: "chars_left", // The class on the status div 
+	                maxCharactersFunction:function(){ return $("#root_branch_content").prop("maxCharacters"); },
+	                notificationClass: "invalid", 
+	                statusText: "", // The status text 
+	            }
+            };
+            
+	        for(var key in textareas){
+	            if(textareas.hasOwnProperty(key)){
+			    	var textarea = textareas[key];  
+		            $(textarea.maxlengthInputId).change(eventHandler);
+	    	        $(textarea.maxlengthInputId).keyup(eventHandler);
+		            $(textarea.textareaId).prop("maxCharacters",textarea.maxCharacters);
+		        	setupTextArea(textarea);
+	            }
+	        }
+	    	
+		    $("#new_tree_form").ajaxForm({
+		        type : 'post',
+		        success : function(data, status, xhr){
+			    	var response = JSON.parse(data);
+				    if(response.status == "OK"){
+				    	
+	            		window.location.href = "/tree/"+response["result"]["name"];
+				    	//forward to 
+				    }else{
+				    	//display errors
+				    }
+			    }
+		    });
+		    $("#new_tree_form").submit(function() {
                 
-                var hasValidLink = 0 < $('#root_branch_link').val().length && $('#root_branch_link').val().length < {{link_max}};
-                var hasValidContent = 0 < $('#root_branch_content').val().length && $('#root_branch_content').val().length < {{content_max}};
+                var getValidation = function(elementId,maxCharacters){
+                	
+	                var hasValidText = 0 < $(elementId).val().length && $(elementId).val().length < maxCharacters ;
+	                if(!hasValidText){
+	                    $(elementId).addClass('invalid');
+	                }else{
+	                    $(elementId).removeClass('invalid');
+	                }
+	                return hasValidText;
+                };
                 
-                if(!hasValidLink){
-                    $('#root_branch_link').addClass('invalid');
-                }
-                if(!hasValidContent){
-                    $('#root_branch_content').addClass('invalid');
-                }
+                var hasValidLink = getValidation('#root_branch_link', textareas["link"].maxCharactersFunction() );
+                var hasValidContent = getValidation('#root_branch_content', textareas["content"].maxCharactersFunction() );
+                var hasValidLinkPrompt = getValidation('#link_prompt', textareas["link"].maxCharactersFunction() );
+                var hasValidContentPrompt = getValidation('#content_prompt', textareas["content"].maxCharactersFunction() );
                 
-                return hasValidLink && hasValidContent;
+		    	var treename = $('#tree_name').val();
+				var hasValidTreename = (/^[\d\w_\-]+$/.test(treename) && 4 <= treename.length && treename.length <= 20) || treename.length == 0;
+		    	updateTreenameError(hasValidTreename);
+                
+                return hasValidTreename && hasValidLink && hasValidContent && hasValidLinkPrompt && hasValidContentPrompt;
             });
-            var textareas=[{
-                textareaId:'#root_branch_link',
-                maxCharacters: {{link_max}}, // Characters limit  
-                statusClass: "chars_left", // The class on the status div 
-                notificationClass: "invalid", 
-                statusText: "", // The status text 
-            },{
-                textareaId:'#root_branch_content',
-                maxCharacters: {{content_max}}, // Characters limit  
-                statusClass: "chars_left", // The class on the status div 
-                notificationClass: "invalid", 
-                statusText: "", // The status text 
-            }];
-		    for(var i =0; i < textareas.length; i++){ var 
-	    	    textarea = textareas[i];  
-	        	setupTextArea(textarea);
-	    	} 
     
         </script>
     {% else %}

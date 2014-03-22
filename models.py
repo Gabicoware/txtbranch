@@ -32,15 +32,6 @@ def string_validator(prop, value):
     stripper = MLStripper()
     stripper.feed(value)
     value = stripper.get_data()
-    max_chars = 10000
-    if prop._name == 'link':
-        max_chars = config['branchs']['link_max']
-    elif prop._name == 'content':
-        max_chars = config['branchs']['content_max']
-    
-    if max_chars < len(value):
-        value = value[:max_chars]
-        
     return value
     
     
@@ -57,6 +48,14 @@ class Tree(ndb.Model):
     name = ndb.StringProperty(indexed=False,validator=string_validator)
     conventions = ndb.TextProperty(validator=string_validator)
     
+    link_prompt = ndb.StringProperty(indexed=False,validator=string_validator)
+    link_max_length = ndb.IntegerProperty(indexed=False)
+    links_moderator_only = ndb.BooleanProperty(indexed=False)
+    
+    content_prompt = ndb.StringProperty(indexed=False,validator=string_validator)
+    content_max_length = ndb.IntegerProperty(indexed=False)
+    content_moderator_only = ndb.BooleanProperty(indexed=False)
+        
     @classmethod
     def create_key(cls, tree_name=config['trees']['default_name']):
         """Constructs a Datastore key for a Game entity with tree_name."""

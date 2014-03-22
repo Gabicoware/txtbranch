@@ -10,7 +10,7 @@ from secrets import SESSION_KEY
 from json import JSONEncoder
 
 from models import UserInfo, Branch, Tree
-from controllers import UserInfoController, BranchController, LikeController, BaseController
+from controllers import UserInfoController, BranchController, LikeController, TreeController, BaseController
 
 class ModelEncoder(JSONEncoder):
 #TODO make non models passthrough objects
@@ -41,6 +41,7 @@ class UserInfoHandler(base.BaseRequestHandler):
     
     def get(self):
         
+        user_info = None
         username = self.request.get('username')
         if username:
             user_info = UserInfo.get_by_username(username)
@@ -226,10 +227,30 @@ class TreeHandler(base.BaseRequestHandler):
         
         if list_type == "main":
             self.get_main_list()
-        elif tree_name is not None:
+        elif tree_name is not None and tree_name != '':
             self.get_tree(tree_name)
         else:
             self.abort(404)
+    
+    def post(self):
+        tree_dict = {}
+        
+        for key, value in self.request.POST.items():
+            tree_dict[key] = value
+        
+        tree_dict['moderatorname'] = self.request.cookies.get('username')
+                
+        success, result = self.controller(TreeController).save_tree(tree_dict)
+        
+        if success:
+            
+            tree_dict = result.to_dict()
+            tree_dict['root_branch_key'] = result.get_root_branch_key().urlsafe()
+            self.response.write(json.dumps({'status':'OK','result':tree_dict}))
+            
+        else:
+            self.response.write(json.dumps({'status':'ERROR','result':result}))
+            
     
     def get_main_list(self):
         trees = Tree.main_trees()

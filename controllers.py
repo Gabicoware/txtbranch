@@ -164,15 +164,45 @@ class BranchController(BaseController):
         
 class TreeController(BaseController):
     
-    def save_tree(self,tree_name,moderatorname,conventions,root_branch_link,root_branch_content):
+    def save_tree(self,tree_dict):
         
-        if moderatorname is None:
+        default_tree_dict = {
+            "tree_name":None,
+            "moderatorname":None,
+            "conventions":None, 
+            "root_branch_link":None, 
+            "root_branch_content":None,
+            "links_moderator_only":False,
+            "link_max_length":0,
+            "link_prompt":None,
+            "content_moderator_only":False,
+            "content_max_length":0,
+            "content_prompt":None
+        }
+        
+        tree_dict = dict(default_tree_dict.items() + tree_dict.items())
+        
+        try:
+            if tree_dict["content_max_length"] is not int:
+                tree_dict["content_max_length"] = int(tree_dict["content_max_length"])
+            if tree_dict["link_max_length"] is not int:
+                tree_dict["link_max_length"] = int(tree_dict["link_max_length"])
+            if tree_dict["content_moderator_only"] is not bool:
+                tree_dict["content_moderator_only"] = bool(int(tree_dict["content_moderator_only"]))
+            if tree_dict["links_moderator_only"] is not bool:
+                tree_dict["links_moderator_only"] = bool(int(tree_dict["links_moderator_only"]))
+        except:
+            return False, ['invalid_parameters']
+            
+        #tree_name,moderatorname,conventions,root_branch_link,root_branch_content
+        
+        if tree_dict['moderatorname'] is None:
             return False, ['unauthenticated','no_moderator']
         
-        if tree_name is None:
+        if tree_dict['tree_name'] is None:
             return False, ['empty_name']
         
-        author_info = UserInfo.get_by_username(moderatorname)
+        author_info = UserInfo.get_by_username(tree_dict['moderatorname'])
         
         if author_info is None:
             return False, ['unauthenticated','moderator_not_found']
@@ -183,25 +213,37 @@ class TreeController(BaseController):
         if author_info.username is None:
             return False, ['invalid_user']
         
-        tree_key = Tree.create_key(tree_name)
-        
         errors = []
         
-        empty_name = tree_name is None or len(tree_name) == 0
+        if tree_dict['content_max_length'] < 16:
+            errors.append('min_content_max_length')
+            
+        if tree_dict['link_max_length'] < 16:
+            errors.append('min_link_max_length')
+            
+        if len(tree_dict['link_prompt']) > tree_dict['link_max_length']:
+            errors.append('link_prompt_too_large')
+            
+        if len(tree_dict['content_prompt']) > tree_dict['content_max_length']:
+            errors.append('content_prompt_too_large')
+        
+        tree_key = Tree.create_key(tree_dict['tree_name'])
+        
+        empty_name = tree_dict['tree_name'] is None or len(tree_dict['tree_name']) == 0
         
         if empty_name:
             errors.append('empty_name')
         else:
-            match = re.search(r'^[\d\w_\-]+$', tree_name)
-            isvalid = match and 4 <= len(tree_name) and len(tree_name) <= 20;
+            match = re.search(r'^[\d\w_\-]+$', tree_dict['tree_name'])
+            isvalid = match and 4 <= len(tree_dict['tree_name']) and len(tree_dict['tree_name']) <= 20;
             if not isvalid:
                 errors.append('invalid_name')
         
-        branch = Branch(id=tree_name)
-        branch.authorname = moderatorname
-        branch.link = root_branch_link
-        branch.content = root_branch_content
-        branch.tree_name = tree_name
+        branch = Branch(id=tree_dict['tree_name'])
+        branch.authorname = tree_dict['moderatorname']
+        branch.link = tree_dict['root_branch_link']
+        branch.content = tree_dict['root_branch_content']
+        branch.tree_name = tree_dict['tree_name']
         
         if branch.link == None or len(branch.link) == 0:
             errors.append('empty_root_branch_link')
@@ -222,9 +264,18 @@ class TreeController(BaseController):
         if len(errors) == 0:
             #if two users enter identical information at the same time, then
             #whoever gets it second is the winner
-            tree = Tree(id=tree_name,name=tree_name)
-            tree.moderatorname = moderatorname
-            tree.conventions = conventions
+            tree = Tree(id=tree_dict['tree_name'],name=tree_dict['tree_name'])
+            tree.moderatorname = tree_dict['moderatorname']
+            tree.conventions = tree_dict['conventions']
+            
+            tree.links_moderator_only = tree_dict['links_moderator_only']
+            tree.link_max_length = tree_dict['link_max_length']
+            tree.link_prompt = tree_dict['link_prompt']
+            
+            tree.content_moderator_only = tree_dict['content_moderator_only']
+            tree.content_max_length = tree_dict['content_max_length']
+            tree.content_prompt = tree_dict['content_prompt']
+            
             branch.put()
             tree.put()
         
