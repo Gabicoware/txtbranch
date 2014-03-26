@@ -49,13 +49,13 @@ class Tree(ndb.Model):
     conventions = ndb.TextProperty(validator=string_validator)
     
     link_prompt = ndb.StringProperty(indexed=False,validator=string_validator)
-    link_max_length = ndb.IntegerProperty(indexed=False)
-    links_moderator_only = ndb.BooleanProperty(indexed=False)
+    link_max = ndb.IntegerProperty(indexed=False)
+    link_moderator_only = ndb.BooleanProperty(indexed=False)
     
     content_prompt = ndb.StringProperty(indexed=False,validator=string_validator)
-    content_max_length = ndb.IntegerProperty(indexed=False)
+    content_max = ndb.IntegerProperty(indexed=False)
     content_moderator_only = ndb.BooleanProperty(indexed=False)
-        
+    
     @classmethod
     def create_key(cls, tree_name=config['trees']['default_name']):
         """Constructs a Datastore key for a Game entity with tree_name."""

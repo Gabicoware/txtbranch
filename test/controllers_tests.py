@@ -225,11 +225,11 @@ class TreeControllerTestCase(unittest.TestCase):
             "conventions":'', 
             "root_branch_link":None, 
             "root_branch_content":None,
-            "links_moderator_only":False,
-            "link_max_length":0,
+            "link_moderator_only":False,
+            "link_max":0,
             "link_prompt":None,
             "content_moderator_only":False,
-            "content_max_length":0,
+            "content_max":0,
             "content_prompt":None
         }
         

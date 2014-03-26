@@ -43,6 +43,28 @@ class BaseController:
 
 class BranchController(BaseController):
     
+    def validate_branch(self,tree,branch,authorname):
+        errors = []
+        
+        if tree.moderatorname != authorname:
+            if len(branch.link) == 0 and not tree.link_moderator_only:
+                errors.append('empty_branch_link')
+            if len(branch.content) == 0 and not tree.content_moderator_only:
+                errors.append('empty_branch_content')
+            
+            if len(branch.link) != 0 and tree.link_moderator_only:
+                errors.append('invalid_branch_link')
+            
+            if len(branch.content) != 0 and tree.content_moderator_only:
+                errors.append('invalid_branch_content')
+        else:
+            if len(branch.link) == 0:
+                errors.append('empty_branch_link')
+            
+            if len(branch.content) == 0:
+                errors.append('empty_branch_content')
+        return errors
+    
     def save_branch(self,authorname,parent_urlsafe_key,link,content):
         
         userinfo = UserInfo.get_by_username(authorname)    
@@ -50,28 +72,30 @@ class BranchController(BaseController):
             
             return False, [ 'unauthenticated' ]
         
-        errors = []
-        
         branch = Branch()
-        branch.link = link
-        branch.content = content
+        branch.authorname = authorname
         
         parent_key = ndb.Key(urlsafe=parent_urlsafe_key)
         parent_branch = parent_key.get()
         
         branch.tree_name = parent_branch.tree_name
         
-        if len(branch.link) == 0:
-            errors.append('empty_branch_link')
+        tree = Tree.get_by_name(parent_branch.tree_name)
         
-        if len(branch.content) == 0:
-            errors.append('empty_branch_content')
+        if tree.moderatorname == authorname or not tree.link_moderator_only:
+            branch.link = link
+        else:
+            branch.link = ""
         
+        if tree.moderatorname == authorname or not tree.content_moderator_only:
+            branch.content = content
+        else:
+            branch.content = ""
         
-#Comment on thread safety:
-#Branch creation will be a VERY frequent operation. Multiple branchs with identical links
-#Isn't an application error, just an annoyance for the user. So we allow this to occur
-#without a lock in place
+        errors = self.validate_branch(tree, branch,authorname)
+                    
+#currently there is a db lock on unique links
+#eventually we should have a memcache lcok
         
         authored_branch_count = 0
                 
@@ -89,7 +113,6 @@ class BranchController(BaseController):
         if len(errors) == 0:
             branch.revision = 0
             branch.parent_branch = parent_key
-            branch.authorname = authorname
             branch.parent_branch_authorname = parent_branch.authorname
             branch.put()
             self.create_branch_version(branch)
@@ -103,29 +126,23 @@ class BranchController(BaseController):
     
     def update_branch(self,authorname,urlsafe_key,link,content):
         
-        userinfo = UserInfo.get_by_username(authorname)    
-        logging.info(authorname)
-        logging.info(userinfo)
+        userinfo = UserInfo.get_by_username(authorname)
+        
         if userinfo is None or not self.is_user_info_current(userinfo):
             return False, [ 'unauthenticated' ]
         
-        
         branch = ndb.Key(urlsafe=urlsafe_key).get()
+        tree = Tree.get_by_name(branch.tree_name)
         
-        if branch.authorname != authorname:
+        if branch.authorname != authorname and tree.moderatorname != authorname:
             return False, [ 'not_author' ]
         
-        errors = []
-        
-        branch.link = link
-        branch.content = content
+        if tree.moderatorname == authorname or not tree.link_moderator_only:
+            branch.link = link
+        if tree.moderatorname == authorname or not tree.content_moderator_only:
+            branch.content = content
                 
-        if len(branch.link) == 0:
-            errors.append('empty_branch_link')
-        
-        if len(branch.content) == 0:
-            errors.append('empty_branch_content')
-        
+        errors = self.validate_branch(tree, branch,authorname)
         
 #Comment on thread safety:
 #Branch creation will be a VERY frequent operation. Multiple branchs with identical links
@@ -172,25 +189,25 @@ class TreeController(BaseController):
             "conventions":None, 
             "root_branch_link":None, 
             "root_branch_content":None,
-            "links_moderator_only":False,
-            "link_max_length":0,
+            "link_moderator_only":False,
+            "link_max":0,
             "link_prompt":None,
             "content_moderator_only":False,
-            "content_max_length":0,
+            "content_max":0,
             "content_prompt":None
         }
         
         tree_dict = dict(default_tree_dict.items() + tree_dict.items())
         
         try:
-            if tree_dict["content_max_length"] is not int:
-                tree_dict["content_max_length"] = int(tree_dict["content_max_length"])
-            if tree_dict["link_max_length"] is not int:
-                tree_dict["link_max_length"] = int(tree_dict["link_max_length"])
+            if tree_dict["content_max"] is not int:
+                tree_dict["content_max"] = int(tree_dict["content_max"])
+            if tree_dict["link_max"] is not int:
+                tree_dict["link_max"] = int(tree_dict["link_max"])
             if tree_dict["content_moderator_only"] is not bool:
                 tree_dict["content_moderator_only"] = bool(int(tree_dict["content_moderator_only"]))
-            if tree_dict["links_moderator_only"] is not bool:
-                tree_dict["links_moderator_only"] = bool(int(tree_dict["links_moderator_only"]))
+            if tree_dict["link_moderator_only"] is not bool:
+                tree_dict["link_moderator_only"] = bool(int(tree_dict["link_moderator_only"]))
         except:
             return False, ['invalid_parameters']
             
@@ -215,16 +232,16 @@ class TreeController(BaseController):
         
         errors = []
         
-        if tree_dict['content_max_length'] < 16:
-            errors.append('min_content_max_length')
+        if tree_dict['content_max'] < 16:
+            errors.append('min_content_max')
             
-        if tree_dict['link_max_length'] < 16:
-            errors.append('min_link_max_length')
+        if tree_dict['link_max'] < 16:
+            errors.append('min_link_max')
             
-        if len(tree_dict['link_prompt']) > tree_dict['link_max_length']:
+        if len(tree_dict['link_prompt']) > tree_dict['link_max']:
             errors.append('link_prompt_too_large')
             
-        if len(tree_dict['content_prompt']) > tree_dict['content_max_length']:
+        if len(tree_dict['content_prompt']) > tree_dict['content_max']:
             errors.append('content_prompt_too_large')
         
         tree_key = Tree.create_key(tree_dict['tree_name'])
@@ -268,12 +285,12 @@ class TreeController(BaseController):
             tree.moderatorname = tree_dict['moderatorname']
             tree.conventions = tree_dict['conventions']
             
-            tree.links_moderator_only = tree_dict['links_moderator_only']
-            tree.link_max_length = tree_dict['link_max_length']
+            tree.link_moderator_only = tree_dict['link_moderator_only']
+            tree.link_max = tree_dict['link_max']
             tree.link_prompt = tree_dict['link_prompt']
             
             tree.content_moderator_only = tree_dict['content_moderator_only']
-            tree.content_max_length = tree_dict['content_max_length']
+            tree.content_max = tree_dict['content_max']
             tree.content_prompt = tree_dict['content_prompt']
             
             branch.put()

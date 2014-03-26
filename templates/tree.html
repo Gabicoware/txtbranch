@@ -2,12 +2,6 @@
 
 {% block additional_header %}
     
-    <script type="text/javascript">
-    	var config = {
-    		'link_max' : parseInt('{{link_max}}'),
-    		'content_max' : parseInt('{{content_max}}')
-    	};
-    </script>
     <script type="text/javascript" src="/assets/js/txtbranch.js"></script>
     <script id="parent_branch_template" type="text/template">
         <div class="parent_branch_link" >
@@ -23,14 +17,17 @@
 	            </div>
 		        <div class="branch_content">##branch.content##</div>
 	        </div>
+        	<!--
             <div class="branch_info" onclick="branchInfoClickHandler(event)">
             	<div class="divider" > </div>
+            	
                 <div id="##like_div_id##" class="like_div vote" onclick="toggleLike('##branch.key##',1);" > </div>
                 <div class="stats" id="##score_span_id##" >##branch.score##</div>
                 <div id="##unlike_div_id##" class="unlike_div vote" onclick="toggleLike('##branch.key##',-1);" > </div>
                 by
                 <div class="byline">##author_info##</div>
             </div>
+           -->
        	</div>
     </script>
     <script id="edit_branch_form_template" type="text/template">
@@ -53,11 +50,15 @@
     </script>
     <script id="branch_link_template" type="text/template">
         <div class="branch_link">
+        	<!--
             <div id="##like_div_id##" class="like_div vote" onclick="toggleLike('##branch.key##',1);" > </div>
             <div class="stats" id="##score_span_id##" >##branch.score##</div>
             <div id="##unlike_div_id##" class="unlike_div vote" onclick="toggleLike('##branch.key##',-1);" > </div>
-            :
+            :-->
             <a href="javascript:void(0)" onclick="openBranch('##branch.key##')">##branch.link##</a>
+        </div>
+        <div style="font-size:smaller; font-style: italic;" >
+            or
         </div>
     </script>
     <script id="no_links_template" type="text/template">
@@ -73,18 +74,19 @@
         <form id="##branch.key##_child_add_branch_form" action="/api/v1/branchs" method="post">
             <input name="parent_branch_key" type="hidden" value="##branch.key##" />
             <div>
-                <div class="form_link_hint" id="##branch.key##_child_link_hint" >Enter a teaser...</div>
+                <div class="form_link_hint" id="##branch.key##_child_link_hint" >##tree.link_prompt##</div>
                 <textarea class="form_link" id="##branch.key##_child_link" name="link" rows="1" cols="60" ></textarea>
             </div>
             <div>
-                <div class="form_content_hint" id="##branch.key##_child_content_hint" >...then continue with text</div>
+                <div class="form_content_hint" id="##branch.key##_child_content_hint" >##tree.content_prompt##</div>
                 <textarea class="form_content" id="##branch.key##_child_content" name="content" rows="3" cols="60" ></textarea>
             </div>
             <br />
             <div>
             	<input type="button" value="Cancel" onclick="showAddBranchLink()"> 
             	&nbsp; 
-            	<input type="submit" value="Add Branch"></div>
+            	<input type="submit" value="Add Branch">
+            </div>
         </form>
     </script>
     <script id="must_login_template" type="text/template">
@@ -97,53 +99,58 @@
         	You have already added the maximum number of child branches.
         </span>
     </script>
+    <script id="show_invalid_branch_template" type="text/template">
+        <span class="invalid">
+        	The parent branch must be completed before adding a child.
+        </span>
+    </script>
     
     
 {% endblock %}
 
 {% block content %}
-    <h2>{{tree.name}}</h2>
+    <h2 id="tree_name"></h2>
 	<div class="conventions">
 		<h4>about</h4>
-		{{tree.conventions}}
+		<div id="tree_conventions">
+		</div>
 	</div>
 	<div class="subcontainer">
         <div id="parent_container"></div>
         <div id="content_container"></div>
-        <div style="font-size:smaller" id="current_branch_options_div" >
-            <a href="javascipt:void(0)" onclick="editActiveBranch(true)">edit</a>
+        <div style="font-size:smaller; text-align:right;" >
+        	<span id="current_branch_byline"></span>
+        	<span id="current_branch_owner_options_span">
+            	<a href="javascipt:void(0)" onclick="editActiveBranch(true)">edit</a>
+            </span>
         </div>
         <div id="edit_branch_div" class="edit_branch_inactive"></div>
-        <div style="font-size:smaller" >
-            &darr; <span id="branch_count_span"></span> branches
+	    <div id="no_children_branch_div" style="font-size:smaller; font-style: italic;" >
+	    	Branch waiting for additional content
+	    </div>
+	    <div id="child_branches_div">
+	        <div style="font-size:smaller; font-style: italic;" >
+	            What happens next?
+	        </div>
+	        <div id="link_container"></div>
+	        <div class="branch_link" id="add_branch_link">
+		        <a href="javascript:void(0)" onclick="updateAddBranchDiv();"> &darr; Add a Branch</a>
+	        </div>
+	        <div id="add_branch_div" class="add_branch_inactive"></div>
         </div>
-        <div id="link_container"></div>
-        <br />
-        <div class="branch_link" id="add_branch_link">
-	        <a href="javascript:void(0)" onclick="updateAddBranchDiv();"> &darr; Add a Branch</a>
-        </div>
-        <div id="add_branch_div" class="add_branch_inactive"></div>
         <br />
 </div>
         <script>
         	
-        	var branch_key = getParameterByName("branch_key");
+			var index = location.pathname.lastIndexOf("/") + 1;
+			var treename = location.pathname.substr(index);
         	
-        	if(branch_key == null || branch_key ==""){
-        		branch_key = "{{root_branch_key.urlsafe()}}";
-        	}
+            $.get('/api/v1/trees?name='+treename, function(data) {
+            	var jsondata = JSON.parse(data);
+            	if(jsondata.status == "OK"){
+            		setTree(jsondata.result);
+            	}
+            });
         	
-        	if (branch_key != "") {
-	            $.get('/api/v1/branchs?branch_key='+branch_key, function(data) {
-	            	var jsondata = JSON.parse(data);
-	            	if(jsondata.result.length == 1){
-	            		var branch = jsondata["result"][0];
-	            		branch_cache[branch.key] = branch;
-				        openBranch(branch.key);
-	            	}
-	            });
-        	};
-        	
-        
         </script>
 {% endblock %}

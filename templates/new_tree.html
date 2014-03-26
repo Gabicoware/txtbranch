@@ -53,10 +53,12 @@
             <hr />
             <h5>Links</h5>
             <div>
-            	<label for="links_moderator_only">Moderator Only</label>
-            	<input type="checkbox" value="1" id="links_moderator_only" name="links_moderator_only" />
-            	<label for="link_max_length">Max Chars</label>
-            	<input type="number" min="16" value="64" max="10000" id="link_max_length" name="link_max_length" />
+            	<!--
+            	<label for="link_moderator_only">Moderator Only</label>
+            	<input type="checkbox" value="1" id="link_moderator_only" name="link_moderator_only" />
+            	-->
+            	<label for="link_max">Max Chars</label>
+            	<input type="number" min="16" value="64" max="10000" id="link_max" name="link_max" />
             	<label for="link_prompt">Prompt</label>
                 <textarea class="form_link" id="link_prompt" name="link_prompt" rows="1" cols="60" >Enter a teaser...</textarea>
             </div>
@@ -65,8 +67,8 @@
             <div>
             	<label for="content_moderator_only">Moderator Only</label>
             	<input type="checkbox" value="1" id="content_moderator_only" name="content_moderator_only" />
-            	<label for="content_max_length">Max Chars</label>
-            	<input type="number" min="16" value="256" max="10000" id="content_max_length" name="content_max_length" />
+            	<label for="content_max">Max Chars</label>
+            	<input type="number" min="16" value="256" max="10000" id="content_max" name="content_max" />
             	<label for="content_prompt">Prompt</label>
                 <textarea class="form_content" id="content_prompt" name="content_prompt" rows="1" cols="60" >...then continue with text</textarea>
             </div>
@@ -148,8 +150,16 @@
 			
             $("#tree_name_message").text(message);
         	
-            $("#link_max_length").prop("target",'#root_branch_link');
-            $("#content_max_length").prop("target",'#root_branch_content');
+            $("#link_max").prop("target",'#root_branch_link');
+            $("#content_max").prop("target",'#root_branch_content');
+            
+            
+            $('#link_prompt').keyup(function(event){
+            	$("#root_branch_link_hint").html($(event.currentTarget).val());
+            });
+            $('#content_prompt').keyup(function(event){
+            	$("#root_branch_content_hint").html($(event.currentTarget).val());
+            });
             
             var eventHandler = function(event){
             	var item = $($(event.currentTarget).prop("target"));
@@ -159,7 +169,7 @@
             
             var textareas={
             	"link":{
-	                maxlengthInputId:'#link_max_length',
+	                maxlengthInputId:'#link_max',
 	                textareaId:'#root_branch_link',
 	                maxCharacters: 64, // Characters limit  
 	                statusClass: "chars_left", // The class on the status div 
@@ -168,7 +178,7 @@
 	                statusText: "", // The status text 
 	            },
 	            "content":{
-	                maxlengthInputId:'#content_max_length',
+	                maxlengthInputId:'#content_max',
 	                textareaId:'#root_branch_content',
 	                maxCharacters: 256, // Characters limit  
 	                statusClass: "chars_left", // The class on the status div 
