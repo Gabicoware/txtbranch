@@ -177,6 +177,18 @@ class BranchHandler(base.BaseRequestHandler):
         else:
             self.response.write(json.dumps({'status':'ERROR','result':result}))
 
+    def delete(self):
+        urlsafe_key = self.request.get('branch_key')
+        
+        success, result = self.controller(BranchController).delete_branch(
+          self.request.cookies.get('username'),
+          urlsafe_key)
+         
+        if success:
+            self.response.write(json.dumps({'status':'OK','result':[]}))
+        else:
+            self.response.write(json.dumps({'status':'ERROR','result':result}))
+        
 
 class ExportHandler(base.BaseRequestHandler):
     

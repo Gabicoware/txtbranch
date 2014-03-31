@@ -179,3 +179,8 @@ div.divider{
 		line-height: 17px;
 	}
 }
+
+#tree_conventions {
+	white-space: pre-line;
+	width: 100%;
+}

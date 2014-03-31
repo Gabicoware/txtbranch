@@ -124,6 +124,32 @@ class BranchController(BaseController):
             return False, errors
         
     
+    def delete_branch(self,authorname,urlsafe_key):
+        
+        userinfo = UserInfo.get_by_username(authorname)
+        
+        if userinfo is None or not self.is_user_info_current(userinfo):
+            return False, [ 'unauthenticated' ]
+        
+        branch = ndb.Key(urlsafe=urlsafe_key).get()
+        
+        if len(branch.children()) != 0:
+            return False, [ 'not_empty' ]
+        
+        tree = Tree.get_by_name(branch.tree_name)
+        
+        if branch.authorname != authorname and tree.moderatorname != authorname:
+            return False, [ 'not_author' ]
+        
+        branch.detached_parent_branch = branch.parent_branch
+        branch.parent_branch = None
+        
+        branch.put();
+        branch.detached_parent_branch.get().empty_children_cache()
+        
+        return True, None
+    
+    
     def update_branch(self,authorname,urlsafe_key,link,content):
         
         userinfo = UserInfo.get_by_username(authorname)

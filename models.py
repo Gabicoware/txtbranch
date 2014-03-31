@@ -122,6 +122,10 @@ class Branch(ndb.Model):
     update = ndb.DateTimeProperty(auto_now=True)
     parent_branch = ndb.KeyProperty(kind='Branch',indexed=True)
     parent_branch_authorname = ndb.StringProperty(indexed=True)
+    #when a branch is deleted, it is just detached from parent, setting parent_branch to none
+    #the old value is here
+    detached_parent_branch = ndb.KeyProperty(kind='Branch',indexed=True)
+    
     revision = ndb.IntegerProperty(indexed=True)
     
     _like_count = None
@@ -185,6 +189,10 @@ class Branch(ndb.Model):
         else:
             logging.info('append_child - child exists')
     
+    def empty_children_cache(self):
+        memcache_key = self.children_key()
+        memcache.replace(key=memcache_key, value=None, time=1)  # @UndefinedVariable
+            
     def update_child(self,child):
         memcache_key = self.children_key()
         data = memcache.get(memcache_key)  # @UndefinedVariable
