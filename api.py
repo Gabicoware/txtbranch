@@ -49,7 +49,7 @@ class UserInfoHandler(base.BaseRequestHandler):
             if self.request.get('set_cookie'):
                 user_info = self.controller(BaseController).current_user_info()
                 if user_info is not None:
-                    self.set_cookie(user_info)
+                    self.set_cookie(user_info,True)
             else:
                 username = self.request.cookies.get('username')
                 
@@ -66,17 +66,20 @@ class UserInfoHandler(base.BaseRequestHandler):
         success, result = self.controller(UserInfoController).set_username(username)
         
         if success:
-            self.set_cookie(result)
+            self.set_cookie(result,True)
             
             self.response.write(json.dumps({'status':'OK','result':result.to_dict()},cls=ModelEncoder))
         else:
             self.response.write(json.dumps({'status':'ERROR','result':result}))
     
-    def set_cookie(self,user_info):
-        now = datetime.datetime.now()
-        delta = datetime.timedelta(days=28)
-        then = delta + now
-        
+    def set_cookie(self,user_info,remember):
+        if remember:
+            now = datetime.datetime.now()
+            delta = datetime.timedelta(seconds=self.request.app.config['webapp2_extras.sessions']['cookie_args']['max_age'])
+            logging.info(delta)
+            then = delta + now
+        else:
+            then = None
         self.response.set_cookie('username',value=user_info.username,expires=then)
         
     
@@ -286,10 +289,12 @@ class TreeHandler(base.BaseRequestHandler):
 app_config = {
   'webapp2_extras.sessions': {
     'cookie_name': '_simpleauth_sess',
-    'secret_key': SESSION_KEY
+    'secret_key': SESSION_KEY,
+    'cookie_args':{ "max_age":31536000 }
   },
   'webapp2_extras.auth': {
-    'user_attributes': []
+    'user_attributes': [],
+    "token_max_age":31536000
   }
 }
 

@@ -9,10 +9,12 @@ from handlers import *
 app_config = {
   'webapp2_extras.sessions': {
     'cookie_name': '_simpleauth_sess',
-    'secret_key': SESSION_KEY
+    'secret_key': SESSION_KEY,
+    'cookie_args':{ "max_age":31536000 }
   },
   'webapp2_extras.auth': {
-    'user_attributes': []
+    'user_attributes': [],
+    "token_max_age":31536000
   }
 }
 

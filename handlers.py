@@ -142,7 +142,6 @@ class UserHandler(RequestHandler):
     
     def get(self,username):
         
-        
         user_info_key = ndb.Key('UserInfo',username)
         
         user_info = user_info_key.get()
@@ -235,6 +234,8 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
         
         user = self.auth.store.user_model.get_by_auth_id(auth_id)
         _attrs = self._to_user_model_attrs(data, self.USER_ATTRS[provider])
+        
+        remember = True
 
         if user:
             logging.info('Found existing user to log in')
@@ -247,7 +248,7 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
             user.populate(**_attrs)
             user.put()
             self.auth.set_session(
-                self.auth.store.user_to_dict(user))
+                self.auth.store.user_to_dict(user), remember=remember)
             
         else:
             # check whether there's a user currently logged in
@@ -272,7 +273,7 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
                     self.auth.set_session(self.auth.store.user_to_dict(user))
         user_info = self.controller(BaseController).current_user_info()
         if user_info is not None:
-            self._set_username_cookie(user_info)
+            self._set_username_cookie(user_info,remember)
             #figure out where to send the user
             self.redirect('/')
         else:
@@ -297,7 +298,7 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
         self.redirect(url, permanent=True)
     
     def post_login(self):
-        
+                
         user_info = self.controller(BaseController).current_user_info()
         if user_info is None:
             self.render('post_login.html',{})
@@ -330,9 +331,12 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
             user_attrs.setdefault(*attr)
 
         return user_attrs
-    def _set_username_cookie(self,user_info):
-        now = datetime.datetime.now()
-        delta = datetime.timedelta(days=28)
-        then = delta + now
-        
+    def _set_username_cookie(self,user_info,remember):
+        if remember:
+            now = datetime.datetime.now()
+            delta = datetime.timedelta(seconds=self.request.app.config['webapp2_extras.sessions']['cookie_args']['max_age'])
+            logging.info(delta)
+            then = delta + now
+        else:
+            then = None
         self.response.set_cookie('username',value=user_info.username,expires=then)
