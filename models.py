@@ -315,11 +315,26 @@ class UserInfo(ndb.Model):
     def branchs(self):
         data = Branch.query(Branch.authorname == self.username)
         return sorted(data, key=lambda branch: branch.score(), reverse=True)
+        
+class Notification(ndb.Model):
+    from_username = ndb.StringProperty(validator=string_validator,indexed=True)
+    to_username = ndb.StringProperty(validator=string_validator,indexed=True)
+    notification_type = ndb.StringProperty(validator=string_validator)
+    branch = ndb.KeyProperty(kind='Branch',indexed=True)
+    branch_link = ndb.StringProperty(validator=string_validator, indexed=False)
+    tree_name = ndb.StringProperty(validator=string_validator)
+    date = ndb.DateTimeProperty(auto_now_add=True)
+
+class UserNotificationCount(ndb.Model):
+    count = ndb.IntegerProperty()
+
+    @classmethod
+    def get_by_username(cls,username):
+        if username:
+            return ndb.Key('UserNotificationCount',username).get()
+        return None
     
-    def branch_branchs(self):
-        data = Branch.query(Branch.authorname != self.username , Branch.parent_branch_authorname == self.username)
-        return sorted(data, key=lambda branch: branch.score(), reverse=True)
-    
+        
 class SessionInfo:
     link_text = ""
     url = "/"

@@ -2,7 +2,8 @@
 
 {% block additional_header %}
     
-    <script type="text/javascript" src="/assets/js/txtbranch.js"></script>
+    <script type="text/javascript" src="/assets/js/util.js"></script>
+    <script type="text/javascript" src="/assets/js/tree.js"></script>
     <script id="parent_branch_template" type="text/template">
         <div class="parent_branch_link" >
             &uarr; <a href="javascript:void(0)" onclick="openParentBranch('##branch.key##')">##branch.link##</a>
@@ -104,6 +105,9 @@
         	The parent branch must be completed before adding a child.
         </span>
     </script>
+    <script id="byline_template" type="text/template">
+    	by <a class="name" href="/user/##username##">##username##</a>
+    </script>
     
     
 {% endblock %}
@@ -119,10 +123,10 @@
         <div id="parent_container"></div>
         <div id="content_container"></div>
         <div style="font-size:smaller; text-align:right;" >
-        	<span id="current_branch_byline"></span>
         	<span id="current_branch_owner_options_span">
             	<a href="javascipt:void(0)" onclick="editActiveBranch(true)">edit</a>
             </span>
+        	<span id="current_branch_byline"></span>
         </div>
         <div id="edit_branch_div" class="edit_branch_inactive"></div>
 	    <div id="no_children_branch_div" style="font-size:smaller; font-style: italic;" >

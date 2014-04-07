@@ -11,8 +11,8 @@
 	</div>
     {% for tree in trees %}
 	<div class="tree_header">
-		<span class="tree_header_name"><a href="/tree/{{tree.name}}">{{tree.name}}</a></span> 
-		<span class="tree_header_info">moderated by <a href="/user/{{tree.moderatorname}}">{{tree.moderatorname}}</a></span></div>
+		<span class="tree_header_name"><a class="name" href="/tree/{{tree.name}}">{{tree.name}}</a></span> 
+		<span class="tree_header_info">moderated by <a class="name" href="/user/{{tree.moderatorname}}">{{tree.moderatorname}}</a></span></div>
     <div class="branch_link indent">
     &darr; <a href="/tree/{{tree.name}}">{{branchdatas[tree.name]['link']}}</a><br />
     </div>

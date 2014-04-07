@@ -1,11 +1,3 @@
-function getParameterByName(name) {
-    name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-    var regex = new RegExp("[\\?&#]" + name + "=([^&#]*)"), results = regex.exec(location.hash);
-    if (results == null) {
-        results = regex.exec(location.search);
-    }
-    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-}
 
 var tree = null;
 var active_branch_key = null;
@@ -138,7 +130,10 @@ function reloadBranch(branch_key) {
 function updateOptions(isEditing) {
     
     var branch = branch_cache[active_branch_key];
-    $("#current_branch_byline").html("by "+branch.authorname);
+    
+    var template = prepareBylineHTML(branch.authorname);
+    
+    $("#current_branch_byline").html(template);
     var username = $.cookie("username");
     if ((branch.authorname == username || tree.moderatorname == username) && !isEditing) {
         $("#current_branch_owner_options_span").show();
@@ -163,12 +158,8 @@ function editActiveBranch(shouldEdit) {
 
         $('#edit_branch_div').show();
 
-        var template = $("#edit_branch_form_template").html();
-
-        template = template.replace(/##branch\.key##/g, branch.key);
-        template = template.replace(/##branch\.content##/g, branch.content);
-        template = template.replace(/##branch\.link##/g, branch.link);
-
+        var template = prepareEditBranchFormHTML(branch);
+        
         $("#edit_branch_div").append(template);
 
         var formId = "#" + branch.key + "_edit_branch_form";
@@ -350,6 +341,23 @@ function prependBranch(branch) {
     var branchHTML = prepareBranchHTML(branch);
     $("#content_container").prepend(branchHTML);
     updateLikeInfo(branch.key, branch.like_value);
+}
+
+function prepareBylineHTML(username){
+    var template = $("#byline_template").html();
+
+    template = template.replace(/##username##/g, username);
+    
+    return template;
+}
+function prepareEditBranchFormHTML(branch){
+    var template = $("#edit_branch_form_template").html();
+
+    template = template.replace(/##branch\.key##/g, branch.key);
+    template = template.replace(/##branch\.content##/g, branch.content);
+    template = template.replace(/##branch\.link##/g, branch.link);
+    
+    return template;
 }
 
 function prepareParentBranchHTML(branch) {

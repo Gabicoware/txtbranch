@@ -142,23 +142,7 @@ class UserHandler(RequestHandler):
     
     def get(self,username):
         
-        user_info_key = ndb.Key('UserInfo',username)
-        
-        user_info = user_info_key.get()
-        
-        if user_info is None:
-            user_info = UserInfo(id=user_info_key.string_id())
-            user_info.put()
-        
-        branchs = user_info.branchs()
-        branch_branchs = user_info.branch_branchs()
-        
-        template_values = {
-            'branchs' : branchs,
-            'branch_branchs' : branch_branchs,
-            'user_info' : user_info,
-        }
-        self.render('user.html',template_values)
+        self.render('user.html',{})
                             
 class AuthHandler(RequestHandler, SimpleAuthHandler):
     """Authentication handler for OAuth 2.0, 1.0(a) and OpenID."""
@@ -304,7 +288,7 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
             self.render('post_login.html',{})
         else:
             #don't worry about redirects for now
-            self._set_username_cookie(user_info)
+            self._set_username_cookie(user_info, True)
             
             self.redirect('/')
             

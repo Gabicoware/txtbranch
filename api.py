@@ -1,6 +1,6 @@
 
-from google.appengine.ext import ndb
 import webapp2
+from webapp2 import Route
 import json
 import datetime
 import logging
@@ -9,8 +9,7 @@ import base
 from secrets import SESSION_KEY
 from json import JSONEncoder
 
-from models import UserInfo, Branch, Tree
-from controllers import UserInfoController, BranchController, LikeController, TreeController, BaseController
+from controllers import *
 
 class ModelEncoder(JSONEncoder):
 #TODO make non models passthrough objects
@@ -20,7 +19,16 @@ class ModelEncoder(JSONEncoder):
         elif isinstance(o,ndb.Key):
             return o.urlsafe()
         return str(o);
-                
+
+class APIRequestHandler(base.BaseRequestHandler):
+    def write_api_response(self, success, result):
+        if success:
+            self.response.write(json.dumps({'status':'OK','result':result},cls=ModelEncoder))
+            
+        else:
+            self.response.write(json.dumps({'status':'ERROR','result':result}))
+
+
 class LikeHandler(base.BaseRequestHandler):
     
     def get(self):
@@ -87,34 +95,36 @@ class BranchHandler(base.BaseRequestHandler):
 
     def get(self):
     
-        items = self.request.GET.getall('branch_key')
+        branch_keys = self.request.GET.getall('branch_key')
         
-        if len(items) == 0:
-            parent_branch_key_urlsafe = self.request.get('parent_branch_key')
-            if parent_branch_key_urlsafe:
-                parent_branch_key = ndb.Key(urlsafe=parent_branch_key_urlsafe)
-                parent_branch = parent_branch_key.get()
-                items = parent_branch.children()
+        parent_branch_key_urlsafe = self.request.get('parent_branch_key')
+        authorname = self.request.get('authorname')
         
-        branchs = []
-        
-        for item in items:
+        branches = []
             
-            logging.info(str(item))
+        if len(branch_keys) != 0:
             
-            branch = None
+            for branch_key in branch_keys:
             
-            if isinstance(item,Branch):
-                branch = item
-            else:
-                branch_key = ndb.Key(urlsafe=str(item))
-                branch = branch_key.get()
-                
-            if branch:
-                branch_dict = self.expanded_branch(branch)
-                branchs.append(branch_dict)
+                branch = ndb.Key(urlsafe=str(branch_key)).get()
+                branches.append(branch)
         
-        self.response.write(json.dumps({'status':'OK','result':branchs}, cls=ModelEncoder))
+        if len(branches) == 0 and parent_branch_key_urlsafe:
+            parent_branch_key = ndb.Key(urlsafe=parent_branch_key_urlsafe)
+            parent_branch = parent_branch_key.get()
+            branches = parent_branch.children()
+            
+        if len(branches) == 0 and authorname:
+            branches = Branch.query(Branch.authorname == authorname).order(-Branch.date).fetch(64)
+
+        branch_dicts = []
+        
+        for branch in branches:
+            
+            branch_dict = self.expanded_branch(branch)
+            branch_dicts.append(branch_dict)
+        
+        self.response.write(json.dumps({'status':'OK','result':branch_dicts}, cls=ModelEncoder))
             
 
     def expanded_branch(self,branch):
@@ -284,6 +294,26 @@ class TreeHandler(base.BaseRequestHandler):
         else:
             self.response.write(json.dumps({'status':'ERROR','result':['not_found']}))
         
+class NotificationHandler(APIRequestHandler):
+    
+    def get_notifications(self):
+        from_username = self.request.get('from_username')
+        if self.request.get('from_username'):
+            success, result = self.controller(NotificationController).get_notifications(from_username=self.request.get('from_username'))
+        elif self.request.get('tree_name'):
+            success, result = self.controller(NotificationController).get_notifications(tree_name=self.request.get('tree_name'))
+        else:
+                success, result = self.controller(NotificationController).get_notifications()
+        self.write_api_response(success, result)
+        
+    def get_unread_count(self):
+        success, result = self.controller(NotificationController).get_unread_count()
+        self.write_api_response(success, result)
+        
+    def reset_unread_count(self):
+        success, result = self.controller(NotificationController).reset_unread_count()
+        self.write_api_response(success, result)
+            
     
 # webapp2 config
 app_config = {
@@ -305,6 +335,9 @@ handlers = [
     ('/api/v1/branchs', BranchHandler),
     ('/api/v1/trees', TreeHandler),
     ('/api/v1/userinfos', UserInfoHandler),
+    Route('/api/v1/notifications', handler='api.NotificationHandler:get_notifications', name='get_notifications',methods=['GET']),
+    Route('/api/v1/notifications/unread_count', handler='api.NotificationHandler:get_unread_count', name='get_count',methods=['GET']),
+    Route('/api/v1/notifications/unread_count', handler='api.NotificationHandler:reset_unread_count', name='reset_count',methods=['DELETE']),
 ]
 
 application = webapp2.WSGIApplication(handlers, config=app_config, debug=True)

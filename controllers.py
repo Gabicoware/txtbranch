@@ -1,7 +1,7 @@
 import re
 import logging
 
-from models import Branch, UserInfo, Tree, Like, BranchVersion
+from models import Branch, UserInfo, Tree, Like, BranchVersion, Notification
 from google.appengine.ext import ndb
 
 class BaseController:
@@ -119,6 +119,17 @@ class BranchController(BaseController):
             
             parent_branch.append_child(branch)
             
+            logging.info("creating notifcation")
+            notification = Notification()
+            notification.from_username = branch.authorname
+            if branch.authorname != parent_branch.authorname:
+                notification.to_username = parent_branch.authorname
+            notification.notification_type = 'new_branch'
+            notification.branch = branch.key
+            notification.branch_link = branch.link
+            notification.tree_name = branch.tree_name
+            notification.put()
+            
             return True, branch
         else:
             return False, errors
@@ -195,6 +206,18 @@ class BranchController(BaseController):
             self.create_branch_version(branch)
             if parent_branch is not None:
                 parent_branch.update_child(branch)
+            
+            notification = Notification()
+            notification.from_username = authorname
+            #only set the to_username when a different user is performing the action
+            if branch.authorname != authorname:
+                notification.to_username = branch.authorname
+            notification.notification_type = 'edit_branch'
+            notification.branch = branch.key
+            notification.branch_link = branch.link
+            notification.tree_name = branch.tree_name
+            notification.put()
+                
             return True, branch
         else:
             return False, errors
@@ -414,3 +437,26 @@ class LikeController(BaseController):
         
         return True, like
     
+class NotificationController(BaseController):
+    
+    def get_notifications(self,tree_name=None,from_username=None):
+        
+        notifications_query = None
+        if tree_name is not None:
+            notifications_query = Notification.query( Notification.tree_name==tree_name)
+        elif from_username is not None:
+            notifications_query = Notification.query( Notification.from_username==from_username)
+        elif self.current_user_info() is not None:
+            notifications_query = Notification.query( Notification.to_username==self.current_user_info().username)
+            
+        if notifications_query is not None:
+            data = notifications_query.order(-Notification.date).fetch(50)
+            return True, data
+        else:
+            return False, None
+    #todo...
+    def get_unread_count(self):
+        return False, None
+    
+    def reset_unread_count(self):
+        return False, None

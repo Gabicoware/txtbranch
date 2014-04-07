@@ -1,27 +1,65 @@
 {% extends "base.html" %}
 
-
-{% block content %}
+{% block additional_header %}
     
-{% block name_header %}
-    <h4>{{user_info.username}}</h4>
+    <script type="text/javascript" src="/assets/js/util.js"></script>
+    <script type="text/javascript" src="/assets/js/user.js"></script>
+    <script id="notifications_item_template" type="text/template">
+        <li id="notifications_li">
+        	<a href="#section=notifications">notifications</a>
+        </li>
+    </script>
+    <script id="branch_template" type="text/template">
+        <div class="branch_link">
+	        <a href="/tree/##branch.tree_name###branch_key=##branch.key##">##branch.link##</a>
+    	</div>
+    </script>
+    <script id="notification_template" type="text/template">
+        <div class="notification">
+	        <a class="name" href="/user/##notification.from_username##">##notification.from_username##</a> 
+	        ##notification.message## 
+	        "<a href="/tree/##notification.tree_name###branch_key=##notification.branch##">##notification.branch_link##</a>" in 
+	        <a class="name" href="/tree/##notification.tree_name##">##notification.tree_name##</a>
+    	</div>
+    </script>
+    
 {% endblock %}
 
-    <h4>Response Branchs</h4>
-    {% for branch in branch_branchs %}
-    <div class="branch_link">
-        <a href="/tree/{{ branch.tree_name }}#branch_key={{branch.key.urlsafe()}}">{{ branch.link }}</a> by 
-        <a href="/user/{{branch.authorname}}">{{branch.authorname}}</a> in 
-        <a href="/tree/{{ branch.tree_name }}">{{branch.tree_name}}</a><br />
-    </div>
-    {% endfor %}
-    
-    <h4>Branchs</h4>
-    {% for branch in branchs %}
-    <div class="branch_link">
-        <a href="/tree/{{ branch.tree_name }}#branch_key={{branch.key.urlsafe()}}">{{ branch.link }}</a> ( {{branch.score()}} )<br />
-    </div>
-    {% endfor %}
+{% block content %}
+    <style>
+    	#sections_ul{
+			float:left;
+		}
+		#sections_ul li{
+			float:left;
+			list-style:none;
+			margin-right: 20px;
+		}
 
+    </style>
+    <h4><a class="name" id="name_header" ></a></h4>
 
+	<ul id="sections_ul">
+		<li id="branches_li"><a href="#section=branches">branches</a></li>
+		<li id="activity_li"><a href="#section=activity">activity</a></li>
+	</ul>
+	<hr style="clear:both;" />
+	<div id="contents"></div>
+<script>
+	$('#name_header').text(activeUsername());
+	$('#name_header').attr('href','/user/'+activeUsername());
+	
+	if(activeUsername() == currentUsername()){
+	    var template = $("#notifications_item_template").html();
+		$("#sections_ul").append(template);
+	}
+	
+	
+	$(window).on("hashchange",function(event){
+		updateLocation();
+	});
+	
+	updateLocation();
+	
+</script>
 {% endblock %}
