@@ -107,10 +107,23 @@ span.tree_header_name{
 	font-size:large;
 }
 span.tree_header_info{
-	font-size:normal;
+	font-size:medium;
 }
 div.byline{
-	display:inline;
+	font-size:smaller; 
+	text-align:right;
+}
+div.byline br{
+	height:0px;
+	margin:0px;
+	padding:0px;
+	clear:both;
+}
+#current_branch_owner_options_span{
+	float:left;
+}
+#current_branch_byline{
+	float:right;
 }
 div.recent_branchs{
 	padding:4px 0px 4px 0px;
