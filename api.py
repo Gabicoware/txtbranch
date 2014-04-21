@@ -21,15 +21,12 @@ class ModelEncoder(JSONEncoder):
         return str(o);
 
 class APIRequestHandler(base.BaseRequestHandler):
-    def write_api_response(self, success, result):
-        if success:
-            self.response.write(json.dumps({'status':'OK','result':result},cls=ModelEncoder))
-            
-        else:
-            self.response.write(json.dumps({'status':'ERROR','result':result}))
-
-
-class LikeHandler(base.BaseRequestHandler):
+    def write_success_response(self, result):
+        self.response.write(json.dumps({'status':'OK','result':result},cls=ModelEncoder))
+    def write_fail_response(self, result):
+        self.response.write(json.dumps({'status':'ERROR','result':result}))
+        
+class LikeHandler(APIRequestHandler):
     
     def get(self):
         
@@ -41,11 +38,11 @@ class LikeHandler(base.BaseRequestHandler):
         
         if success:
             like_dict = { 'like_value':result.value }
-            self.response.write(json.dumps({'status':'OK','result':like_dict}))
+            self.write_success_response(like_dict)
         else:
-            self.response.write(json.dumps({'status':'ERROR','result':result}))
+            self.write_fail_response(result)
         
-class UserInfoHandler(base.BaseRequestHandler):
+class UserInfoHandler(APIRequestHandler):
     
     def get(self):
         
@@ -65,9 +62,9 @@ class UserInfoHandler(base.BaseRequestHandler):
                     user_info = UserInfo.get_by_username(username)
                                     
         if user_info is not None:
-            self.response.write(json.dumps({'status':'OK','result':user_info.to_dict()},cls=ModelEncoder))
+            self.write_success_response(user_info.to_dict())
         else:
-            self.response.write(json.dumps({'status':'ERROR','result':[]}))
+            self.write_fail_response([])
 
     def post(self):
         username = self.request.get('username')
@@ -76,9 +73,9 @@ class UserInfoHandler(base.BaseRequestHandler):
         if success:
             self.set_cookie(result,True)
             
-            self.response.write(json.dumps({'status':'OK','result':result.to_dict()},cls=ModelEncoder))
+            self.write_success_response(result.to_dict())
         else:
-            self.response.write(json.dumps({'status':'ERROR','result':result}))
+            self.write_fail_response(result)
     
     def set_cookie(self,user_info,remember):
         if remember:
@@ -91,7 +88,7 @@ class UserInfoHandler(base.BaseRequestHandler):
         self.response.set_cookie('username',value=user_info.username,expires=then)
         
     
-class BranchHandler(base.BaseRequestHandler):
+class BranchHandler(APIRequestHandler):
 
     def get(self):
     
@@ -124,7 +121,7 @@ class BranchHandler(base.BaseRequestHandler):
             branch_dict = self.expanded_branch(branch)
             branch_dicts.append(branch_dict)
         
-        self.response.write(json.dumps({'status':'OK','result':branch_dicts}, cls=ModelEncoder))
+        self.write_success_response(branch_dicts)
             
 
     def expanded_branch(self,branch):
@@ -147,9 +144,7 @@ class BranchHandler(base.BaseRequestHandler):
         branch_dict['like_value'] = like_value
         branch_dict['like_count'] = like_count
         branch_dict['unlike_count'] = unlike_count
-        
-        branch_dict['key'] = branch.key.urlsafe()
-        
+                
         return branch_dict
 
     def post(self):
@@ -163,15 +158,14 @@ class BranchHandler(base.BaseRequestHandler):
          
         if success:
             branch_dict = result.to_dict()
-            branch_dict['key'] = result.key.urlsafe();
             branch_dict['child_count'] = 0
             branch_dict['like_value'] = 0
             branch_dict['like_count'] = 0
             branch_dict['unlike_count'] = 0
     
-            self.response.write(json.dumps({'status':'OK','result':branch_dict},cls=ModelEncoder))
+            self.write_success_response(branch_dict)
         else:
-            self.response.write(json.dumps({'status':'ERROR','result':result}))
+            self.write_fail_response(result)
         
     def put(self):
         urlsafe_key = self.request.get('branch_key')
@@ -186,9 +180,9 @@ class BranchHandler(base.BaseRequestHandler):
             
             branch_dict = self.expanded_branch(result)
             
-            self.response.write(json.dumps({'status':'OK','result':branch_dict},cls=ModelEncoder))
+            self.write_success_response(branch_dict)
         else:
-            self.response.write(json.dumps({'status':'ERROR','result':result}))
+            self.write_fail_response(result)
 
     def delete(self):
         urlsafe_key = self.request.get('branch_key')
@@ -198,12 +192,12 @@ class BranchHandler(base.BaseRequestHandler):
           urlsafe_key)
          
         if success:
-            self.response.write(json.dumps({'status':'OK','result':[]}))
+            self.write_success_response([])
         else:
-            self.response.write(json.dumps({'status':'ERROR','result':result}))
+            self.write_fail_response(result)
         
 
-class ExportHandler(base.BaseRequestHandler):
+class ExportHandler(APIRequestHandler):
     
     def get(self):
         
@@ -224,7 +218,7 @@ class ExportHandler(base.BaseRequestHandler):
                     root_branch = branch_dict
             
             if root_branch is None:
-                self.response.write(json.dumps({'status':'ERROR','result':['no_root']}))
+                self.write_fail_response(['no_root'])
             else:
                                     
                 for key in all_branch_dict:
@@ -238,11 +232,12 @@ class ExportHandler(base.BaseRequestHandler):
                     
                         parent_branch['children'].append(branch_dict)
                     
-                self.response.write(json.dumps({'status':'OK','result':root_branch},cls=ModelEncoder))
+                self.write_success_response(root_branch)
         else:
-            self.response.write(json.dumps({'status':'ERROR','result':['no_tree']}))
+            self.write_fail_response(['no_tree'])
 
-class TreeHandler(base.BaseRequestHandler):
+
+class TreeHandler(APIRequestHandler):
     
     def get(self):
         
@@ -271,15 +266,14 @@ class TreeHandler(base.BaseRequestHandler):
             
             tree_dict = result.to_dict()
             tree_dict['root_branch_key'] = result.get_root_branch_key().urlsafe()
-            self.response.write(json.dumps({'status':'OK','result':tree_dict}))
-            
+            self.write_success_response(tree_dict)
         else:
-            self.response.write(json.dumps({'status':'ERROR','result':result}))
+            self.write_fail_response(result)
             
     
     def get_main_list(self):
         trees = Tree.main_trees()
-        self.response.write(json.dumps({'status':'OK','result':trees},cls=ModelEncoder))
+        self.write_success_response(trees)
         
         
     def get_tree(self,tree_name):
@@ -290,29 +284,37 @@ class TreeHandler(base.BaseRequestHandler):
             
             tree_dict['root_branch_key'] = tree.get_root_branch_key().urlsafe()
         
-            self.response.write(json.dumps({'status':'OK','result':tree_dict}))
+            self.write_success_response(tree_dict)
         else:
-            self.response.write(json.dumps({'status':'ERROR','result':['not_found']}))
+            self.write_fail_response(['not_found'])
         
 class NotificationHandler(APIRequestHandler):
     
     def get_notifications(self):
-        from_username = self.request.get('from_username')
         if self.request.get('from_username'):
             success, result = self.controller(NotificationController).get_notifications(from_username=self.request.get('from_username'))
         elif self.request.get('tree_name'):
             success, result = self.controller(NotificationController).get_notifications(tree_name=self.request.get('tree_name'))
         else:
-                success, result = self.controller(NotificationController).get_notifications()
-        self.write_api_response(success, result)
+            success, result = self.controller(NotificationController).get_notifications()
+        if success:
+            self.write_success_response(result)
+        else:
+            self.write_fail_response(result)
         
     def get_unread_count(self):
         success, result = self.controller(NotificationController).get_unread_count()
-        self.write_api_response(success, result)
+        if success:
+            self.write_success_response(result)
+        else:
+            self.write_fail_response(result)
         
     def reset_unread_count(self):
         success, result = self.controller(NotificationController).reset_unread_count()
-        self.write_api_response(success, result)
+        if success:
+            self.write_success_response(result)
+        else:
+            self.write_fail_response(result)
             
     
 # webapp2 config

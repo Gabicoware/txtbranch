@@ -42,6 +42,13 @@ def branch_url(tree_name, branch_key):
 def user_url(username):
     return '/user/'+username
 
+#for use when classes have "safe" key components
+class BaseModel(ndb.Model):
+    def to_dict(self):
+        result = super(BaseModel,self).to_dict()
+        result['key'] = self.key.urlsafe()
+        return result
+
 class Tree(ndb.Model):
     """Models an individual Tree"""
     moderatorname = ndb.StringProperty(indexed=True)
@@ -94,7 +101,7 @@ class Tree(ndb.Model):
         return data
     
 
-class Like(ndb.Model):
+class Like(BaseModel):
     """Models a Like on a branch"""
     username = ndb.StringProperty(indexed=True)
     branch = ndb.KeyProperty(kind='Branch',indexed=True)
@@ -108,12 +115,12 @@ class Like(ndb.Model):
     def create_key(cls, branch_key, username):
         return ndb.Key('Like', username+"_"+branch_key.urlsafe())
     
-class BranchVersion(ndb.Model):
+class BranchVersion(BaseModel):
     content = ndb.StringProperty(indexed=False)
     link = ndb.StringProperty(indexed=False)
     date = ndb.DateTimeProperty(auto_now_add=True)
     
-class Branch(ndb.Model):
+class Branch(BaseModel):
     authorname = ndb.StringProperty(indexed=True)
     tree_name = ndb.StringProperty(indexed=True)
     content = ndb.StringProperty(indexed=False, validator=string_validator)
@@ -316,7 +323,7 @@ class UserInfo(ndb.Model):
         data = Branch.query(Branch.authorname == self.username)
         return sorted(data, key=lambda branch: branch.score(), reverse=True)
         
-class Notification(ndb.Model):
+class Notification(BaseModel):
     from_username = ndb.StringProperty(validator=string_validator,indexed=True)
     to_username = ndb.StringProperty(validator=string_validator,indexed=True)
     notification_type = ndb.StringProperty(validator=string_validator)
