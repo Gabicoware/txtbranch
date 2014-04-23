@@ -73,7 +73,7 @@ class CreateTreeHandler(RequestHandler):
             'errors' : json.dumps(errors),
         }
         
-        self.render('new_tree.html', template_vars)
+        self.render('tree_form.html', template_vars)
 
 class EditTreeHandler(RequestHandler):
     
@@ -85,20 +85,20 @@ class EditTreeHandler(RequestHandler):
             return self.redirect('/tree/'+tree_name)
         
         self.render_edit_tree_form(tree)
+    
+#    def post(self,tree_name):
         
-    def post(self,tree_name):
+#        tree = Tree.get_by_name(tree_name)
         
-        tree = Tree.get_by_name(tree_name)
+#        success, result = self.controller(TreeController).update_tree(
+#          tree,
+#          self.username(),
+#          self.request.get('conventions'))
         
-        success, result = self.controller(TreeController).update_tree(
-          tree,
-          self.username(),
-          self.request.get('conventions'))
-        
-        if success:
-            self.render_edit_tree_form(tree)
-        else:
-            self.render_edit_tree_form(tree, errors=result)
+#        if success:
+#            self.render_edit_tree_form(tree)
+#        else:
+#            self.render_edit_tree_form(tree, errors=result)
             
     def render_edit_tree_form(self,tree,errors=None):
         template_values = {
@@ -107,7 +107,7 @@ class EditTreeHandler(RequestHandler):
             'edit_tree_endpoint' : self.request.uri,
             'errors' : json.dumps(errors),
         }
-        self.render('edit_tree.html',template_values)
+        self.render('tree_form.html',template_values)
          
 class TreeHandler(RequestHandler):
     def get(self, tree_name):
@@ -118,12 +118,7 @@ class TreeHandler(RequestHandler):
         
         if tree:
             
-            template_values = {
-                'root_branch_key': tree.get_root_branch_key(),
-                'tree': tree,
-                'link_max' : config["branchs"]["link_max"],
-                'content_max' : config["branchs"]["content_max"],
-            }
+            template_values = {}
             
             self.render('tree.html',template_values)
         else:

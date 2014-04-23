@@ -38,6 +38,10 @@ Icon?
 ehthumbs.db
 Thumbs.db
 
+# Project Files #
+#################
+.pydevproject
+
 # Secret Things #
 #################
 *secrets.py

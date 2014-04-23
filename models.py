@@ -63,6 +63,8 @@ class Tree(ndb.Model):
     content_max = ndb.IntegerProperty(indexed=False)
     content_moderator_only = ndb.BooleanProperty(indexed=False)
     
+    branch_max = ndb.IntegerProperty(indexed=False)
+    
     @classmethod
     def create_key(cls, tree_name=config['trees']['default_name']):
         """Constructs a Datastore key for a Game entity with tree_name."""

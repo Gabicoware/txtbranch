@@ -6,6 +6,19 @@ var edited_branch_key = null;
 var child_key_cache = {};
 var first_branch_key = null;
 
+function loadTree(){
+    var index = location.pathname.lastIndexOf("/") + 1;
+    var treename = location.pathname.substr(index);
+    
+    $.get('/api/v1/trees?name='+treename, function(data) {
+        var jsondata = JSON.parse(data);
+        if(jsondata.status == "OK"){
+            setTree(jsondata.result);
+        }
+    });
+
+}
+
 function setTree(dict) {
     tree = dict;
     var branch_key = getParameterByName("branch_key");
@@ -485,7 +498,7 @@ function hasChildBranchs() {
         }
     }
 
-    return 2 <= branch_count;
+    return tree['branch_max'] <= branch_count;
 }
 
 function showHasChildBranchs() {

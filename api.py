@@ -270,6 +270,26 @@ class TreeHandler(APIRequestHandler):
         else:
             self.write_fail_response(result)
             
+    def put(self):
+        tree_dict = {}
+        
+        logging.info(self.request.POST.items())
+        
+        for key, value in self.request.POST.items():
+            tree_dict[key] = value
+        
+        tree_dict['moderatorname'] = self.request.cookies.get('username')
+                
+        success, result = self.controller(TreeController).update_tree(tree_dict)
+                
+        if success:
+            
+            tree_dict = result.to_dict()
+            tree_dict['root_branch_key'] = result.get_root_branch_key().urlsafe()
+            self.write_success_response(tree_dict)
+        else:
+            self.write_fail_response(result)
+            
     
     def get_main_list(self):
         trees = Tree.main_trees()

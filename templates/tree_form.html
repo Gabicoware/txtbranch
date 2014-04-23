@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block additional_header %}
+    
+    <style>
+        #tree_name, #root_branch_link, textarea{ margin-bottom:2px; width:100%; max-width:600px;}
+        label{color:#124E94; margin-top:10px}
+        .chars_left{font-size:90%; text-align:right; width:100%; max-width:600px;}
+        input.invalid{background-color:#FF8888}
+        textarea.invalid{background-color:#FF8888}
+        div.invalid_message{ color:#FF8888; font-size:90%; }
+        div.message{ font-size:90%; color:#888888;}
+        div.options label{
+        	display:inline;
+        }
+        div.options{
+        	padding-top:10px
+        }
+        #new_tree_form hr{
+        	max-width:615px;
+        }
+        
+      input[type="number"]{
+      	width:50px;
+      }
+        
+    </style>
+    <script type="text/javascript" src="/assets/js/util.js"></script>
+    <script type="text/javascript" src="/assets/js/tree.js"></script>
+    <script type="text/javascript" src="/assets/js/tree_form.js"></script>
+    <script type="text/template" id="add_tree_form_template">
+    	<b>Add a Tree</b>
+        <form action="/api/v1/trees" id="new_tree_form" method="post">
+            <div>
+                <label for="tree_name">Name <b>*</b></label>
+            </div>
+            <div>
+                <input type="text" id="tree_name" name="tree_name" />
+            </div>
+            <div id="tree_name_message" class="message">
+            </div>
+            <hr />
+            <h5>Links</h5>
+            <div>
+            	<!--
+            	<label for="link_moderator_only">Moderator Only</label>
+            	<input type="checkbox" value="1" id="link_moderator_only" name="link_moderator_only" />
+            	-->
+            	<label for="link_max">Max Chars</label>
+            	<input type="number" min="16" value="64" max="10000" id="link_max" name="link_max" />
+            	<label for="link_prompt">Prompt</label>
+                <textarea class="form_link" id="link_prompt" name="link_prompt" rows="1" cols="60" >Enter a teaser...</textarea>
+            </div>
+            <hr />
+            <h5>Content</h5>
+            <div>
+            	<label for="content_moderator_only">Moderator Only</label>
+            	<input type="checkbox" value="1" id="content_moderator_only" name="content_moderator_only" />
+            	<label for="content_max">Max Chars</label>
+            	<input type="number" min="16" value="256" max="10000" id="content_max" name="content_max" />
+            	<label for="content_prompt">Prompt</label>
+                <textarea class="form_content" id="content_prompt" name="content_prompt" rows="1" cols="60" >...then continue with text</textarea>
+            </div>
+            <hr />
+            <h5>Branches</h5>
+            <div>
+            	<label for="branch_max">Max Branchs</label>
+            	<input type="number" min="1" value="1" max="10000" id="branch_max" name="branch_max" />
+            </div>
+            <hr />
+            <h5>First Branch</h5>
+            <div>
+                <div class="form_link_hint" id="root_branch_link_hint" >Enter a teaser...</div>
+                <textarea class="form_link" id="root_branch_link" name="root_branch_link" rows="1" cols="60" ></textarea>
+            </div>
+            <div>
+                <div class="form_content_hint" id="root_branch_content_hint" >...then continue with text</div>
+                <textarea class="form_content" id="root_branch_content" name="root_branch_content" rows="3" ></textarea>
+            </div>
+            <hr />
+            <h5>About</h5>
+            <div>
+                <textarea id="conventions" name="conventions" rows="6" ></textarea>
+            </div>
+            <br />
+            <div><b>*</b> Required</div>
+            
+            <br />
+            <div><input type="submit" value="Add Tree"></div>
+        </form>
+    </script>
+    <script type="text/template" id="edit_tree_form_template">
+    	<b id="tree_name_label"></b>
+        <form action="/api/v1/trees" id="edit_tree_form" method="post">
+        	<input type="hidden" id="tree_name" name="tree_name" />
+            <h5>Links</h5>
+            <div>
+            	<!--
+            	<label for="link_moderator_only">Moderator Only</label>
+            	<input type="checkbox" value="1" id="link_moderator_only" name="link_moderator_only" />
+            	-->
+            	<label for="link_max">Max Chars</label>
+            	<input type="number" min="16" value="64" max="10000" id="link_max" name="link_max" />
+            	<label for="link_prompt">Prompt</label>
+                <textarea class="form_link" id="link_prompt" name="link_prompt" rows="1" cols="60" >Enter a teaser...</textarea>
+            </div>
+            <hr />
+            <h5>Content</h5>
+            <div>
+            	<label for="content_moderator_only">Moderator Only</label>
+            	<input type="checkbox" value="1" id="content_moderator_only" name="content_moderator_only" />
+            	<label for="content_max">Max Chars</label>
+            	<input type="number" min="16" value="256" max="10000" id="content_max" name="content_max" />
+            	<label for="content_prompt">Prompt</label>
+                <textarea class="form_content" id="content_prompt" name="content_prompt" rows="1" cols="60" >...then continue with text</textarea>
+            </div>
+            <hr />
+            <h5>Branches</h5>
+            <div>
+            	<label for="branch_max">Max Branchs</label>
+            	<input type="number" min="1" value="1" max="10000" id="branch_max" name="branch_max" />
+            </div>
+            <hr />
+            <h5>About</h5>
+            <div>
+                <textarea id="conventions" name="conventions" rows="6" ></textarea>
+            </div>
+            <br />
+            <div><b>*</b> Required</div>
+            
+            <br />
+            <div><input type="submit" value="Update"></div>
+        </form>
+    </script>
+    <script type="text/template" id="needs_login_template">
+        <div class="no_links">You must <a href="/login">Login</a> to add a Tree.</div>
+    </script>
+    <script type="text/template" id="not_moderator_template">
+        <div class="no_links">You are not the moderator of this tree.</div>
+    </script>
+    <script type="text/template" id="no_tree_template">
+        <div class="no_links">The tree could not be found.</div>
+    </script>
+{% endblock %}
+{% block content %}
+    
+    <div id="main_div"></div>
+    <script>
+	    //kickoff
+	    loadForm();
+    </script>
+{% endblock %}

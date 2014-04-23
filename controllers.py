@@ -107,7 +107,7 @@ class BranchController(BaseController):
             if branch_branch.authorname == authorname:
                 authored_branch_count += 1
         
-        if 2 <= authored_branch_count:
+        if tree['branch_max'] <= authored_branch_count:
             errors.append('has_branches')
         
         if len(errors) == 0:
@@ -232,31 +232,8 @@ class TreeController(BaseController):
     
     def save_tree(self,tree_dict):
         
-        default_tree_dict = {
-            "tree_name":None,
-            "moderatorname":None,
-            "conventions":None, 
-            "root_branch_link":None, 
-            "root_branch_content":None,
-            "link_moderator_only":False,
-            "link_max":0,
-            "link_prompt":None,
-            "content_moderator_only":False,
-            "content_max":0,
-            "content_prompt":None
-        }
-        
-        tree_dict = dict(default_tree_dict.items() + tree_dict.items())
-        
         try:
-            if tree_dict["content_max"] is not int:
-                tree_dict["content_max"] = int(tree_dict["content_max"])
-            if tree_dict["link_max"] is not int:
-                tree_dict["link_max"] = int(tree_dict["link_max"])
-            if tree_dict["content_moderator_only"] is not bool:
-                tree_dict["content_moderator_only"] = bool(int(tree_dict["content_moderator_only"]))
-            if tree_dict["link_moderator_only"] is not bool:
-                tree_dict["link_moderator_only"] = bool(int(tree_dict["link_moderator_only"]))
+            tree_dict = self.merged_tree(tree_dict)
         except:
             return False, ['invalid_parameters']
             
@@ -351,15 +328,20 @@ class TreeController(BaseController):
             return False, errors
         
         
-    def update_tree(self,tree,moderatorname,conventions):
+    def update_tree(self,tree_dict):
         
-        if tree is None:
+        try:
+            tree_dict = self.merged_tree(tree_dict)
+        except:
+            return False, ['invalid_parameters']
+        
+        if tree_dict['tree_name'] is None:
             return False, ['tree_not_found']
         
-        if moderatorname is None:
+        if tree_dict['moderatorname'] is None:
             return False, ['unauthenticated']
         
-        author_info = UserInfo.get_by_username(moderatorname)
+        author_info = UserInfo.get_by_username(tree_dict['moderatorname'])
         
         if author_info is None or not self.is_user_info_current(author_info):
             return False, ['unauthenticated']
@@ -367,11 +349,55 @@ class TreeController(BaseController):
         if author_info.username is None:
             return False, ['invalid_user']
         
+        tree = Tree.get_by_name(tree_dict['tree_name'])
         
-        tree.conventions = conventions
+        tree.conventions = tree_dict['conventions']
+        
+        tree.link_moderator_only = tree_dict['link_moderator_only']
+        tree.link_max = tree_dict['link_max']
+        tree.link_prompt = tree_dict['link_prompt']
+        
+        tree.content_moderator_only = tree_dict['content_moderator_only']
+        tree.content_max = tree_dict['content_max']
+        tree.content_prompt = tree_dict['content_prompt']
+            
+        tree.branch_max = tree_dict['branch_max']
+        
         tree.put()
-
+        
         return True, tree
+    
+    def merged_tree(self,tree_dict):
+        default_tree_dict = {
+            "tree_name":None,
+            "moderatorname":None,
+            "conventions":None, 
+            "root_branch_link":None, 
+            "root_branch_content":None,
+            "link_moderator_only":False,
+            "link_max":0,
+            "branch_max":0,
+            "link_prompt":None,
+            "content_moderator_only":False,
+            "content_max":0,
+            "content_prompt":None
+        }
+        
+        result = dict(default_tree_dict.items() + tree_dict.items())
+        
+        if result["branch_max"] is not int:
+            result["branch_max"] = int(result["branch_max"])
+        if result["content_max"] is not int:
+            result["content_max"] = int(result["content_max"])
+        if result["link_max"] is not int:
+            result["link_max"] = int(result["link_max"])
+        if result["content_moderator_only"] is not bool:
+            result["content_moderator_only"] = bool(int(result["content_moderator_only"]))
+        if result["link_moderator_only"] is not bool:
+            result["link_moderator_only"] = bool(int(result["link_moderator_only"]))
+        
+        return result
+
 
 class UserInfoController(BaseController):
     
