@@ -413,7 +413,7 @@ class UserInfoController(BaseController):
         else:
             user_info = self.current_user_info()
             if user_info is None:
-                user_info_key = ndb.Key('UserInfo',username)
+                user_info_key = UserInfo.create_key(username)
                 
                 #in the circumstances of a collision whoever asked last is the winner
                 #of course if fifty 'Daniels' pile up then we have an issue

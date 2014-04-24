@@ -60,7 +60,7 @@ class UserInfoHandler(APIRequestHandler):
                 
                 if username:
                     user_info = UserInfo.get_by_username(username)
-                                    
+        
         if user_info is not None:
             self.write_success_response(user_info.to_dict())
         else:
@@ -197,6 +197,52 @@ class BranchHandler(APIRequestHandler):
             self.write_fail_response(result)
         
 
+class TransitionHandler(APIRequestHandler):
+    def get(self):
+        
+        object_type = self.request.get('object_type')
+        name = self.request.get('name')
+        
+        if object_type == 'UserInfo':
+            userinfo = ndb.Key('UserInfo',name).get()
+            
+            if userinfo is None:
+                return
+            
+            nuserinfo = UserInfo(id=name.lower())
+            
+            nuserinfo.username = userinfo.username
+            nuserinfo.google_user = userinfo.google_user
+            nuserinfo.oauth_user_id = userinfo.oauth_user_id
+            nuserinfo.date = userinfo.date
+            
+            nuserinfo.put()
+            userinfo.key.delete()
+
+        elif object_type == 'Tree':
+            tree = ndb.Key('Tree',name).get()
+            
+            if tree is None:
+                return
+            
+            ntree = Tree(id=name.lower())
+            ntree.moderatorname = tree.moderatorname
+            ntree.name = tree.name
+            ntree.conventions = tree.conventions
+            
+            ntree.link_prompt = tree.link_prompt
+            ntree.link_max = tree.link_max
+            ntree.link_moderator_only = tree.link_moderator_only
+            
+            ntree.content_prompt = tree.content_prompt
+            ntree.content_max = tree.content_max
+            ntree.content_moderator_only = tree.content_moderator_only
+            
+            ntree.branch_max = tree.branch_max
+    
+            ntree.put()
+            tree.key.delete()
+
 class ExportHandler(APIRequestHandler):
     
     def get(self):
@@ -297,7 +343,7 @@ class TreeHandler(APIRequestHandler):
         
         
     def get_tree(self,tree_name):
-        tree = ndb.Key('Tree', tree_name).get()
+        tree = Tree.create_key(tree_name).get()
         
         if tree is not None:
             tree_dict = tree.to_dict()
@@ -352,11 +398,12 @@ app_config = {
 
 
 handlers = [
-    ('/api/v1/export', ExportHandler),
     ('/api/v1/likes', LikeHandler),
     ('/api/v1/branchs', BranchHandler),
     ('/api/v1/trees', TreeHandler),
     ('/api/v1/userinfos', UserInfoHandler),
+#    ('/api/v1/export', ExportHandler),
+#    ('/api/v1/transition', TransitionHandler),
     Route('/api/v1/notifications', handler='api.NotificationHandler:get_notifications', name='get_notifications',methods=['GET']),
     Route('/api/v1/notifications/unread_count', handler='api.NotificationHandler:get_unread_count', name='get_count',methods=['GET']),
     Route('/api/v1/notifications/unread_count', handler='api.NotificationHandler:reset_unread_count', name='reset_count',methods=['DELETE']),

@@ -10,9 +10,10 @@ import base
 from simpleauth import SimpleAuthHandler
 
 import secrets
-from defaulttext import *
-from models import *
-from controllers import TreeController, BaseController
+import logging
+from models import Tree
+from models import Branch
+from controllers import BaseController
 from google.appengine.api import users
 
 
@@ -35,98 +36,15 @@ class MainHandler(RequestHandler):
         
         self.render('main.html', template_values)
 
-class CreateTreeHandler(RequestHandler):
-    
-    _create_tree_lock = threading.Lock()
+class TreeFormHandler(RequestHandler):
     
     def get(self):
-        self.render_create_tree_form()
+        self.render('tree_form.html', {})
         
-    def post(self):
-        
-        tree_dict = {}
-        
-        for key, value in self.request.POST.items():
-            tree_dict[key] = value
-        
-        tree_dict['moderatorname'] = self.username()
-                
-        success, tree = self.controller(TreeController).save_tree(tree_dict)
-        
-        if success:
-            redirect_url = '/tree/' + tree_dict['tree_name']
-            self.redirect(redirect_url)
-        else:
-            self.render_create_tree_form(tree)
-    
-    def render_create_tree_form(self,errors=None):
-        template_vars = {
-            'conventions' : self.request.get('conventions', DEFAULT_CONVENTIONS),
-
-            'tree_name' : self.request.get('tree_name', ''),
-            'root_branch_link' : self.request.get('root_branch_link', ''),
-            'root_branch_content' : self.request.get('root_branch_content', ''),
-            
-            'new_tree_endpoint' : self.request.uri,
-            'link_max' : config["branchs"]["link_max"],
-            'content_max' : config["branchs"]["content_max"],
-            'errors' : json.dumps(errors),
-        }
-        
-        self.render('tree_form.html', template_vars)
-
-class EditTreeHandler(RequestHandler):
-    
-    def get(self,tree_name):
-        tree = Tree.get_by_name(tree_name)
-        if tree == None:
-            return self.redirect('/')
-        elif tree.moderatorname != self.username():
-            return self.redirect('/tree/'+tree_name)
-        
-        self.render_edit_tree_form(tree)
-    
-#    def post(self,tree_name):
-        
-#        tree = Tree.get_by_name(tree_name)
-        
-#        success, result = self.controller(TreeController).update_tree(
-#          tree,
-#          self.username(),
-#          self.request.get('conventions'))
-        
-#        if success:
-#            self.render_edit_tree_form(tree)
-#        else:
-#            self.render_edit_tree_form(tree, errors=result)
-            
-    def render_edit_tree_form(self,tree,errors=None):
-        template_values = {
-            'conventions' : self.request.get('conventions', tree.conventions),
-            'tree_name' : tree.name,
-            'edit_tree_endpoint' : self.request.uri,
-            'errors' : json.dumps(errors),
-        }
-        self.render('tree_form.html',template_values)
-         
 class TreeHandler(RequestHandler):
     def get(self, tree_name):
         
-        key = Tree.create_key(tree_name)
-        
-        tree = key.get()
-        
-        if tree:
-            
-            template_values = {}
-            
-            self.render('tree.html',template_values)
-        else:
-            template_values = {
-                'tree_name': tree_name,
-            }
-            self.response.status = 404
-            self.render('tree_not_found.html',template_values)
+        self.render('tree.html',{})
         
 class AboutHandler(RequestHandler):
 
@@ -136,7 +54,6 @@ class AboutHandler(RequestHandler):
 class UserHandler(RequestHandler):
     
     def get(self,username):
-        
         self.render('user.html',{})
                             
 class AuthHandler(RequestHandler, SimpleAuthHandler):

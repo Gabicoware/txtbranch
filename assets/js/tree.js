@@ -5,22 +5,43 @@ var branch_cache = {};
 var edited_branch_key = null;
 var child_key_cache = {};
 var first_branch_key = null;
+var tree_request = null;
 
 function loadTree(){
     var index = location.pathname.lastIndexOf("/") + 1;
     var treename = location.pathname.substr(index);
     
-    $.get('/api/v1/trees?name='+treename, function(data) {
+    tree_request = $.ajax({
+                url: '/api/v1/trees?name='+treename,
+                type: "get"
+            });
+    tree_request.done( function(data) {
         var jsondata = JSON.parse(data);
         if(jsondata.status == "OK"){
             setTree(jsondata.result);
+        }else{
+            showNoTreeContent();
         }
+    });
+
+    tree_request.fail(function(data) {
+        showNoTreeContent();
     });
 
 }
 
+function showNoTreeContent() {
+    var index = location.pathname.lastIndexOf("/") + 1;
+    var treename = location.pathname.substr(index);
+    var text = $("#tree_not_found_template").text();
+    text = text.replace('##tree_name##',treename);
+    $("#tree_content").html(text);
+}
 function setTree(dict) {
     tree = dict;
+    
+    $("#tree_content").html($("#base_content_template").text());
+    
     var branch_key = getParameterByName("branch_key");
 
     if (branch_key == null || branch_key == "") {

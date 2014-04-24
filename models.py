@@ -15,7 +15,6 @@ config = {
     "branchs": {
         "link_max": 64,
         "content_max": 256,
-        "depth_max": 512,
     }
 }
 
@@ -67,8 +66,7 @@ class Tree(ndb.Model):
     
     @classmethod
     def create_key(cls, tree_name=config['trees']['default_name']):
-        """Constructs a Datastore key for a Game entity with tree_name."""
-        return ndb.Key('Tree', tree_name)
+        return ndb.Key('Tree', tree_name.lower())
     
     @classmethod
     def get_by_name(cls,tree_name):
@@ -306,6 +304,10 @@ class UserInfo(ndb.Model):
     date = ndb.DateTimeProperty(auto_now_add=True)
     
     @classmethod
+    def create_key(cls, username):
+        return ndb.Key('UserInfo', username.lower())
+    
+    @classmethod
     def put_new(cls,username,google_user=None,oauth_user_id=None):
         user_info = UserInfo(id=username)
         user_info.google_user = google_user
@@ -318,7 +320,7 @@ class UserInfo(ndb.Model):
     def get_by_username(cls,username):
         
         if username:
-            return ndb.Key('UserInfo',username).get()
+            return UserInfo.create_key(username).get()
         return None
             
     def branchs(self):
