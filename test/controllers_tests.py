@@ -8,17 +8,17 @@ from google.appengine.datastore import datastore_stub_util
 from google.appengine.api import memcache, users
 
 
-import os,sys
+import os, sys
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0,parentdir) 
+sys.path.insert(0, parentdir) 
 from controllers import *
 from models import *
 
 base_tree_dict = {
             "tree_name":None,
             "moderatorname":None,
-            "conventions":'', 
-            "root_branch_link":'testSaveTree.unique_link', 
+            "conventions":'',
+            "root_branch_link":'testSaveTree.unique_link',
             "root_branch_content":'testSaveTree.unique_content',
             "link_prompt":"A",
             "link_max":100,
@@ -30,7 +30,7 @@ base_tree_dict = {
 }
 
 def lj(result):
-    if isinstance(result,list):
+    if isinstance(result, list):
         return ','.join(result)
     else:
         return None
@@ -39,8 +39,8 @@ class BranchControllerTestCase(unittest.TestCase):
     
     def setUp(self):
                 
-        #the memcache will contain values that will break the tests
-        #dont run this on production!
+        # the memcache will contain values that will break the tests
+        # dont run this on production!
         memcache.flush_all()
         
         # First, create an instance of the Testbed class.
@@ -55,14 +55,14 @@ class BranchControllerTestCase(unittest.TestCase):
         
         millis = int(round(time.time() * 1000))
         
-        tree_name = 't' + str(millis)
+        tree_name = 'bc_' + str(millis % 3600000)
         
-        username = 't' + str(millis)
+        username = 'bc_' + str(millis % 3600000)
         
-        self.testbed.setup_env(USER_EMAIL=username+'@example.com',USER_ID='1', USER_IS_ADMIN='0')
+        self.testbed.setup_env(USER_EMAIL=username + '@example.com', USER_ID='1', USER_IS_ADMIN='0')
         self.testbed.init_user_stub()
         
-        self.user_info = UserInfo.put_new(username,users.get_current_user())
+        self.user_info = UserInfo.put_new(username, users.get_current_user())
         
         tree_controller = TreeController()
         tree_controller.user_info = self.user_info
@@ -100,32 +100,33 @@ class BranchControllerTestCase(unittest.TestCase):
         for branch in self.child_branchs:
             branch.key.delete()
         
+        self.user_info.key.delete()
         self.parent_branch.key.delete()
         self.tree.key.delete()
         
         self.testbed.deactivate()
 
     def testEmptyBranchLink(self):
-        success, result = self.controller.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(),'','some_content')
+        success, result = self.controller.save_branch(self.user_info.username, self.parent_branch.key.urlsafe(), '', 'some_content')
         
         self.assertFalse(success)
         self.assertTrue('empty_branch_link' in result, lj(result))
         
     def testEmptyBranchContent(self):
-        success, result = self.controller.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(),'testEmptyBranchLink.unique_link','')
+        success, result = self.controller.save_branch(self.user_info.username, self.parent_branch.key.urlsafe(), 'testEmptyBranchLink.unique_link', '')
         
         self.assertFalse(success)
         self.assertTrue('empty_branch_content' in result, lj(result))
         
     def testIdenticalLink(self):
-        success, result = self.controller.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(),'testIdenticalLink.some_link','some_content')
+        success, result = self.controller.save_branch(self.user_info.username, self.parent_branch.key.urlsafe(), 'testIdenticalLink.some_link', 'some_content')
         
         self.assertTrue(success, lj(result))
         
         if success and result.key:
             self.child_branchs.append(result)
         
-        success, result = self.controller.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(), 'testIdenticalLink.some_link', 'some_content')
+        success, result = self.controller.save_branch(self.user_info.username, self.parent_branch.key.urlsafe(), 'testIdenticalLink.some_link', 'some_content')
         
         self.assertFalse(success)
         self.assertTrue('has_identical_link' in result, lj(result))
@@ -133,18 +134,21 @@ class BranchControllerTestCase(unittest.TestCase):
     def testRootBranchUpdate(self):
         newlink = 'testIdenticalLink.different_link'
         newcontent = 'different_content'
-        success, result = self.controller.update_branch(self.user_info.username,self.parent_branch.key.urlsafe(),newlink,newcontent)
+        success, result = self.controller.update_branch(self.user_info.username, self.parent_branch.key.urlsafe(), newlink, newcontent)
         
         self.assertTrue(success, lj(result))
         
         branch = result.key.get();
         
+        self.child_branchs.append(result)
+        
+        self.child_branchs.append(branch)
         self.assertTrue(branch.link == newlink)
                 
         self.assertTrue(branch.content == newcontent)
         
     def testUpdate(self):
-        success, result = self.controller.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(),'testIdenticalLink.some_link','some_content')
+        success, result = self.controller.save_branch(self.user_info.username, self.parent_branch.key.urlsafe(), 'testIdenticalLink.some_link', 'some_content')
         
         self.assertTrue(success, lj(result))
         
@@ -153,7 +157,7 @@ class BranchControllerTestCase(unittest.TestCase):
             
         newlink = 'testIdenticalLink.different_link'
         newcontent = 'different_content'
-        success, result = self.controller.update_branch(self.user_info.username,result.key.urlsafe(),newlink,newcontent)
+        success, result = self.controller.update_branch(self.user_info.username, result.key.urlsafe(), newlink, newcontent)
         
         self.assertTrue(success, lj(result))
         
@@ -164,19 +168,19 @@ class BranchControllerTestCase(unittest.TestCase):
         self.assertTrue(branch.content == newcontent)
         
     def testUpdateSameLink(self):
-        success, result = self.controller.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(),'testIdenticalLink.some_link','some_content')
+        success, result = self.controller.save_branch(self.user_info.username, self.parent_branch.key.urlsafe(), 'testIdenticalLink.some_link', 'some_content')
         
         self.assertTrue(success, lj(result))
         
         if success and result.key:
             self.child_branchs.append(result)
             
-        success, result = self.controller.update_branch(self.user_info.username,result.key.urlsafe(),result.link,result.content)
+        success, result = self.controller.update_branch(self.user_info.username, result.key.urlsafe(), result.link, result.content)
         
         self.assertTrue(success, lj(result))
         
     def testSaveBranch(self):
-        success, result = self.controller.save_branch(self.user_info.username, self.parent_branch.key.urlsafe(), 'testBranch.unique_link', 'testBranch.unique_content' )
+        success, result = self.controller.save_branch(self.user_info.username, self.parent_branch.key.urlsafe(), 'testBranch.unique_link', 'testBranch.unique_content')
         
         self.assertTrue(success, lj(result))
         
@@ -184,8 +188,8 @@ class TreeControllerTestCase(unittest.TestCase):
             
     def setUp(self):
         
-        #the memcache will contain values that will break the tests
-        #dont run this on production!
+        # the memcache will contain values that will break the tests
+        # dont run this on production!
         memcache.flush_all()
         
         # First, create an instance of the Testbed class.
@@ -201,10 +205,10 @@ class TreeControllerTestCase(unittest.TestCase):
         
         username = 'test_user' + str(millis)
         
-        self.testbed.setup_env(USER_EMAIL=username+'@example.com',USER_ID='1', USER_IS_ADMIN='0')
+        self.testbed.setup_env(USER_EMAIL=username + '@example.com', USER_ID='1', USER_IS_ADMIN='0')
         self.testbed.init_user_stub()
         
-        self.user_info = UserInfo.put_new(username,users.get_current_user())
+        self.user_info = UserInfo.put_new(username, users.get_current_user())
     
         self.invalid_username = 'inv_u' + str(millis)
         
@@ -216,6 +220,14 @@ class TreeControllerTestCase(unittest.TestCase):
         self.controller.user_info = self.user_info
         self.controller.google_user = users.get_current_user()
         
+    def tearDown(self):
+        
+        self.user_info.key.delete()
+        self.invalid_user_info.key.delete()
+        
+        self.testbed.deactivate()
+
+
     def testSaveTree(self):        
         millis = int(round(time.time() * 1000))
         tree_name = 's' + str(millis)
@@ -225,7 +237,7 @@ class TreeControllerTestCase(unittest.TestCase):
         tree_dict['tree_name'] = tree_name
         tree_dict['moderatorname'] = self.user_info.username
         
-        success, result = self.controller.save_tree( tree_dict )
+        success, result = self.controller.save_tree(tree_dict)
         
         if success == False:
             logging.info(result)
@@ -246,38 +258,38 @@ class TreeControllerTestCase(unittest.TestCase):
         tree_dict['tree_name'] = 'some_name'
         tree_dict['moderatorname'] = None
         
-        success, result = self.controller.save_tree( tree_dict )
+        success, result = self.controller.save_tree(tree_dict)
         
         self.assertFalse(success)
         self.assertTrue('unauthenticated' in result)
         
         tree_dict["moderatorname"] = 'DNE.'
-        success, result = self.controller.save_tree( tree_dict )
+        success, result = self.controller.save_tree(tree_dict)
         
         self.assertFalse(success)
         self.assertTrue('unauthenticated' in result)
         
         tree_dict["moderatorname"] = self.invalid_username
-        success, result = self.controller.save_tree( tree_dict )
+        success, result = self.controller.save_tree(tree_dict)
         
         self.assertFalse(success)
         self.assertTrue('unauthenticated' in result)
         
         tree_dict["tree_name"] = None
         tree_dict["moderatorname"] = self.user_info.username
-        success, result = self.controller.save_tree( tree_dict )
+        success, result = self.controller.save_tree(tree_dict)
         
         self.assertFalse(success)
         self.assertTrue('empty_name' in result)
         
         tree_dict["tree_name"] = ''
-        success, result = self.controller.save_tree( tree_dict)
+        success, result = self.controller.save_tree(tree_dict)
         
         self.assertFalse(success)
         self.assertTrue('empty_name' in result)
         
         tree_dict["tree_name"] = 'q q q q q '
-        success, result = self.controller.save_tree( tree_dict)
+        success, result = self.controller.save_tree(tree_dict)
         
         self.assertFalse(success)
         self.assertTrue('invalid_name' in result)
@@ -286,22 +298,18 @@ class TreeControllerTestCase(unittest.TestCase):
         tree_dict["conventions"] = None
         tree_dict["root_branch_link"] = None
         tree_dict["root_branch_content"] = None
-        success, result = self.controller.save_tree( tree_dict)
+        success, result = self.controller.save_tree(tree_dict)
         
         self.assertFalse(success)
         self.assertTrue('empty_root_branch_link' in result)
         self.assertTrue('empty_root_branch_content' in result)
-    
-    def tearDown(self):
-        
-        self.testbed.deactivate()
-        
+            
 class BaseControllerTestCase(unittest.TestCase):
     
     def setUp(self):
         
-        #the memcache will contain values that will break the tests
-        #dont run this on production!
+        # the memcache will contain values that will break the tests
+        # dont run this on production!
         memcache.flush_all()
         
         # First, create an instance of the Testbed class.
@@ -317,10 +325,10 @@ class BaseControllerTestCase(unittest.TestCase):
         
         username = 'test_user' + str(millis)
         
-        self.testbed.setup_env(USER_EMAIL=username+'@example.com',USER_ID='1', USER_IS_ADMIN='0')
+        self.testbed.setup_env(USER_EMAIL=username + '@example.com', USER_ID='1', USER_IS_ADMIN='0')
         self.testbed.init_user_stub()
         
-        self.user_info = UserInfo.put_new(username,users.get_current_user())
+        self.user_info = UserInfo.put_new(username, users.get_current_user())
     
         self.invalid_username = 'inv_u' + str(millis)
         
@@ -332,21 +340,23 @@ class BaseControllerTestCase(unittest.TestCase):
         self.controller.user_info = self.user_info
         self.controller.google_user = users.get_current_user()
         
+    def tearDown(self):
+        self.invalid_user_info.key.delete()
+        self.user_info.key.delete()
+        self.testbed.deactivate()
+        
     def testCurrentUser(self):
         
-        self.assertTrue(self.controller.is_user_info_current(self.user_info),"userinfo should be current")
-        self.assertFalse(self.controller.is_user_info_current(self.invalid_user_info),"userinfo should not be current")
+        self.assertTrue(self.controller.is_user_info_current(self.user_info), "userinfo should be current")
+        self.assertFalse(self.controller.is_user_info_current(self.invalid_user_info), "userinfo should not be current")
     
-    def tearDown(self):
-        
-        self.testbed.deactivate()
         
 class LikeControllerTestCase(unittest.TestCase):
     
     def setUp(self):
         
-        #the memcache will contain values that will break the tests
-        #dont run this on production!
+        # the memcache will contain values that will break the tests
+        # dont run this on production!
         memcache.flush_all()
         
         # First, create an instance of the Testbed class.
@@ -362,18 +372,23 @@ class LikeControllerTestCase(unittest.TestCase):
         
         username = 'test_user' + str(millis)
         
-        self.testbed.setup_env(USER_EMAIL=username+'@example.com',USER_ID='1', USER_IS_ADMIN='0')
+        self.testbed.setup_env(USER_EMAIL=username + '@example.com', USER_ID='1', USER_IS_ADMIN='0')
         self.testbed.init_user_stub()
         
-        self.user_info = UserInfo.put_new(username,users.get_current_user())
+        self.user_info = UserInfo.put_new(username, users.get_current_user())
     
         self.controller = LikeController();
         self.controller.user_info = self.user_info
         self.controller.google_user = users.get_current_user()
 
-        self.branch = Branch(id="LikeControllerTestCase.branch"+str(millis))
+        self.branch = Branch(id="LikeControllerTestCase.branch" + str(millis))
         
         self.branch.put()
+        
+    def tearDown(self):
+        self.user_info.key.delete()
+        self.branch.key.delete()
+        self.testbed.deactivate()
         
     def testLike(self):
         
@@ -381,15 +396,13 @@ class LikeControllerTestCase(unittest.TestCase):
         
         like_value = '1'
             
-        success, result = self.controller.set_like( branch_urlsafe_key, like_value)
+        success, result = self.controller.set_like(branch_urlsafe_key, like_value)
         
         self.assertTrue(success, lj(result))
-        self.assertEquals(result.value,1)
-    
-    def tearDown(self):
+        self.assertEquals(result.value, 1)
         
-        self.testbed.deactivate()
-        
+        result.key.delete()
+            
            
 if __name__ == '__main__':
     unittest.main()
