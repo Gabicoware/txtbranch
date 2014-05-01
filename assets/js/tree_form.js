@@ -4,6 +4,8 @@ var messages = {
     'tree_exists':"There is already a tree with this name."
 };
 
+var textareas = null;
+
 function loadForm(){
     
     $.get('/api/v1/userinfos', function(data) {
@@ -132,7 +134,7 @@ function setupTextareas(){
     $("#link_max").prop("target",'#root_branch_link');
     $("#content_max").prop("target",'#root_branch_content');
     
-    var textareas={
+    textareas={
         "link":{
             maxlengthInputId:'#link_max',
             textareaId:'#root_branch_link',

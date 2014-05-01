@@ -26,6 +26,7 @@
     
     {% block additional_header %}{% endblock %}
     
+    <script type="text/javascript" src="/assets/js/util.js"></script>
     <script type="text/javascript" src="/assets/js/jquery.min.js"></script>
     <script type="text/javascript" src="/assets/js/jquery.cookie.js"></script>
     <script type="text/javascript" src="/assets/js/jquery.form.js"></script>
@@ -83,6 +84,13 @@
           </div><!--/.nav-collapse -->
 		  <script>
 		    function updateNavBarItems(){
+				
+			    var hidechrome = getParameterByName("hidechrome");
+				
+				if(hidechrome=='1'){
+					$(".navbar").css('display','none');
+					$("body").css('padding-top','5px');
+				}
 				
 				var username = $.cookie("username");
 				

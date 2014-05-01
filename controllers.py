@@ -78,9 +78,16 @@ class BranchController(BaseController):
         parent_key = ndb.Key(urlsafe=parent_urlsafe_key)
         parent_branch = parent_key.get()
         
+        if parent_branch is None:
+            return False, ['parent_branch_not_found']
+        
         branch.tree_name = parent_branch.tree_name
         
         tree = Tree.get_by_name(parent_branch.tree_name)
+        
+        if tree is None:
+            return False, ['tree_not_found']
+
         
         if tree.moderatorname == authorname or not tree.link_moderator_only:
             branch.link = link
@@ -107,7 +114,7 @@ class BranchController(BaseController):
             if branch_branch.authorname == authorname:
                 authored_branch_count += 1
         
-        if tree['branch_max'] <= authored_branch_count:
+        if tree.branch_max <= authored_branch_count:
             errors.append('has_branches')
         
         if len(errors) == 0:
@@ -170,6 +177,9 @@ class BranchController(BaseController):
         
         branch = ndb.Key(urlsafe=urlsafe_key).get()
         tree = Tree.get_by_name(branch.tree_name)
+        
+        if tree is None:
+            return False, [ 'tree_not_found' ]
         
         if branch.authorname != authorname and tree.moderatorname != authorname:
             return False, [ 'not_author' ]
@@ -307,7 +317,7 @@ class TreeController(BaseController):
         if len(errors) == 0:
             #if two users enter identical information at the same time, then
             #whoever gets it second is the winner
-            tree = Tree(id=tree_dict['tree_name'],name=tree_dict['tree_name'])
+            tree = Tree(id=tree_dict['tree_name'].lower(),name=tree_dict['tree_name'])
             tree.moderatorname = tree_dict['moderatorname']
             tree.conventions = tree_dict['conventions']
             
@@ -318,6 +328,8 @@ class TreeController(BaseController):
             tree.content_moderator_only = tree_dict['content_moderator_only']
             tree.content_max = tree_dict['content_max']
             tree.content_prompt = tree_dict['content_prompt']
+            
+            tree.branch_max = tree_dict['branch_max']
             
             branch.put()
             tree.put()
@@ -370,17 +382,17 @@ class TreeController(BaseController):
     def merged_tree(self,tree_dict):
         default_tree_dict = {
             "tree_name":None,
-            "moderatorname":None,
-            "conventions":None, 
-            "root_branch_link":None, 
-            "root_branch_content":None,
+            "moderatorname":"",
+            "conventions":"", 
+            "root_branch_link":"", 
+            "root_branch_content":"",
             "link_moderator_only":False,
             "link_max":0,
-            "branch_max":0,
-            "link_prompt":None,
+            "link_prompt":"",
             "content_moderator_only":False,
             "content_max":0,
-            "content_prompt":None
+            "content_prompt":"",
+            "branch_max":0
         }
         
         result = dict(default_tree_dict.items() + tree_dict.items())

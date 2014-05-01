@@ -49,27 +49,27 @@ class EventuallyConsistentTestCase(unittest.TestCase):
         self.assertEqual(branch.link, test_link_text)
         self.assertEqual(branch.content, test_content_text)
         
-        long_test_link_text = "a"*128
-        long_test_content_text = "b"*512
-        
-        branch = Branch()
-        branch.link = long_test_link_text
-        branch.content = long_test_content_text
-        branch.put()
-        
-        trunc_test_link_text = "a"*64
-        trunc_test_content_text = "b"*256
-        
-        self.assertEqual(branch.link, trunc_test_link_text)
-        self.assertEqual(branch.content, trunc_test_content_text)
-        
-        branch = Branch()
-        branch.link = "<a>"+long_test_link_text+"</a>"
-        branch.content = "<a>"+long_test_content_text+"</a>"
-        branch.put()
-        
-        self.assertEqual(branch.link, trunc_test_link_text)
-        self.assertEqual(branch.content, trunc_test_content_text)
+#         long_test_link_text = "a"*128
+#         long_test_content_text = "b"*512
+#         
+#         branch = Branch()
+#         branch.link = long_test_link_text
+#         branch.content = long_test_content_text
+#         branch.put()
+#         
+#         trunc_test_link_text = "a"*64
+#         trunc_test_content_text = "b"*256
+#         
+#         self.assertEqual(branch.link, trunc_test_link_text)
+#         self.assertEqual(branch.content, trunc_test_content_text)
+#         
+#         branch = Branch()
+#         branch.link = "<a>"+long_test_link_text+"</a>"
+#         branch.content = "<a>"+long_test_content_text+"</a>"
+#         branch.put()
+#         
+#         self.assertEqual(branch.link, trunc_test_link_text)
+#         self.assertEqual(branch.content, trunc_test_content_text)
 
 
 class BranchTestCase(unittest.TestCase):

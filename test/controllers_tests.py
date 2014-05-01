@@ -14,6 +14,26 @@ sys.path.insert(0,parentdir)
 from controllers import *
 from models import *
 
+base_tree_dict = {
+            "tree_name":None,
+            "moderatorname":None,
+            "conventions":'', 
+            "root_branch_link":'testSaveTree.unique_link', 
+            "root_branch_content":'testSaveTree.unique_content',
+            "link_prompt":"A",
+            "link_max":100,
+            "link_moderator_only":False,
+            "content_prompt":"A",
+            "content_max":100,
+            "content_moderator_only":False,
+            "branch_max":5,
+}
+
+def lj(result):
+    if isinstance(result,list):
+        return ','.join(result)
+    else:
+        return None
 
 class BranchControllerTestCase(unittest.TestCase):
     
@@ -35,28 +55,40 @@ class BranchControllerTestCase(unittest.TestCase):
         
         millis = int(round(time.time() * 1000))
         
-        tree_name = 'test_tree' + str(millis)
+        tree_name = 't' + str(millis)
         
-        username = 'test_user' + str(millis)
+        username = 't' + str(millis)
         
         self.testbed.setup_env(USER_EMAIL=username+'@example.com',USER_ID='1', USER_IS_ADMIN='0')
         self.testbed.init_user_stub()
         
-        self.tree = Tree(id=tree_name,name=tree_name)
-        self.tree.conventions = ''
-        self.tree.put()
+        self.user_info = UserInfo.put_new(username,users.get_current_user())
         
+        tree_controller = TreeController()
+        tree_controller.user_info = self.user_info
+        tree_controller.google_user = users.get_current_user()
         
+        tree_dict = base_tree_dict.copy()
+        tree_dict['tree_name'] = tree_name
+        tree_dict['moderatorname'] = username
+        
+        success, result = tree_controller.save_tree(tree_dict)
+        
+        if success:
+            self.tree = result
+        else:
+            self.tree = None
+        
+        self.assertTrue(self.tree is not None, lj(result));
         
         self.parent_branch = Branch(id=tree_name)
         
         self.parent_branch.authorname = username
         self.parent_branch.link = ''
         self.parent_branch.content = ''
-        self.parent_branch.tree = self.tree.key
+        self.parent_branch.tree_name = tree_name
         self.parent_branch.put()
         
-        self.user_info = UserInfo.put_new(username,users.get_current_user())
     
         self.controller = BranchController();
         self.controller.user_info = self.user_info
@@ -77,22 +109,18 @@ class BranchControllerTestCase(unittest.TestCase):
         success, result = self.controller.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(),'','some_content')
         
         self.assertFalse(success)
-        self.assertTrue('empty_branch_link' in result)
+        self.assertTrue('empty_branch_link' in result, lj(result))
         
     def testEmptyBranchContent(self):
         success, result = self.controller.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(),'testEmptyBranchLink.unique_link','')
         
         self.assertFalse(success)
-        self.assertTrue('empty_branch_content' in result)
+        self.assertTrue('empty_branch_content' in result, lj(result))
         
     def testIdenticalLink(self):
         success, result = self.controller.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(),'testIdenticalLink.some_link','some_content')
         
-        if success == False:
-            logging.info(result)
-            
-        self.assertTrue(success)
-        
+        self.assertTrue(success, lj(result))
         
         if success and result.key:
             self.child_branchs.append(result)
@@ -100,14 +128,14 @@ class BranchControllerTestCase(unittest.TestCase):
         success, result = self.controller.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(), 'testIdenticalLink.some_link', 'some_content')
         
         self.assertFalse(success)
-        self.assertTrue('has_identical_link' in result)
+        self.assertTrue('has_identical_link' in result, lj(result))
         
     def testRootBranchUpdate(self):
         newlink = 'testIdenticalLink.different_link'
         newcontent = 'different_content'
         success, result = self.controller.update_branch(self.user_info.username,self.parent_branch.key.urlsafe(),newlink,newcontent)
         
-        self.assertTrue(success)
+        self.assertTrue(success, lj(result))
         
         branch = result.key.get();
         
@@ -118,7 +146,7 @@ class BranchControllerTestCase(unittest.TestCase):
     def testUpdate(self):
         success, result = self.controller.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(),'testIdenticalLink.some_link','some_content')
         
-        self.assertTrue(success)
+        self.assertTrue(success, lj(result))
         
         if success and result.key:
             self.child_branchs.append(result)
@@ -127,7 +155,7 @@ class BranchControllerTestCase(unittest.TestCase):
         newcontent = 'different_content'
         success, result = self.controller.update_branch(self.user_info.username,result.key.urlsafe(),newlink,newcontent)
         
-        self.assertTrue(success)
+        self.assertTrue(success, lj(result))
         
         branch = result.key.get();
         
@@ -138,22 +166,19 @@ class BranchControllerTestCase(unittest.TestCase):
     def testUpdateSameLink(self):
         success, result = self.controller.save_branch(self.user_info.username,self.parent_branch.key.urlsafe(),'testIdenticalLink.some_link','some_content')
         
-        self.assertTrue(success)
+        self.assertTrue(success, lj(result))
         
         if success and result.key:
             self.child_branchs.append(result)
             
         success, result = self.controller.update_branch(self.user_info.username,result.key.urlsafe(),result.link,result.content)
         
-        self.assertTrue(success)
+        self.assertTrue(success, lj(result))
         
     def testSaveBranch(self):
         success, result = self.controller.save_branch(self.user_info.username, self.parent_branch.key.urlsafe(), 'testBranch.unique_link', 'testBranch.unique_content' )
         
-        if success == False:
-            logging.info(result)
-        
-        self.assertTrue(success)
+        self.assertTrue(success, lj(result))
         
 class TreeControllerTestCase(unittest.TestCase):
             
@@ -195,20 +220,17 @@ class TreeControllerTestCase(unittest.TestCase):
         millis = int(round(time.time() * 1000))
         tree_name = 's' + str(millis)
         
-        tree_dict = {
-            "tree_name":tree_name,
-            "moderatorname":self.user_info.username,
-            "conventions":'', 
-            "root_branch_link":'testSaveTree.unique_link', 
-            "root_branch_content":'testSaveTree.unique_content'
-        }
+        tree_dict = base_tree_dict.copy()
+        
+        tree_dict['tree_name'] = tree_name
+        tree_dict['moderatorname'] = self.user_info.username
         
         success, result = self.controller.save_tree( tree_dict )
         
         if success == False:
             logging.info(result)
         
-        self.assertTrue(success)
+        self.assertTrue(success, lj(result))
         
         self.assertFalse(result.get_root_branch() is None)
         
@@ -219,19 +241,10 @@ class TreeControllerTestCase(unittest.TestCase):
     
     def testErrors(self):
         
-        tree_dict = {
-            "tree_name":'some_name',
-            "moderatorname":None,
-            "conventions":'', 
-            "root_branch_link":None, 
-            "root_branch_content":None,
-            "link_moderator_only":False,
-            "link_max":0,
-            "link_prompt":None,
-            "content_moderator_only":False,
-            "content_max":0,
-            "content_prompt":None
-        }
+        tree_dict = base_tree_dict.copy()
+        
+        tree_dict['tree_name'] = 'some_name'
+        tree_dict['moderatorname'] = None
         
         success, result = self.controller.save_tree( tree_dict )
         
@@ -271,6 +284,8 @@ class TreeControllerTestCase(unittest.TestCase):
     
         tree_dict["tree_name"] = 'TestTree'
         tree_dict["conventions"] = None
+        tree_dict["root_branch_link"] = None
+        tree_dict["root_branch_content"] = None
         success, result = self.controller.save_tree( tree_dict)
         
         self.assertFalse(success)
@@ -368,7 +383,7 @@ class LikeControllerTestCase(unittest.TestCase):
             
         success, result = self.controller.set_like( branch_urlsafe_key, like_value)
         
-        self.assertTrue(success)
+        self.assertTrue(success, lj(result))
         self.assertEquals(result.value,1)
     
     def tearDown(self):

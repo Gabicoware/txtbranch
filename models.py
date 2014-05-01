@@ -309,7 +309,7 @@ class UserInfo(ndb.Model):
     
     @classmethod
     def put_new(cls,username,google_user=None,oauth_user_id=None):
-        user_info = UserInfo(id=username)
+        user_info = UserInfo(id=username.lower())
         user_info.google_user = google_user
         user_info.oauth_user_id = oauth_user_id
         user_info.username = username
