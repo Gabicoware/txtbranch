@@ -39,7 +39,7 @@ class MainHandler(RequestHandler):
 
 class TreeFormHandler(RequestHandler):
     
-    def get(self):
+    def get(self,tree_name=None):
         self.render('tree_form.html', {})
         
 class TreeHandler(RequestHandler):
