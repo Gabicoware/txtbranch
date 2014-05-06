@@ -22,6 +22,10 @@ handlers:
   static_files: config.json
   upload: config\.json
   
+- url: /messages\.json
+  static_files: messages.json
+  upload: messages\.json
+  
 - url: /assets
   static_dir: assets
   
