@@ -15,8 +15,12 @@ libraries:
 handlers:
   
 - url: /favicon\.ico
-  static_files: /assets/favicon.ico
-  upload: /assets/favicon\.ico
+  static_files: assets/favicon.ico
+  upload: assets/favicon\.ico
+  
+- url: /config\.json
+  static_files: config.json
+  upload: config\.json
   
 - url: /assets
   static_dir: assets

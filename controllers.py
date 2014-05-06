@@ -114,7 +114,7 @@ class BranchController(BaseController):
             if branch_branch.authorname == authorname:
                 authored_branch_count += 1
         
-        if tree.branch_max <= authored_branch_count:
+        if tree.branch_max > 0 and tree.branch_max <= authored_branch_count:
             errors.append('has_branches')
         
         if len(errors) == 0:
@@ -454,7 +454,7 @@ class LikeController(BaseController):
     def set_like(self,branch_urlsafe_key,like_value):
         
         if branch_urlsafe_key is None or branch_urlsafe_key == '':
-            return False, ['no_page_key']
+            return False, ['invalid_parameters']
         
         userinfo = self.current_user_info()
         if userinfo is None:

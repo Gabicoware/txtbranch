@@ -183,6 +183,28 @@ class BranchControllerTestCase(unittest.TestCase):
         success, result = self.controller.save_branch(self.user_info.username, self.parent_branch.key.urlsafe(), 'testBranch.unique_link', 'testBranch.unique_content')
         
         self.assertTrue(success, lj(result))
+            
+    def testBranchMax(self):
+        
+        self.tree.branch_max = 1
+        self.tree.put()
+        
+        success, result = self.controller.save_branch(self.user_info.username, self.parent_branch.key.urlsafe(), 'testBranch.unique_link.1', 'testBranch.unique_content.1')
+        
+        self.assertTrue(success, lj(result))
+        
+        success, result = self.controller.save_branch(self.user_info.username, self.parent_branch.key.urlsafe(), 'testBranch.unique_link.2', 'testBranch.unique_content.2')
+        
+        self.assertFalse(success, lj(result))
+        self.assertTrue('has_branches' in result, lj(result))
+        
+        self.tree.branch_max = 0;
+        self.tree.put()
+
+        success, result = self.controller.save_branch(self.user_info.username, self.parent_branch.key.urlsafe(), 'testBranch.unique_link.2', 'testBranch.unique_content.2')
+        
+        self.assertTrue(success, lj(result))
+        
         
 class TreeControllerTestCase(unittest.TestCase):
             
