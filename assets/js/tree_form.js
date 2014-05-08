@@ -54,10 +54,10 @@ function showEditTreeForm(tree){
     
     $("#tree_name_label").html(tree.name);
     $("#tree_name").val(tree.name);
-    $("#link_moderator_only").val(tree.link_moderator_only);
+    $("#link_moderator_only").attr("checked",tree.link_moderator_only);
     $("#link_max").val(tree.link_max);
     $("#link_prompt").val(tree.link_prompt);
-    $("#content_moderator_only").val(tree.content_moderator_only);
+    $("#content_moderator_only").attr("checked",tree.content_moderator_only);
     $("#content_max").val(tree.content_max);
     $("#content_prompt").val(tree.content_prompt);
     $("#branch_max").val(tree.branch_max);
