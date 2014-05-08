@@ -55,12 +55,11 @@ class UserInfoHandler(APIRequestHandler):
                 user_info = self.controller(BaseController).current_user_info()
                 if user_info is not None:
                     self.set_cookie(user_info,True)
-            else:
+            elif self.logged_in:
                 username = self.request.cookies.get('username')
-                
                 if username:
                     user_info = UserInfo.get_by_username(username)
-        
+                    
         if user_info is not None:
             self.write_success_response(user_info.to_dict())
         else:
