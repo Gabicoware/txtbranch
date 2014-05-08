@@ -1,19 +1,59 @@
 {% extends "base.html" %}
 
+{% block additional_header %}
+	<script type="text/javascript">
+		
+		function loadForm(){
+		    
+		    $.get('/api/v1/userinfos', function(data) {
+		        var jsondata = JSON.parse(data);
+		        if(jsondata.status == "OK"){
+	                showLogout();
+		        }else{
+		        	
+		        	$.get('/config.json', function(data) {
+		        		showLoginOptions(data["authentication_providers"]);
+	                });
+	        	
+		        }
+		    });
+		}
+		function showLogout(){
+		    $("#authenicontainer").html($("#logout_form_template").text());
+		}
+		function showLoginOptions(options){
+		    $("#authenicontainer").html($("#login_message_template").text());
+		    
+		    for(var index = 0; index < options.length; index++){
+		    	var option = options[index];
+		    	
+		    	var text = $("#login_option_template").text();
+			    text = text.replace('##endpoint##',option['endpoint']);
+			    text = text.replace('##name##',option['name']);
+		    	
+		    	$("#authenicontainer").append(text);
+		    }
+		}
+	</script>
+
+
+    <script type="text/template" id="logout_form_template">
+	    <p>Looks like you're logged in already.</p>
+	    <a href="/logout" class="btn">logout</a>
+    </script>
+
+    <script type="text/template" id="login_message_template">
+	    <p>Please login with one of these services:</p>
+    </script>
+    <script type="text/template" id="login_option_template">
+	    <p>
+	      <a href="##endpoint##" class="btn">##name##</a>
+	    </p>
+    </script>
+{% endblock %}
 {% block content %}
-  {% if logged_in %}
-    <p>Looks like you're logged in already.</p>
-    <a href="/logout" class="btn">logout</a>
-  {% else %}
-    <p>Please login with one of these services:</p>
-    <p>
-      <a href="/auth/reddit" class="btn">Reddit</a>
-    </p>
-    <p>
-      <a href="/auth/twitter" class="btn">Twitter</a>
-    </p>
-    <p>
-      <a href="/auth/facebook" class="btn">Facebook</a>
-    </p>
-  {% endif %}
+	<div id="authenicontainer"></div>
+	<script type="text/javascript">
+		loadForm();
+    </script>
 {% endblock %}
