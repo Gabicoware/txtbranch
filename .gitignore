@@ -42,8 +42,10 @@ Thumbs.db
 #################
 .pydevproject
 
-# Secret Things #
-#################
+# Custom Files #
+################
 *secrets.py
+config.json
 
 .settings
+
