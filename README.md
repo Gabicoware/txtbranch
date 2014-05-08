@@ -16,7 +16,12 @@ To setup:
 
   - copy secrets.template.py to secrets.py and modify as needed
   - copy config.template.json to config.json and modify as needed
-  
+
+Environments:
+
+  - The makefile allows you to to have multiple environments. The production version excludes tests from deployment, 
+  and can have a completely different authentication setup if required.
+  - To setup, copy app.yaml, config.json, and secrets.py to their production-* and staging-* counterparts
 
 [1]: https://github.com/crhym3/simpleauth/tree/master/example
 [2]: https://github.com/simplegeo/python-oauth2
