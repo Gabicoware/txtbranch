@@ -334,6 +334,14 @@ class TreeController(BaseController):
             branch.put()
             tree.put()
         
+            notification = Notification()
+            notification.from_username = tree.moderatorname
+            #only set the to_username when a different user is performing the action
+            notification.notification_type = 'new_tree'
+            notification.tree_name = tree_dict['tree_name']
+            notification.put()
+
+        
         if len(errors) == 0:
             return True, tree
         else:
@@ -377,6 +385,13 @@ class TreeController(BaseController):
         
         tree.put()
         
+        notification = Notification()
+        notification.from_username = tree.moderatorname
+        #only set the to_username when a different user is performing the action
+        notification.notification_type = 'edit_tree'
+        notification.tree_name = tree_dict['tree_name']
+        notification.put()
+            
         return True, tree
     
     def merged_tree(self,tree_dict):
