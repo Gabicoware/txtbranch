@@ -11,3 +11,15 @@ indexes:
   properties:
   - name: parent_branch_authorname
   - name: authorname
+  
+- kind: Notification
+  properties:
+  - name: from_username
+  - name: date
+    direction: desc
+    
+- kind: Notification
+  properties:
+  - name: to_username
+  - name: date
+    direction: desc
