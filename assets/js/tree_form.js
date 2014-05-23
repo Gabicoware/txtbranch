@@ -54,15 +54,13 @@ function showEditTreeForm(tree){
     
     $("#tree_name_label").html(tree.name);
     $("#tree_name").val(tree.name);
-    $("#link_moderator_only").attr("checked",tree.link_moderator_only);
     $("#link_max").val(tree.link_max);
     $("#link_prompt").val(tree.link_prompt);
-    $("#content_moderator_only").attr("checked",tree.content_moderator_only);
     $("#content_max").val(tree.content_max);
     $("#content_prompt").val(tree.content_prompt);
     $("#branch_max").val(tree.branch_max);
     $("#conventions").text(tree.conventions);
-    
+        
     setupEditFormHandlers();
 }
 function showNewForm(){
@@ -70,6 +68,8 @@ function showNewForm(){
     $("#main_div").html($("#add_tree_form_template").text());
     
     setupTreeNameField();
+    
+    setupTypeField();
     
     setupTextareas();
     
@@ -106,6 +106,45 @@ function setupTreeNameField(){
     
     $("#tree_name_message").text(message);
     
+}
+
+function setupTypeField(){
+                    
+    setPrompts(false);
+                
+    var eventHandler = function(){
+        if($("#content_moderator_only_on").prop('checked')){
+            if( $("#link_prompt").val() == $("#default_link_prompt_0").text() && $("#content_prompt").val() == $("#default_content_prompt_0").text()){
+                setPrompts(true);
+            }
+        }else{
+            if( $("#link_prompt").val() == $("#default_link_prompt_1").text() && $("#content_prompt").val() == $("#default_content_prompt_1").text()){
+                setPrompts(false);
+            }
+        }
+        
+    };
+    
+    $("#content_moderator_only_on").change(eventHandler);
+
+    $("#content_moderator_only_off").change(eventHandler);
+    
+}
+
+function setPrompts(moderator_only){
+    if(moderator_only){
+        $("#link_prompt").val($("#default_link_prompt_1").text());
+        $("#content_prompt").val($("#default_content_prompt_1").text());
+        
+        $("#root_branch_link_hint").text($("#default_link_prompt_1").text());
+        $("#root_branch_content_hint").text($("#default_content_prompt_1").text());
+    }else{
+        $("#link_prompt").val($("#default_link_prompt_0").text());
+        $("#content_prompt").val($("#default_content_prompt_0").text());
+        
+        $("#root_branch_link_hint").text($("#default_link_prompt_0").text());
+        $("#root_branch_content_hint").text($("#default_content_prompt_0").text());
+    }
 }
 
 function updateTreenameError(isvalid){

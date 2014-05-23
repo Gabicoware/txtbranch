@@ -28,6 +28,14 @@
     <script type="text/javascript" src="/assets/js/util.js"></script>
     <script type="text/javascript" src="/assets/js/tree.js"></script>
     <script type="text/javascript" src="/assets/js/tree_form.js"></script>
+    
+    
+    <script type="text/template" id="default_link_prompt_0">Enter a teaser...</script>
+    <script type="text/template" id="default_content_prompt_0">...then continue with text</script>
+    
+    <script type="text/template" id="default_link_prompt_1">Enter a command here...</script>
+    <script type="text/template" id="default_content_prompt_1">...the moderator will explain what happens here.</script>
+    
     <script type="text/template" id="add_tree_form_template">
     	<b>Add a Tree</b>
         <form action="/api/v1/trees" id="new_tree_form" method="post">
@@ -40,6 +48,13 @@
             <div id="tree_name_message" class="message">
             </div>
             <hr />
+            <h5>Type</h5>
+            <div>
+            	<label for="content_moderator_only_on">Text Adventure</label>
+				<input id="content_moderator_only_on" type="radio" name="content_moderator_only" value="1"></input>
+            	<label for="content_moderator_only_off">Collaborative Story</label>
+				<input id="content_moderator_only_off" type="radio" name="content_moderator_only" value="0"></input>
+            </div>
             <h5>Links</h5>
             <div>
             	<!--
@@ -49,17 +64,15 @@
             	<label for="link_max">Max Chars</label>
             	<input type="number" min="16" value="64" max="10000" id="link_max" name="link_max" />
             	<label for="link_prompt">Prompt</label>
-                <textarea class="form_link" id="link_prompt" name="link_prompt" rows="1" cols="60" >Enter a teaser...</textarea>
+                <textarea class="form_link" id="link_prompt" name="link_prompt" rows="1" cols="60" ></textarea>
             </div>
             <hr />
             <h5>Content</h5>
             <div>
-            	<label for="content_moderator_only">Moderator Only</label>
-            	<input type="checkbox" value="1" id="content_moderator_only" name="content_moderator_only" />
             	<label for="content_max">Max Chars</label>
             	<input type="number" min="16" value="256" max="10000" id="content_max" name="content_max" />
             	<label for="content_prompt">Prompt</label>
-                <textarea class="form_content" id="content_prompt" name="content_prompt" rows="1" cols="60" >...then continue with text</textarea>
+                <textarea class="form_content" id="content_prompt" name="content_prompt" rows="1" cols="60" ></textarea>
             </div>
             <hr />
             <h5>Branches</h5>
@@ -70,11 +83,11 @@
             <hr />
             <h5>First Branch</h5>
             <div>
-                <div class="form_link_hint" id="root_branch_link_hint" >Enter a teaser...</div>
+                <div class="form_link_hint" id="root_branch_link_hint" ></div>
                 <textarea class="form_link" id="root_branch_link" name="root_branch_link" rows="1" cols="60" ></textarea>
             </div>
             <div>
-                <div class="form_content_hint" id="root_branch_content_hint" autocapitalize="off" >...then continue with text</div>
+                <div class="form_content_hint" id="root_branch_content_hint" autocapitalize="off" ></div>
                 <textarea class="form_content" id="root_branch_content" name="root_branch_content" rows="3" ></textarea>
             </div>
             <hr />
@@ -102,17 +115,15 @@
             	<label for="link_max">Max Chars</label>
             	<input type="number" min="16" value="64" max="10000" id="link_max" name="link_max" />
             	<label for="link_prompt">Prompt</label>
-                <textarea class="form_link" id="link_prompt" name="link_prompt" rows="1" cols="60" >Enter a teaser...</textarea>
+                <textarea class="form_link" id="link_prompt" name="link_prompt" rows="1" cols="60" ></textarea>
             </div>
             <hr />
             <h5>Content</h5>
             <div>
-            	<label for="content_moderator_only">Moderator Only</label>
-            	<input type="checkbox" value="1" id="content_moderator_only" name="content_moderator_only" />
             	<label for="content_max">Max Chars</label>
             	<input type="number" min="16" value="256" max="10000" id="content_max" name="content_max" />
             	<label for="content_prompt">Prompt</label>
-                <textarea class="form_content" id="content_prompt" name="content_prompt" rows="1" cols="60" >...then continue with text</textarea>
+                <textarea class="form_content" id="content_prompt" name="content_prompt" rows="1" cols="60" ></textarea>
             </div>
             <hr />
             <h5>Branches</h5>
