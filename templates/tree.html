@@ -73,7 +73,7 @@
     <script id="add_branch_form_template" type="text/template">
         <b>Add a Branch</b>
         <form id="##branch.key##_child_add_branch_form" action="/api/v1/branchs" method="post">
-            <input name="parent_branch_key" type="hidden" value="##branch.key##" />
+            <input name="parent_branch" type="hidden" value="##branch.key##" />
             <div>
                 <div class="form_link_hint" id="##branch.key##_child_link_hint" >##tree.link_prompt##</div>
                 <textarea class="form_link" id="##branch.key##_child_link" name="link" rows="1" cols="60" ></textarea>

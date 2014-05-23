@@ -318,7 +318,7 @@ function updateBranchLinks(branch_key) {
         $("#link_container").empty();
     }
 
-    $.get('/api/v1/branchs?parent_branch_key=' + branch_key, function(data, textStatus, xhr) {
+    $.get('/api/v1/branchs?parent_branch=' + branch_key, function(data, textStatus, xhr) {
         var jsondata = JSON.parse(data);
 
         if (jsondata.status == 'OK' && 0 < jsondata.result.length) {

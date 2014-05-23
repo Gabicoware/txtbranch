@@ -93,7 +93,7 @@ class BranchHandler(APIRequestHandler):
     
         branch_keys = self.request.GET.getall('branch_key')
         
-        parent_branch_key_urlsafe = self.request.get('parent_branch_key')
+        parent_branch_key_urlsafe = self.request.get('parent_branch')
         authorname = self.request.get('authorname')
         
         branches = []
@@ -147,7 +147,7 @@ class BranchHandler(APIRequestHandler):
         return branch_dict
 
     def post(self):
-        parent_urlsafe_key = self.request.get('parent_branch_key')
+        parent_urlsafe_key = self.request.get('parent_branch')
         
         success, result = self.controller(BranchController).save_branch(
           self.request.cookies.get('username'),
