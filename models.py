@@ -34,13 +34,6 @@ def string_validator(prop, value):
     return value
     
     
-def branch_url(tree_name, branch_key):
-    query_params = {'branch_key': branch_key.urlsafe()}
-    return '/branch?%s' % (urllib.urlencode(query_params))
-
-def user_url(username):
-    return '/user/'+username
-
 #for use when classes have "safe" key components
 class BaseModel(ndb.Model):
     def to_dict(self):
@@ -63,6 +56,11 @@ class Tree(ndb.Model):
     content_moderator_only = ndb.BooleanProperty(indexed=False)
     
     branch_max = ndb.IntegerProperty(indexed=False)
+    
+    def to_dict(self):
+        result = super(Tree,self).to_dict()
+        result['root_branch_key'] = self.get_root_branch_key().urlsafe()
+        return result
     
     @classmethod
     def create_key(cls, tree_name=config['trees']['default_name']):
@@ -110,6 +108,11 @@ class Like(BaseModel):
     date = ndb.DateTimeProperty(auto_now_add=True)
     value = ndb.IntegerProperty(indexed=True)
     
+    def to_dict(self):
+        result = super(Like,self).to_dict()
+        result['branch_key'] = result.pop('branch')
+        return result
+    
     #assumes that the 
     @classmethod
     def create_key(cls, branch_key, username):
@@ -139,12 +142,12 @@ class Branch(BaseModel):
     _unlike_count = None
     _child_count = None
     
-    def url(self):
-        if self.key:
-            query_params = {'branch_key': self.key.urlsafe()}
-            return '/branch#%s' % (urllib.urlencode(query_params))
-        return None
-    
+    def to_dict(self):
+        result = super(Branch,self).to_dict()
+        result['parent_branch_key'] = result.pop('parent_branch')
+        result['detached_parent_branch_key'] = result.pop('detached_parent_branch')
+        return result
+
     def like_count(self):
         if self._like_count is None:
             self._like_count = Like.query(Like.branch==self.key,Like.value==1).count()
@@ -219,27 +222,6 @@ class Branch(BaseModel):
                 logging.info('append_child - replace succeeded')
         else:
             logging.info('append_child - child exists')
-    
-    @classmethod
-    def main_branchdatas(cls):
-            memcache_key = 'main_branchs_key'
-            data = memcache.get(memcache_key)  # @UndefinedVariable
-            if data is None:
-                branchs_query = Branch.query()
-                branchs = branchs_query.fetch(64)
-                data = {}
-                for branch in branchs:
-                    branchdata = branch.to_dict()
-                    branchdata['time_ago'] = Branch.format_time_ago(branch.date)
-                    branchdata['branch_key'] = branch.key.urlsafe()
-                    branchdata['score'] = branch.score()
-                    if branchdata['tree_name'] not in data:
-                        data[branchdata['tree_name']] = []
-                    tree_branchdatas = data[branchdata['tree_name']]
-                    tree_branchdatas.append(branchdata)
-                if not memcache.add(key=memcache_key, value=data, time=60):  # @UndefinedVariable
-                    logging.error('main_branchs - memcache add failed.')
-            return data
     
     @classmethod
     def get_first_branchs(cls,trees):
@@ -336,16 +318,11 @@ class Notification(BaseModel):
     tree_name = ndb.StringProperty(validator=string_validator)
     date = ndb.DateTimeProperty(auto_now_add=True)
 
-class UserNotificationCount(ndb.Model):
-    count = ndb.IntegerProperty()
-
-    @classmethod
-    def get_by_username(cls,username):
-        if username:
-            return ndb.Key('UserNotificationCount',username).get()
-        return None
-    
-        
+    def to_dict(self):
+        result = super(Notification,self).to_dict()
+        result['branch_key'] = result.pop('branch')
+        return result
+            
 class SessionInfo:
     link_text = ""
     url = "/"

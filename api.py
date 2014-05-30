@@ -91,9 +91,9 @@ class BranchHandler(APIRequestHandler):
 
     def get(self):
     
-        branch_keys = self.request.GET.getall('branch_key')
+        branch_keys = self.request.GET.getall('key')
         
-        parent_branch_key_urlsafe = self.request.get('parent_branch')
+        parent_branch_key_urlsafe = self.request.get('parent_branch_key')
         authorname = self.request.get('authorname')
         
         branches = []
@@ -147,7 +147,7 @@ class BranchHandler(APIRequestHandler):
         return branch_dict
 
     def post(self):
-        parent_urlsafe_key = self.request.get('parent_branch')
+        parent_urlsafe_key = self.request.get('parent_branch_key')
         
         success, result = self.controller(BranchController).save_branch(
           self.request.cookies.get('username'),
@@ -167,7 +167,7 @@ class BranchHandler(APIRequestHandler):
             self.write_fail_response(result)
         
     def put(self):
-        urlsafe_key = self.request.get('branch_key')
+        urlsafe_key = self.request.get('key')
         
         success, result = self.controller(BranchController).update_branch(
           self.request.cookies.get('username'),
@@ -184,7 +184,7 @@ class BranchHandler(APIRequestHandler):
             self.write_fail_response(result)
 
     def delete(self):
-        urlsafe_key = self.request.get('branch_key')
+        urlsafe_key = self.request.get('key')
         
         success, result = self.controller(BranchController).delete_branch(
           self.request.cookies.get('username'),
@@ -242,46 +242,6 @@ class TransitionHandler(APIRequestHandler):
             ntree.put()
             tree.key.delete()
 
-class ExportHandler(APIRequestHandler):
-    
-    def get(self):
-        
-        tree = self.request.get('tree')
-        
-        if tree is not None:
-            branchdatas = Branch.query( Branch.tree_name==tree).fetch()
-            
-            all_branch_dict = {};
-            
-            #there's likely a map function for this
-            
-            for branch in branchdatas:
-                branch_dict = branch.to_dict()
-                branch_dict['children'] = []
-                all_branch_dict[branch.key.urlsafe()] = branch_dict
-                if branch.parent_branch is None:
-                    root_branch = branch_dict
-            
-            if root_branch is None:
-                self.write_fail_response(['no_root'])
-            else:
-                                    
-                for key in all_branch_dict:
-                    
-                    branch_dict = all_branch_dict[key]
-                    
-                    if branch_dict['parent_branch']:
-                        parent_branch_key = branch_dict['parent_branch'].urlsafe()
-                        
-                        parent_branch = all_branch_dict[parent_branch_key]
-                    
-                        parent_branch['children'].append(branch_dict)
-                    
-                self.write_success_response(root_branch)
-        else:
-            self.write_fail_response(['no_tree'])
-
-
 class TreeHandler(APIRequestHandler):
     
     def get(self):
@@ -308,10 +268,7 @@ class TreeHandler(APIRequestHandler):
         success, result = self.controller(TreeController).save_tree(tree_dict)
         
         if success:
-            
-            tree_dict = result.to_dict()
-            tree_dict['root_branch_key'] = result.get_root_branch_key().urlsafe()
-            self.write_success_response(tree_dict)
+            self.write_success_response(result.to_dict())
         else:
             self.write_fail_response(result)
             
@@ -328,10 +285,7 @@ class TreeHandler(APIRequestHandler):
         success, result = self.controller(TreeController).update_tree(tree_dict)
                 
         if success:
-            
-            tree_dict = result.to_dict()
-            tree_dict['root_branch_key'] = result.get_root_branch_key().urlsafe()
-            self.write_success_response(tree_dict)
+            self.write_success_response(result.to_dict())
         else:
             self.write_fail_response(result)
             
@@ -345,11 +299,7 @@ class TreeHandler(APIRequestHandler):
         tree = Tree.create_key(tree_name).get()
         
         if tree is not None:
-            tree_dict = tree.to_dict()
-            
-            tree_dict['root_branch_key'] = tree.get_root_branch_key().urlsafe()
-        
-            self.write_success_response(tree_dict)
+            self.write_success_response(tree.to_dict())
         else:
             self.write_fail_response(['not_found'])
         
@@ -401,7 +351,6 @@ handlers = [
     ('/api/v1/branchs', BranchHandler),
     ('/api/v1/trees', TreeHandler),
     ('/api/v1/userinfos', UserInfoHandler),
-#    ('/api/v1/export', ExportHandler),
 #    ('/api/v1/transition', TransitionHandler),
     Route('/api/v1/notifications', handler='api.NotificationHandler:get_notifications', name='get_notifications',methods=['GET']),
     Route('/api/v1/notifications/unread_count', handler='api.NotificationHandler:get_unread_count', name='get_count',methods=['GET']),

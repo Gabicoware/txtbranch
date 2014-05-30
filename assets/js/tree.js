@@ -51,7 +51,7 @@ function setTree(dict) {
     $("#tree_conventions").text(tree.conventions);
 
     if (branch_key != "") {
-        $.get('/api/v1/branchs?branch_key=' + branch_key, function(data) {
+        $.get('/api/v1/branchs?key=' + branch_key, function(data) {
             var jsondata = JSON.parse(data);
             if (jsondata.result.length == 1) {
                 var branch = jsondata["result"][0];
@@ -268,20 +268,20 @@ function loadParent(branch) {
 
     //get the key of the furthest back branch
 
-    if (branch["parent_branch"] == null) {
+    if (branch["parent_branch_key"] == null) {
         $("#parent_container").hide();
     } else {
 
-        var div_id = branch.parent_branch + "_branch_div";
+        var div_id = branch.parent_branch_key + "_branch_div";
 
         if (0 == $("#" + div_id).length) {
 
             $("#parent_container").empty();
 
-            var parent_branch = branch_cache[branch.parent_branch];
+            var parent_branch = branch_cache[branch.parent_branch_key];
 
             if (parent_branch == null) {
-                $.get('/api/v1/branchs?branch_key=' + branch.parent_branch, function(data, textStatus, xhr) {
+                $.get('/api/v1/branchs?branch_key=' + branch.parent_branch_key, function(data, textStatus, xhr) {
                     var jsondata = JSON.parse(data);
 
                     if (jsondata.status == 'OK' && 0 < jsondata.result.length) {
@@ -318,7 +318,7 @@ function updateBranchLinks(branch_key) {
         $("#link_container").empty();
     }
 
-    $.get('/api/v1/branchs?parent_branch=' + branch_key, function(data, textStatus, xhr) {
+    $.get('/api/v1/branchs?parent_branch_key=' + branch_key, function(data, textStatus, xhr) {
         var jsondata = JSON.parse(data);
 
         if (jsondata.status == 'OK' && 0 < jsondata.result.length) {
