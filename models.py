@@ -88,6 +88,10 @@ class Tree(ndb.Model):
         return result
     
     @classmethod
+    def get_by_moderatorname(cls,moderator):
+        return Tree.query(Tree.moderatorname==moderator).fetch()
+     
+    @classmethod
     def main_trees(cls):
         memcache_key = 'main_trees'
         data = memcache.get(memcache_key)  # @UndefinedVariable

@@ -250,8 +250,13 @@ class TreeHandler(APIRequestHandler):
         
         tree_name = self.request.get('name')
         
+        moderator = self.request.get('moderator')
+        
         if list_type == "main":
             self.get_main_list()
+        elif moderator is not None and moderator != '':
+            trees = Tree.get_by_moderatorname(moderator)
+            self.write_success_response(trees)
         elif tree_name is not None and tree_name != '':
             self.get_tree(tree_name)
         else:
