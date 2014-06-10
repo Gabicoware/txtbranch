@@ -281,7 +281,7 @@ function loadParent(branch) {
             var parent_branch = branch_cache[branch.parent_branch_key];
 
             if (parent_branch == null) {
-                $.get('/api/v1/branchs?branch_key=' + branch.parent_branch_key, function(data, textStatus, xhr) {
+                $.get('/api/v1/branchs?key=' + branch.parent_branch_key, function(data, textStatus, xhr) {
                     var jsondata = JSON.parse(data);
 
                     if (jsondata.status == 'OK' && 0 < jsondata.result.length) {
