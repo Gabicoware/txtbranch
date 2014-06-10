@@ -63,7 +63,10 @@ class UserInfoHandler(APIRequestHandler):
         if user_info is not None:
             self.write_success_response(user_info.to_dict())
         else:
-            self.write_fail_response([])
+            if self.logged_in:
+                self.write_fail_response(['needs_username'])
+            else:
+                self.write_fail_response([])
 
     def post(self):
         username = self.request.get('username')
