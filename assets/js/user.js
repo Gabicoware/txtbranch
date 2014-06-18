@@ -10,8 +10,7 @@ function activeUsername(){
 
 function showBranches(){
     $("#contents").empty();
-    $.get('/api/v1/branchs?authorname='+activeUsername(), function(data) {
-        var jsondata = JSON.parse(data);
+    $.get('/api/v1/branchs?authorname='+activeUsername(), function(jsondata) {
         if(jsondata.status == "OK"){
             var branches = jsondata.result;
             for (var i = 0; i < branches.length; i++) {
@@ -51,8 +50,7 @@ function prepareNotificationHTML(notification){
 
 function showNotifications(){
     $("#contents").empty();
-    $.get('/api/v1/notifications', function(data) {
-        var jsondata = JSON.parse(data);
+    $.get('/api/v1/notifications', function(jsondata) {
         if(jsondata.status == "OK"){
             var notifications = jsondata.result;
             for (var i = 0; i < notifications.length; i++) {
@@ -65,8 +63,7 @@ function showNotifications(){
 
 function showActivity(){
     $("#contents").empty();
-    $.get('/api/v1/notifications?from_username='+activeUsername(), function(data) {
-        var jsondata = JSON.parse(data);
+    $.get('/api/v1/notifications?from_username='+activeUsername(), function(jsondata) {
         if(jsondata.status == "OK"){
             var notifications = jsondata.result;
             for (var i = 0; i < notifications.length; i++) {

@@ -8,8 +8,7 @@ var textareas = null;
 
 function loadForm(){
     
-    $.get('/api/v1/userinfos', function(data) {
-        var jsondata = JSON.parse(data);
+    $.get('/api/v1/userinfos', function(jsondata) {
         if(jsondata.status == "OK"){
             var userinfo = jsondata.result;
             var components = location.pathname.split("/");
@@ -17,8 +16,7 @@ function loadForm(){
             
             if(action == "edit"){
                 var treename = components[components.length - 2];
-                $.get('/api/v1/trees?name='+treename, function(data) {
-                    var jsondata = JSON.parse(data);
+                $.get('/api/v1/trees?name='+treename, function(jsondata) {
                     if(jsondata.status == "OK"){
                         var tree = jsondata.result;
                         if(tree.moderator == userinfo.usernam){
@@ -216,11 +214,10 @@ function setupTextareas(){
 function setupNewFormHandlers(){
     $("#new_tree_form").ajaxForm({
         type : 'post',
-        success : function(data, status, xhr){
-            var response = JSON.parse(data);
-            if(response.status == "OK"){
+        success : function(jsondata, status, xhr){
+            if(jsondata.status == "OK"){
                 
-                window.location.href = "/tree/"+response["result"]["name"];
+                window.location.href = "/tree/"+jsondata["result"]["name"];
                 //forward to 
             }else{
                 //display errors
@@ -297,12 +294,11 @@ function setupEditFormHandlers(){
             });
         
             // callback handler that will be called on success
-            request.done(function (data, textStatus, jqXHR){
+            request.done(function (jsondata, textStatus, jqXHR){
                 // log a message to the console
-                var response = JSON.parse(data);
-                if(response.status == "OK"){
+                if(jsondata.status == "OK"){
                     //forward to 
-                    window.location.href = "/tree/"+response["result"]["name"];
+                    window.location.href = "/tree/"+jsondata["result"]["name"];
                 }else{
                     //display errors
                 }

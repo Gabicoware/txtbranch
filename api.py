@@ -22,8 +22,10 @@ class ModelEncoder(JSONEncoder):
 
 class APIRequestHandler(base.BaseRequestHandler):
     def write_success_response(self, result):
+        self.response.content_type = "text/json"
         self.response.write(json.dumps({'status':'OK','result':result},cls=ModelEncoder))
     def write_fail_response(self, result):
+        self.response.content_type = "text/json"
         self.response.write(json.dumps({'status':'ERROR','result':result}))
         
 class LikeHandler(APIRequestHandler):

@@ -33,7 +33,7 @@
     </script>
     <script id="edit_branch_form_template" type="text/template">
         <form id="##branch.key##_edit_branch_form" action="/api/v1/branchs" method="put">
-            <input name="branch_key" type="hidden" value="##branch.key##" />
+            <input name="key" type="hidden" value="##branch.key##" />
             <div>
                 <div class="form_link_hint" id="##branch.key##_link_hint" > &nbsp; </div>
                 <textarea class="form_link" id="##branch.key##_link" name="link" rows="1" cols="60" >##branch.link##</textarea>

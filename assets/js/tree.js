@@ -15,8 +15,7 @@ function loadTree(){
                 url: '/api/v1/trees?name='+treename,
                 type: "get"
             });
-    tree_request.done( function(data) {
-        var jsondata = JSON.parse(data);
+    tree_request.done( function(jsondata) {
         if(jsondata.status == "OK"){
             setTree(jsondata.result);
         }else{
@@ -51,8 +50,7 @@ function setTree(dict) {
     $("#tree_conventions").text(tree.conventions);
 
     if (branch_key != "") {
-        $.get('/api/v1/branchs?key=' + branch_key, function(data) {
-            var jsondata = JSON.parse(data);
+        $.get('/api/v1/branchs?key=' + branch_key, function(jsondata) {
             if (jsondata.result.length == 1) {
                 var branch = jsondata["result"][0];
                 branch_cache[branch.key] = branch;
@@ -71,8 +69,7 @@ function toggleLike(branch_key, param_value) {
         param_value = 0;
     }
 
-    $.get('/api/v1/likes?branch_key=' + branch_key + '&value=' + param_value, function(data) {
-        var jsondata = JSON.parse(data);
+    $.get('/api/v1/likes?branch_key=' + branch_key + '&value=' + param_value, function(jsondata) {
         if (jsondata.status == 'OK') {
             branch.like_value = param_value;
             updateLikeInfo(branch_key, branch.like_value);
@@ -223,12 +220,11 @@ function updateBranchCompleteHandler(data, status, xhr) {
     updateOptions(false);
 }
 
-function branchCompleteHandler(data, status, xhr) {
-    var response = JSON.parse(data);
-    if (response.status == "OK") {
+function branchCompleteHandler(jsondata, status, xhr) {
+    if (jsondata.status == "OK") {
         showAddBranchLink();
 
-        var added_branch = response.result;
+        var added_branch = jsondata.result;
 
         branch_cache[added_branch.key] = added_branch;
 
@@ -240,8 +236,8 @@ function branchCompleteHandler(data, status, xhr) {
         }
     } else {
         resetToBranch(active_branch_key);
-        for (var key in response.result) {
-            if (response.result.hasOwnProperty(key) && add_branch_messages[key] != null) {
+        for (var key in jsondata.result) {
+            if (jsondata.result.hasOwnProperty(key) && add_branch_messages[key] != null) {
                 //$("#add_branch_div").empty();
                 var template = $("#has_links_template").html();
                 template = template.replace(/##message##/g, add_branch_messages[key]);
@@ -281,8 +277,7 @@ function loadParent(branch) {
             var parent_branch = branch_cache[branch.parent_branch_key];
 
             if (parent_branch == null) {
-                $.get('/api/v1/branchs?key=' + branch.parent_branch_key, function(data, textStatus, xhr) {
-                    var jsondata = JSON.parse(data);
+                $.get('/api/v1/branchs?key=' + branch.parent_branch_key, function(jsondata, textStatus, xhr) {
 
                     if (jsondata.status == 'OK' && 0 < jsondata.result.length) {
                         var parent_branch = jsondata.result[0];
@@ -318,8 +313,7 @@ function updateBranchLinks(branch_key) {
         $("#link_container").empty();
     }
 
-    $.get('/api/v1/branchs?parent_branch_key=' + branch_key, function(data, textStatus, xhr) {
-        var jsondata = JSON.parse(data);
+    $.get('/api/v1/branchs?parent_branch_key=' + branch_key, function(jsondata, textStatus, xhr) {
 
         if (jsondata.status == 'OK' && 0 < jsondata.result.length) {
 
