@@ -5,8 +5,7 @@
 		
 		function loadForm(){
 		    
-		    $.get('/api/v1/userinfos', function(data) {
-		        var jsondata = JSON.parse(data);
+		    $.get('/api/v1/userinfos', function(jsondata) {
 		        if(jsondata.status == "OK"){
 	                showLogout();
 		        }else{
