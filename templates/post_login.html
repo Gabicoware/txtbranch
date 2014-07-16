@@ -96,19 +96,18 @@
 				
 				if(isvalid){
 					$("#username_textfield").prop('disabled', true);
-					$.post('/api/v1/userinfos','username='+encodeURIComponent(username), function(data) {
+					$.post('/api/v1/userinfos','username='+encodeURIComponent(username), function(responsedata) {
 						
-						var response = JSON.parse(data);
-			            if(response.status == "OK"){
+			            if(responsedata.status == "OK"){
 		                	$("#username_message").removeClass("invalid");
 				        	$("#username_message").text("Username saved");
-			            	if(response.result.username != username){
+			            	if(responsedata.result.username != username){
 			            		alert('Your username was saved as '+username);
 			            	}
 		            		window.location.href = "/";
 			            }else{
 							$("#username_textfield").prop('disabled', false);
-			                var errors = response.result;
+			                var errors = responsedata.result;
 					    	var message = "";
 					    	
 					    	var keys = ['has_name','other_has_name','invalid_name','unauthenticated'];

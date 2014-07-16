@@ -13,20 +13,29 @@ class BaseController:
 
     def current_user_info(self):
         
+        if self.user_info is None:
+            """Get the current user by lookup if we can"""
+            if self.username:
+                self.user_info = UserInfo.get_by_username(self.username)
+            
+            """Gets the current user. This involves a query. Its more efficient to perform 
+            lookups with the username and verify that the user_info is current."""
+            if self.google_user is not None:
+                users_query = UserInfo.query( UserInfo.google_user==self.google_user)
+                self.user_info = users_query.get()
+            
+            if self.oauth_user_id is not None:
+                users_query = UserInfo.query( UserInfo.oauth_user_id==self.oauth_user_id)
+                self.user_info = users_query.get()
+            
+            if self.user_info and self.username is None:
+                self.username = self.user_info.username
+            
+            
         if self.user_info is not None and self.is_user_info_current(self.user_info):
             return self.user_info
-        
-        """Gets the current user. This involves a query. Its more efficient to perform 
-        lookups with the username and verify that the user_info is current."""
-        if self.google_user is not None:
-            users_query = UserInfo.query( UserInfo.google_user==self.google_user)
-            return users_query.get()
-        
-        if self.oauth_user_id is not None:
-            users_query = UserInfo.query( UserInfo.oauth_user_id==self.oauth_user_id)
-            return users_query.get()
-        
-        return None
+        else:
+            return None
 
     def is_user_info_current(self, user_info):
     
@@ -500,13 +509,16 @@ class NotificationController(BaseController):
         elif from_username is not None:
             notifications_query = Notification.query( Notification.from_username==from_username)
         elif self.current_user_info() is not None:
+            #default to the users inbox
             notifications_query = Notification.query( Notification.to_username==self.current_user_info().username)
             
+        
         if notifications_query is not None:
             data = notifications_query.order(-Notification.date).fetch(50)
             return True, data
         else:
-            return False, None
+            #if we could not get to the default, then the user must be logged out
+            return False,  [ 'unauthenticated' ]
     #todo...
     def get_unread_count(self):
         return False, None
