@@ -50,6 +50,9 @@ class UserInfoHandler(APIRequestHandler):
         
         user_info = None
         username = self.request.get('username')
+        
+        errors = []
+        
         if username:
             user_info = UserInfo.get_by_username(username)
         else:
@@ -57,18 +60,27 @@ class UserInfoHandler(APIRequestHandler):
                 user_info = self.controller(BaseController).current_user_info()
                 if user_info is not None:
                     self.set_cookie(user_info,True)
+                elif self.request.cookies.get('username') is not None:
+                    errors = ['invalid_session']
+                    logging.warn("deleting user session because we can't find the user")
+                    self.response.delete_cookie('username')
+                    self.auth.unset_session()
+                else:
+                    errors = ['no_session']
+
             elif self.logged_in:
                 username = self.request.cookies.get('username')
                 if username:
                     user_info = UserInfo.get_by_username(username)
-                    
+            else:
+                errors = ['no_session']
         if user_info is not None:
             self.write_success_response(user_info.to_dict())
         else:
             if self.logged_in:
                 self.write_fail_response(['needs_username'])
             else:
-                self.write_fail_response([])
+                self.write_fail_response(errors)
 
     def post(self):
         username = self.request.get('username')
