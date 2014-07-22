@@ -17,9 +17,21 @@ indexes:
   - name: from_username
   - name: date
     direction: desc
-    
+
 - kind: Notification
   properties:
   - name: to_username
+  - name: date
+    direction: desc
+    
+- kind: Notification
+  properties:
+  - name: tree_name
+  - name: date
+    direction: desc
+    
+- kind: Branch
+  properties:
+  - name: authorname
   - name: date
     direction: desc
