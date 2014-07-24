@@ -2,10 +2,9 @@ import unittest
 
 import time
 
-from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 from google.appengine.datastore import datastore_stub_util
-from google.appengine.api import memcache, users
+from google.appengine.api import users
 
 
 import os, sys
@@ -180,10 +179,11 @@ class BranchControllerTestCase(unittest.TestCase):
         self.assertTrue(success, lj(result))
         
     def testSaveBranch(self):
+        
         success, result = self.controller.save_branch(self.user_info.username, self.parent_branch.key.urlsafe(), 'testBranch.unique_link', 'testBranch.unique_content')
         
         self.assertTrue(success, lj(result))
-            
+        
     def testBranchMax(self):
         
         self.tree.branch_max = 1

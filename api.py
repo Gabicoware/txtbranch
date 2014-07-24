@@ -3,7 +3,6 @@ import webapp2
 from webapp2 import Route
 import json
 import datetime
-import logging
 
 import base
 from secrets import SESSION_KEY
