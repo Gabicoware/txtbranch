@@ -28,7 +28,6 @@ class MainHandler(RequestHandler):
         
         trees = Tree.main_trees()
         branchdatas = Branch.get_first_branchs(trees)
-        logging.info(trees)
         template_values = {
             'trees': trees,
             'branchdatas': branchdatas,
@@ -127,7 +126,6 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
          auth_info contains access token or oauth token and secret.
         """
         auth_id = '%s:%s' % (provider, data['id'])
-        logging.info('Looking for a user with id %s', auth_id)
         
         user = self.auth.store.user_model.get_by_auth_id(auth_id)
         _attrs = self._to_user_model_attrs(data, self.USER_ATTRS[provider])
@@ -135,7 +133,6 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
         remember = True
 
         if user:
-            logging.info('Found existing user to log in')
             # Existing users might've changed their profile data so we update our
             # local model anyway. This might result in quite inefficient usage
             # of the Datastore, but we do this anyway for demo purposes.
@@ -153,7 +150,6 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
             # otherwise add this auth_id to currently logged in user.
 
             if self.logged_in:
-                logging.info('Updating currently logged in user')
                 
                 u = self.current_user
                 u.populate(**_attrs)
@@ -164,7 +160,6 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
                 u.add_auth_id(auth_id)
                 
             else:
-                logging.info('Creating a brand new user')
                 ok, user = self.auth.store.user_model.create_user(auth_id, **_attrs)
                 if ok:
                     self.auth.set_session(self.auth.store.user_to_dict(user))
@@ -232,7 +227,6 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
         if remember:
             now = datetime.datetime.now()
             delta = datetime.timedelta(seconds=self.request.app.config['webapp2_extras.sessions']['cookie_args']['max_age'])
-            logging.info(delta)
             then = delta + now
         else:
             then = None

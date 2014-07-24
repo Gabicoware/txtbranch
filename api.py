@@ -85,7 +85,6 @@ class UserInfoHandler(APIRequestHandler):
         if remember:
             now = datetime.datetime.now()
             delta = datetime.timedelta(seconds=self.request.app.config['webapp2_extras.sessions']['cookie_args']['max_age'])
-            logging.info(delta)
             then = delta + now
         else:
             then = None
@@ -284,8 +283,6 @@ class TreeHandler(APIRequestHandler):
             
     def put(self):
         tree_dict = {}
-        
-        logging.info(self.request.POST.items())
         
         for key, value in self.request.POST.items():
             tree_dict[key] = value

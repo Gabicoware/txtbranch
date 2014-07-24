@@ -192,16 +192,11 @@ class Branch(BaseModel):
             self._child_count += 1
         
         if data is None:
-            logging.info('append_child - loading data from memcache')
             data = self.children()
         if child not in data:
             data.append(child)
             if not memcache.replace(key=memcache_key, value=data, time=60):  # @UndefinedVariable
                 logging.error('append_child - memcache replace failed.')
-            else:
-                logging.info('append_child - replace succeeded')
-        else:
-            logging.info('append_child - child exists')
     
     def empty_children_cache(self):
         memcache_key = self.children_key()
@@ -222,10 +217,6 @@ class Branch(BaseModel):
             data.append(child)
             if not memcache.replace(key=memcache_key, value=data, time=60):  # @UndefinedVariable
                 logging.error('append_child - memcache replace failed.')
-            else:
-                logging.info('append_child - replace succeeded')
-        else:
-            logging.info('append_child - child exists')
     
     @classmethod
     def get_first_branchs(cls,trees):
