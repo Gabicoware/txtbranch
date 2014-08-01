@@ -1,6 +1,8 @@
 var notification_type_messages = {
     'new_branch':"added a branch",
-    'edit_branch':"edited a branch"
+    'edit_branch':"edited a branch",
+    'new_tree':"added a tree",
+    'edit_tree':"edited a tree",
 };
 
 function activeUsername(){
@@ -34,7 +36,14 @@ function prepareBranchHTML(branch){
 }
 
 function prepareNotificationHTML(notification){
-    var template = $("#notification_template").html();
+    
+    var template = null;
+    if(notification.notification_type == 'new_tree' || notification.notification_type == 'edit_tree'){
+        template = $("#no_branch_notification_template").html();
+    }else{
+        template = $("#notification_template").html();
+    }
+    
     
     template = template.replace(/##notification\.from_username##/g, notification.from_username);
     
@@ -42,7 +51,7 @@ function prepareNotificationHTML(notification){
     template = template.replace(/##notification\.message##/g, message);
     
     template = template.replace(/##notification\.tree_name##/g, notification.tree_name);
-    template = template.replace(/##notification\.branch##/g, notification.branch);
+    template = template.replace(/##notification\.branch_key##/g, notification.branch_key);
     template = template.replace(/##notification\.branch_link##/g, notification.branch_link);
     
     return template;

@@ -40,8 +40,16 @@ class BaseModel(ndb.Model):
         result = super(BaseModel,self).to_dict()
         result['key'] = self.key.urlsafe()
         return result
+    def before_put(self):
+        pass
+    def after_put(self):
+        pass
+    def put(self, **kwargs):
+        self.before_put()
+        super(BaseModel,self).put(**kwargs)
+        self.after_put()
 
-class Tree(ndb.Model):
+class Tree(BaseModel):
     """Models an individual Tree"""
     moderatorname = ndb.StringProperty(indexed=True)
     name = ndb.StringProperty(indexed=False,validator=string_validator)
@@ -98,7 +106,7 @@ class Tree(ndb.Model):
         if data is None:
             trees_query = Tree.query()
             data = trees_query.fetch(64)
-            if not memcache.add(key=memcache_key, value=data, time=60):  # @UndefinedVariable
+            if not memcache.add(key=memcache_key, value=data, time=7200):  # @UndefinedVariable
                 logging.error('main_branchs - memcache add failed.')
         return data
     
@@ -180,7 +188,7 @@ class Branch(BaseModel):
             branchs_query = Branch.query( Branch.parent_branch==self.key)
             data = branchs_query.fetch(64)
             self._child_count = len(data)
-            if not memcache.add(key=memcache_key, value=data, time=60):  # @UndefinedVariable
+            if not memcache.add(key=memcache_key, value=data, time=7200):  # @UndefinedVariable
                 logging.error('get_children - memcache add failed.')
         return sorted(data, key=lambda branch: branch.score(), reverse=True)
     
@@ -192,16 +200,11 @@ class Branch(BaseModel):
             self._child_count += 1
         
         if data is None:
-            logging.info('append_child - loading data from memcache')
             data = self.children()
         if child not in data:
             data.append(child)
-            if not memcache.replace(key=memcache_key, value=data, time=60):  # @UndefinedVariable
+            if not memcache.replace(key=memcache_key, value=data, time=7200):  # @UndefinedVariable
                 logging.error('append_child - memcache replace failed.')
-            else:
-                logging.info('append_child - replace succeeded')
-        else:
-            logging.info('append_child - child exists')
     
     def empty_children_cache(self):
         memcache_key = self.children_key()
@@ -220,12 +223,8 @@ class Branch(BaseModel):
                 data.remove(original_child)
             
             data.append(child)
-            if not memcache.replace(key=memcache_key, value=data, time=60):  # @UndefinedVariable
+            if not memcache.replace(key=memcache_key, value=data, time=7200):  # @UndefinedVariable
                 logging.error('append_child - memcache replace failed.')
-            else:
-                logging.info('append_child - replace succeeded')
-        else:
-            logging.info('append_child - child exists')
     
     @classmethod
     def get_first_branchs(cls,trees):
@@ -283,7 +282,7 @@ class Branch(BaseModel):
 #1. follow a link to the user, regardless of state
 #2. lookup the userInfo without a query
 
-class UserInfo(ndb.Model):
+class UserInfo(BaseModel):
     username = ndb.StringProperty(validator=string_validator)
     google_user = ndb.UserProperty(indexed=True)
     oauth_user_id = ndb.IntegerProperty()
@@ -301,13 +300,25 @@ class UserInfo(ndb.Model):
         user_info.username = username
         user_info.put()
         return user_info
-            
+    
+    def after_put(self):
+        if self.username:
+            memcache_key = "UserInfo.get.username."+self.username
+            memcache.delete(memcache_key)
+
     @classmethod
     def get_by_username(cls,username):
         
+        data = None
         if username:
-            return UserInfo.create_key(username).get()
-        return None
+            memcache_key = "UserInfo.get.username."+username
+            data = memcache.get(memcache_key)  # @UndefinedVariable
+            if data is None:
+                data = UserInfo.create_key(username).get()
+                if not memcache.add(key=memcache_key, value=data, time=7200):  # @UndefinedVariable
+                    logging.error('UserInfo.get_by_username - memcache add failed.')
+
+        return data
             
     def branchs(self):
         data = Branch.query(Branch.authorname == self.username)
@@ -326,7 +337,43 @@ class Notification(BaseModel):
         result = super(Notification,self).to_dict()
         result['branch_key'] = result.pop('branch')
         return result
-            
+    
+    def after_put(self):
+        if self.tree_name is not None:
+            memcache_key = "Notification.list.tree_name."+self.tree_name
+            memcache.delete(memcache_key)
+        if self.from_username is not None:
+            memcache_key = "Notification.list.from_username."+self.from_username
+            memcache.delete(memcache_key)
+        if self.to_username is not None:
+            memcache_key = "Notification.list.to_username."+self.to_username
+            memcache.delete(memcache_key)
+    
+    @classmethod
+    def get_all_by_tree_name(cls,tree_name):
+        memcache_key = "Notification.list.tree_name."+tree_name
+        return Notification.get_all_cached(memcache_key, Notification.query( Notification.tree_name==tree_name))
+
+    @classmethod
+    def get_all_by_from_username(cls,from_username):
+        memcache_key = "Notification.list.from_username."+from_username
+        return Notification.get_all_cached(memcache_key, Notification.query( Notification.from_username==from_username))
+    
+    @classmethod
+    def get_all_by_to_username(cls,to_username):
+        memcache_key = "Notification.list.to_username."+to_username
+        return Notification.get_all_cached(memcache_key, Notification.query( Notification.to_username==to_username))
+    
+    
+    @classmethod
+    def get_all_cached(cls,memcache_key, query):
+        data = memcache.get(memcache_key)  # @UndefinedVariable
+        if data is None:
+            data = query.order(-Notification.date).fetch(50)
+            if not memcache.add(key=memcache_key, value=data, time=7200):  # @UndefinedVariable
+                logging.error('Notification.get_all_cached - memcache add failed.')
+        return data
+    
 class SessionInfo:
     link_text = ""
     url = "/"

@@ -135,7 +135,6 @@ class BranchController(BaseController):
             
             parent_branch.append_child(branch)
             
-            logging.info("creating notifcation")
             notification = Notification()
             notification.from_username = branch.authorname
             if branch.authorname != parent_branch.authorname:
@@ -502,23 +501,22 @@ class LikeController(BaseController):
 class NotificationController(BaseController):
     
     def get_notifications(self,tree_name=None,from_username=None):
-        
-        notifications_query = None
+        data = None
         if tree_name is not None:
-            notifications_query = Notification.query( Notification.tree_name==tree_name)
+            data = Notification.get_all_by_tree_name(tree_name)
         elif from_username is not None:
-            notifications_query = Notification.query( Notification.from_username==from_username)
+            data = Notification.get_all_by_from_username(from_username)
         elif self.current_user_info() is not None:
             #default to the users inbox
-            notifications_query = Notification.query( Notification.to_username==self.current_user_info().username)
+            data = Notification.get_all_by_to_username(self.current_user_info().username)
+        else:
+            return False,  [ 'unauthenticated' ]
             
-        
-        if notifications_query is not None:
-            data = notifications_query.order(-Notification.date).fetch(50)
+        if data is not None:
             return True, data
         else:
             #if we could not get to the default, then the user must be logged out
-            return False,  [ 'unauthenticated' ]
+            return False,  [ ]
     #todo...
     def get_unread_count(self):
         return False, None

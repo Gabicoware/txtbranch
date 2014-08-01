@@ -18,7 +18,14 @@
         <div class="notification">
 	        <a class="name" href="/user/##notification.from_username##">##notification.from_username##</a> 
 	        ##notification.message## 
-	        "<a href="/tree/##notification.tree_name###branch_key=##notification.branch##">##notification.branch_link##</a>" in 
+	        "<a href="/tree/##notification.tree_name###branch_key=##notification.branch_key##">##notification.branch_link##</a>" in 
+	        <a class="name" href="/tree/##notification.tree_name##">##notification.tree_name##</a>
+    	</div>
+    </script>
+    <script id="no_branch_notification_template" type="text/template">
+        <div class="notification">
+	        <a class="name" href="/user/##notification.from_username##">##notification.from_username##</a> 
+	        ##notification.message## 
 	        <a class="name" href="/tree/##notification.tree_name##">##notification.tree_name##</a>
     	</div>
     </script>

@@ -3,6 +3,7 @@ import webapp2
 from webapp2_extras import auth, sessions, jinja2
 from jinja2.runtime import TemplateNotFound
 from google.appengine.api import users
+import logging
 
 
 class BaseRequestHandler(webapp2.RequestHandler):
@@ -22,12 +23,18 @@ class BaseRequestHandler(webapp2.RequestHandler):
         # Get a session store for this request.
         self.session_store = sessions.get_store(request=self.request)
         
+        val1 = self.request.cookies.get('auth')
+        
         try:
             # Dispatch the request.
             webapp2.RequestHandler.dispatch(self)
         finally:
             # Save all sessions.
             self.session_store.save_sessions(self.response)
+
+        val2 = self.request.cookies.get('auth')
+        if val1 != val2:
+            logging.info(val1 + " != " + val2)
     
     @webapp2.cached_property    
     def jinja2(self):

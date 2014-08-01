@@ -21,9 +21,17 @@ textarea.invalid{background-color:#FF8888}
 	position: relative;
 	top: 25px;
 	left: 7px;
-	margin-top:-20px;
 	pointer-events: none;
 }
+.form_link_hint{
+	margin-top:-20px;
+}
+.form_content_hint{
+	height:100px;
+	margin-top:0px;
+	margin-bottom: -80px;
+}
+
 a.vote:hover {text-decoration:none;}
 
 div.invalid{
