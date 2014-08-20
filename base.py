@@ -5,37 +5,30 @@ from jinja2.runtime import TemplateNotFound
 from google.appengine.api import users
 import logging
 
-
 class BaseRequestHandler(webapp2.RequestHandler):
         
     def controller(self,controllerClass):
         controller = controllerClass();
-        user_dict = self.auth.get_user_by_session()
-        if user_dict is not None:
-                controller.oauth_user_id = user_dict['user_id']
+        oauth_user_id = self.current_session_user_id()
+        if oauth_user_id is not None:
+            controller.oauth_user_id = oauth_user_id
         google_user = users.get_current_user()
         if google_user is not None:
-                controller.google_user = google_user
+            controller.google_user = google_user
         controller.username = self.request.cookies.get('username')
         return controller
     
     def dispatch(self):
+        
         # Get a session store for this request.
         self.session_store = sessions.get_store(request=self.request)
+                
+        # Dispatch the request.
+        webapp2.RequestHandler.dispatch(self)
+        # Save all sessions.
         
-        val1 = self.request.cookies.get('auth')
-        
-        try:
-            # Dispatch the request.
-            webapp2.RequestHandler.dispatch(self)
-        finally:
-            # Save all sessions.
-            self.session_store.save_sessions(self.response)
+        self.session_store.save_sessions(self.response)
 
-        val2 = self.request.cookies.get('auth')
-        if val1 != val2:
-            logging.info(val1 + " != " + val2)
-    
     @webapp2.cached_property    
     def jinja2(self):
         """Returns a Jinja2 renderer cached in the app registry"""
@@ -48,18 +41,26 @@ class BaseRequestHandler(webapp2.RequestHandler):
         
     @webapp2.cached_property
     def auth(self):
-            return auth.get_auth()
+        return auth.get_auth()
     
     @webapp2.cached_property
     def current_user(self):
         """Returns currently logged in user"""
-        user_dict = self.auth.get_user_by_session()
-        return self.auth.store.user_model.get_by_id(user_dict['user_id'])
-            
+        user_id = self.current_session_user_id()
+        if user_id is not None:
+            return self.auth.store.user_model.get_by_id(user_id)
+        return None
+    
+    def current_session_user_id(self):
+        session_dict = self.auth.get_session_data(pop=False)
+        if session_dict is not None:
+            return session_dict['user_id']
+        return None
+    
     @webapp2.cached_property
     def logged_in(self):
         """Returns true if a user is currently logged in, false otherwise"""
-        return self.auth.get_user_by_session() is not None or users.get_current_user() is not None
+        return self.current_session_user_id() is not None or users.get_current_user() is not None
     
             
     def render(self, template_name, template_vars={}):
