@@ -110,6 +110,9 @@ class Tree(BaseModel):
                 logging.error('main_branchs - memcache add failed.')
         return data
     
+    def after_put(self):
+        memcache_key = 'main_trees'
+        memcache.delete(memcache_key)
 
 class Like(BaseModel):
     """Models a Like on a branch"""
