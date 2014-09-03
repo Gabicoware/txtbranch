@@ -21,10 +21,11 @@ To setup:
 
 Environments:
 
-  - The makefile allows you to to have multiple environments. The production version excludes tests from deployment, 
-  and can have a completely different authentication setup if required.
-  - To setup, copy app.yaml, config.json, and secrets.py to their production-* and staging-* counterparts
+  - The makefile allows you to to have multiple environments.
+  - To setup, copy app.yaml, config.json, and secrets.py to versions that begin with {environment}-, such as production-config.json
+  - Usage: make install name="production" dest_folder="../txtbranch-production"
+  - To deploy with tests: make install name="staging" dest_folder="../txtbranch-staging" test=1
 
-[1]: https://github.com/crhym3/simpleauth/tree/master/example
+[1]: https://github.com/crhym3/simpleauth
 [2]: https://github.com/simplegeo/python-oauth2
 [3]: http://code.google.com/p/httplib2/
