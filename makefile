@@ -1,19 +1,18 @@
-prep:
+TESTING := $(test)
+
+install:
+	
 	mkdir -p ${dest_folder}
 	
-install-staging: install-base
+ifeq ($(TESTING), 1)
 	cp -r test ${dest_folder}
 	cp gaeunit.py ${dest_folder}
-	cp staging-app.yaml ${dest_folder}/app.yaml
-	cp staging-secrets.py ${dest_folder}/secrets.py
-	cp staging-config.json ${dest_folder}/config.json
-
-install-production: install-base
-	cp production-app.yaml ${dest_folder}/app.yaml
-	cp production-secrets.py ${dest_folder}/secrets.py
-	cp production-config.json ${dest_folder}/config.json
-
-install-base: prep
+endif
+	
+	cp ${name}-app.yaml ${dest_folder}/app.yaml
+	cp ${name}-secrets.py ${dest_folder}/secrets.py
+	cp ${name}-config.json ${dest_folder}/config.json
+	
 	cp -r httplib2 ${dest_folder}
 	cp -r oauth2 ${dest_folder}
 	cp -r simpleauth ${dest_folder}

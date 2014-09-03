@@ -1,4 +1,4 @@
-application: txtbranch
+application: YOUR_APP_NAME_HERE
 version: 2
 runtime: python27
 api_version: 1
@@ -29,6 +29,11 @@ handlers:
 - url: /assets
   static_dir: assets
   
+#uncomment this if you want to support testing
+#- url: /test.*
+#  script: gaeunit.application
+#  login: admin
+
 - url: /api/v1/.*
   script: api.application
 

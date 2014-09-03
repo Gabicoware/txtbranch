@@ -9,13 +9,15 @@ Dependencies:
 
 Links:
 
-  - App: http://txtbranch.com
+  - App: http://txtbranch.gabicoware.com
   - Source code: https://github.com/gabicoware/txtbranch
+  - iPhone Application: https://itunes.apple.com/nz/app/txtbranch/id880449244?mt=8
 
 To setup:
 
   - copy secrets.template.py to secrets.py and modify as needed
   - copy config.template.json to config.json and modify as needed
+  - copy app.template.yaml to app.yaml and modify as needed
 
 Environments:
 

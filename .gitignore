@@ -45,7 +45,7 @@ Thumbs.db
 # Custom Files #
 ################
 *secrets.py
-config.json
-
+*config.json
+*app.yaml
 .settings
 
