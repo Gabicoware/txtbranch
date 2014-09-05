@@ -6,6 +6,8 @@
 	"empty_root_branch_content": "The content field can not be empty.",
 	"empty_root_branch_link": "The link field can not be empty.",
 	"has_branches": "The branch could not be added. You can not create any more branches for this branch.",
+	"has_single_thread_branch": "The branch could not be added. There is already a branch here and this is a single thread tree.",
+	"has_single_thread_parent_branch": "The branch could not be added. You can not add a branch to your own branch on single thread trees.",
 	"has_identical_link": "The branch could not be added. A branch with an identical link already exists.",
 	"invalid_branch_content": "You must be the moderator to submit content to this tree.",
 	"invalid_branch_link": "You must be the moderator to submit a link to this tree.",

@@ -1,11 +1,27 @@
 
 var tree = null;
+var messages = {};
 var active_branch_key = null;
 var branch_cache = {};
 var edited_branch_key = null;
 var child_key_cache = {};
 var first_branch_key = null;
 var tree_request = null;
+var messages_request = null;
+
+function setupPage(){
+    
+    messages_request = $.ajax({
+                url: '/messages.json',
+                type: "get"
+            });
+    messages_request.done( function(jsondata) {
+        if(jsondata != null){
+            messages = jsondata;
+        }
+    });
+
+}
 
 function loadTree(){
     var index = location.pathname.lastIndexOf("/") + 1;
@@ -142,7 +158,7 @@ function openBranch(branch_key) {
     $("#" + active_branch_key + "_branch_div").addClass("active_branch");
 
     if (!hasAddBranchFormContent()) {
-        showAddBranchLink();
+        showAddBranchLink(branch_key);
     }
     window.location.hash = "branch_key=" + branch_key;
 
@@ -222,10 +238,11 @@ function updateBranchCompleteHandler(data, status, xhr) {
 
 function branchCompleteHandler(jsondata, status, xhr) {
     if (jsondata.status == "OK") {
-        showAddBranchLink();
 
         var added_branch = jsondata.result;
 
+        showAddBranchLink(added_branch.key);
+        
         branch_cache[added_branch.key] = added_branch;
 
         if (edited_branch_key == added_branch.key) {
@@ -236,11 +253,12 @@ function branchCompleteHandler(jsondata, status, xhr) {
         }
     } else {
         resetToBranch(active_branch_key);
-        for (var key in jsondata.result) {
-            if (jsondata.result.hasOwnProperty(key) && add_branch_messages[key] != null) {
+        for (var i = 0; i< jsondata.result.length; i++){
+            var key = jsondata.result[i];
+            if ( messages[key] != null) {
                 //$("#add_branch_div").empty();
                 var template = $("#has_links_template").html();
-                template = template.replace(/##message##/g, add_branch_messages[key]);
+                template = template.replace(/##message##/g, messages[key]);
                 $("#add_branch_div").prepend(template);
             }
         }
@@ -334,11 +352,22 @@ function updateBranchLinks(branch_key) {
 function showBranchLinks(links) {
     $("#link_container").empty();
     if (0 < links.length) {
-        for (var i = 0; i < links.length; i++) {
-            var branch = links[i];
-            appendLink(branch);
+        if(tree.single_thread){
+            var branch = links[0];
+            appendSingleThreadLink(branch);
             updateLikeInfo(branch.key, branch.like_value);
+            
+            //this doesn't belong in here!
+            $('#add_branch_link').hide();
 
+            
+        }else{
+            for (var i = 0; i < links.length; i++) {
+                var branch = links[i];
+                appendLink(branch);
+                updateLikeInfo(branch.key, branch.like_value);
+    
+            }
         }
     } else {
         var template = $("#no_links_template").html();
@@ -441,9 +470,20 @@ function appendLink(branch) {
     $("#link_container").append(template);
 }
 
+function appendSingleThreadLink(branch) {
+    var template = $("#single_thread_branch_link_template").html();
+    template = template.replace(/##branch\.link##/g, branch.link);
+    template = template.replace(/##branch\.key##/g, branch.key);
+    template = template.replace(/##branch\.score##/g, (branch.child_count + branch.like_count - branch.unlike_count));
+    template = template.replace("##like_div_id##", branch.key + "_like_div");
+    template = template.replace("##unlike_div_id##", branch.key + "_unlike_div");
+    template = template.replace("##score_span_id##", branch.key + "_score_span");
+    $("#link_container").append(template);
+}
+
 function returnToBranch(branch_key) {
     resetToBranch(branch_key);
-    showAddBranchLink();
+    showAddBranchLink(branch_key);
 }
 
 function resetToBranch(branch_key) {
@@ -468,10 +508,23 @@ function resetToBranch(branch_key) {
 
 }
 
-function showAddBranchLink() {
+function showAddBranchLink(branch_key) {
 
     $('#add_branch_div').hide();
-    $('#add_branch_link').show();
+    
+    var showLink = true;
+    
+    if(tree.single_thread){
+        var branches = child_key_cache[branch_key];
+        if(branches != null && branches.length > 0){
+            showLink = false;
+        }
+    }
+    if(showLink){
+        $('#add_branch_link').show();
+    }else{
+        $('#add_branch_link').hide();
+    }
         
     $("#add_branch_div").empty();
     
@@ -490,6 +543,8 @@ function updateAddBranchDiv() {
         showInvalidBranchMessage();
     } else if (hasChildBranchs()) {
         showHasChildBranchs();
+    } else if (hasParentBranch()) {
+        showHasParentBranch();
     } else {
         showAddBranchForm();
     }
@@ -518,6 +573,15 @@ function hasChildBranchs() {
 
 function showHasChildBranchs() {
     showAddBranchMessage('#has_child_branchs_template');
+}
+
+function hasParentBranch() {
+    var username = $.cookie("username");
+    return tree["single_thread"] && branch_cache[active_branch_key]["authorname"] == username;
+}
+
+function showHasParentBranch() {
+    showAddBranchMessage('#show_has_parent_branch_template');
 }
 
 function showInvalidBranchMessage() {
@@ -654,12 +718,6 @@ function setupTextArea(textarea) {
         }
     });
 }
-
-var add_branch_messages = {
-    'has_branches' : 'The branch could not be added. You can not create any more branches for this branch.',
-    'has_identical_link' : 'The branch could not be added. A branch with an identical link already exists.',
-    'unauthenticated' : 'The branch could not be added. You are not logged in.'
-};
 
 var authentication_messages = {
     'add_branch' : 'You must be logged in to add a branch'

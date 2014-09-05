@@ -63,6 +63,8 @@ class Tree(BaseModel):
     content_max = ndb.IntegerProperty(indexed=False)
     content_moderator_only = ndb.BooleanProperty(indexed=False)
     
+    single_thread = ndb.BooleanProperty(indexed=False)
+    
     branch_max = ndb.IntegerProperty(indexed=False)
     
     def to_dict(self):

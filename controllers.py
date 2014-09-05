@@ -97,7 +97,6 @@ class BranchController(BaseController):
         if tree is None:
             return False, ['tree_not_found']
 
-        
         if tree.moderatorname == authorname or not tree.link_moderator_only:
             branch.link = link
         else:
@@ -116,6 +115,12 @@ class BranchController(BaseController):
         authored_branch_count = 0
                 
         branchs = parent_branch.children()
+        
+        if tree.single_thread and parent_branch.authorname == authorname:
+            errors.append('has_single_thread_parent_branch')
+        
+        if tree.single_thread and len(branchs) > 0:
+            errors.append('has_single_thread_branch')
         
         for branch_branch in branchs:
             if branch_branch.link == branch.link:
@@ -337,6 +342,8 @@ class TreeController(BaseController):
             tree.content_max = tree_dict['content_max']
             tree.content_prompt = tree_dict['content_prompt']
             
+            tree.single_thread = tree_dict['single_thread']
+            
             tree.branch_max = tree_dict['branch_max']
             
             branch.put()
@@ -389,6 +396,8 @@ class TreeController(BaseController):
         tree.content_max = tree_dict['content_max']
         tree.content_prompt = tree_dict['content_prompt']
             
+        tree.single_thread = tree_dict['single_thread']
+        
         tree.branch_max = tree_dict['branch_max']
         
         tree.put()
@@ -415,6 +424,7 @@ class TreeController(BaseController):
             "content_moderator_only":False,
             "content_max":0,
             "content_prompt":"",
+            "single_thread":False,
             "branch_max":0
         }
         
@@ -428,6 +438,8 @@ class TreeController(BaseController):
             result["link_max"] = int(result["link_max"])
         if result["content_moderator_only"] is not bool:
             result["content_moderator_only"] = bool(int(result["content_moderator_only"]))
+        if result["single_thread"] is not bool:
+            result["single_thread"] = bool(int(result["single_thread"]))
         if result["link_moderator_only"] is not bool:
             result["link_moderator_only"] = bool(int(result["link_moderator_only"]))
         

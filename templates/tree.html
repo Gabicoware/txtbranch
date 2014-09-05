@@ -62,6 +62,11 @@
             or
         </div>
     </script>
+    <script id="single_thread_branch_link_template" type="text/template">
+        <div class="branch_link">
+            <a href="javascript:void(0)" onclick="openBranch('##branch.key##')">##branch.link##</a>
+        </div>
+    </script>
     <script id="no_links_template" type="text/template">
 	    <!--<div class="no_links">
     	    This branch does not have any branches yet. You should add one!<br />
@@ -105,6 +110,11 @@
         	The parent branch must be completed before adding a child.
         </span>
     </script>
+    <script id="show_has_parent_branch_template" type="text/template">
+        <span class="invalid">
+        	You can not add to your own branch in a single threaded tree.
+        </span>
+    </script>
     <script id="byline_template" type="text/template">
     	by <a class="name" href="/user/##username##">##username##</a>
     </script>
@@ -127,7 +137,7 @@
 	        </div>
 	        <div id="edit_branch_div" class="edit_branch_inactive"></div>
 		    <div id="no_children_branch_div" style="font-size:smaller; font-style: italic;" >
-		    	Branch waiting for additional content
+		    	Waiting for additional content
 		    </div>
 		    <div id="child_branches_div">
 		        <div style="font-size:smaller; font-style: italic;" >
@@ -146,7 +156,6 @@
     	<h3>##tree_name## could not be found.</h3>
     </script>
     
-    
 {% endblock %}
 
 {% block content %}
@@ -154,6 +163,7 @@
     </div>
     <script>
 	    //kickoff
-    	loadTree();    	
+    	loadTree();
+    	setupPage();
     </script>
 {% endblock %}
