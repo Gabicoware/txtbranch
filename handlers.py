@@ -6,6 +6,7 @@
 
 import json
 import threading
+import re
 import base
 from simpleauth import SimpleAuthHandler
 import datetime
@@ -143,7 +144,7 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
             user.put()
             self.auth.set_session(
                 self.auth.store.user_to_dict(user), remember=remember)
-            
+                        
         else:
             # check whether there's a user currently logged in
             # then, create a new user if nobody's signed in, 
@@ -170,7 +171,8 @@ class AuthHandler(RequestHandler, SimpleAuthHandler):
             self.redirect('/')
         else:
             #create an account
-            self.redirect('/post_login')
+            name = "" if 'name' not in _attrs else re.sub(r'\W+','',_attrs['name'])
+            self.redirect( '/post_login#'+ name )
 
     def logout(self):
         self.auth.unset_session()
