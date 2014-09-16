@@ -20,6 +20,19 @@ function setupPage(){
             messages = jsondata;
         }
     });
+    
+    $(window).on('hashchange',function(){
+        var branch_key = getParameterByName("branch_key");
+        if(branch_key != null && branch_key != active_branch_key){
+            if( $("#" + branch_key + "_branch_div").length > 0 ){
+                resetToBranch(branch_key);
+            }else{
+                openBranch(branch_key);
+            }
+        }
+    });
+    
+
 
 }
 
@@ -148,8 +161,23 @@ function openBranch(branch_key) {
     if (first_branch_key == null) {
         first_branch_key = active_branch_key;
     }
-
-    appendBranch(branch);
+    
+    var all_branches = [];
+    
+    var child_branch = branch;
+    
+    while(child_branch != null && $("#" + child_branch.key + "_branch_div").length == 0){
+        all_branches.push(child_branch);
+        if(child_branch.parent_branch_key != null){
+            child_branch = branch_cache[child_branch.parent_branch_key];
+        }else{
+            child_branch = null;
+        }
+    }
+    
+    for(var i = all_branches.length-1; i >= 0; i--){
+        appendBranch(all_branches[i]);
+    }
 
     updateBranchLinks(branch_key);
 
