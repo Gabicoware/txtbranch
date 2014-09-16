@@ -108,7 +108,7 @@ class Tree(BaseModel):
         if data is None:
             trees_query = Tree.query()
             data = trees_query.fetch(64)
-            if not memcache.add(key=memcache_key, value=data, time=7200):  # @UndefinedVariable
+            if data and not memcache.add(key=memcache_key, value=data, time=7200):  # @UndefinedVariable
                 logging.error('main_branchs - memcache add failed.')
         return data
     
@@ -193,7 +193,7 @@ class Branch(BaseModel):
             branchs_query = Branch.query( Branch.parent_branch==self.key)
             data = branchs_query.fetch(64)
             self._child_count = len(data)
-            if not memcache.add(key=memcache_key, value=data, time=7200):  # @UndefinedVariable
+            if data and not memcache.add(key=memcache_key, value=data, time=7200):  # @UndefinedVariable
                 logging.error('get_children - memcache add failed.')
         return sorted(data, key=lambda branch: branch.score(), reverse=True)
     
@@ -320,7 +320,7 @@ class UserInfo(BaseModel):
             data = memcache.get(memcache_key)  # @UndefinedVariable
             if data is None:
                 data = UserInfo.create_key(username).get()
-                if not memcache.add(key=memcache_key, value=data, time=7200):  # @UndefinedVariable
+                if data and not memcache.add(key=memcache_key, value=data, time=7200):  # @UndefinedVariable
                     logging.error('UserInfo.get_by_username - memcache add failed.')
 
         return data
@@ -375,7 +375,7 @@ class Notification(BaseModel):
         data = memcache.get(memcache_key)  # @UndefinedVariable
         if data is None:
             data = query.order(-Notification.date).fetch(50)
-            if not memcache.add(key=memcache_key, value=data, time=7200):  # @UndefinedVariable
+            if data and not memcache.add(key=memcache_key, value=data, time=7200):  # @UndefinedVariable
                 logging.error('Notification.get_all_cached - memcache add failed.')
         return data
     
