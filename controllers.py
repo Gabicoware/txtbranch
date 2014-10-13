@@ -157,12 +157,19 @@ class BranchController(BaseController):
     
     def delete_branch(self,authorname,urlsafe_key):
         
+        #check in order of least to most expensive operation
+        if not urlsafe_key:
+            return False, ['parameter_error']
+        
         userinfo = UserInfo.get_by_username(authorname)
         
         if userinfo is None or not self.is_user_info_current(userinfo):
             return False, [ 'unauthenticated' ]
         
         branch = ndb.Key(urlsafe=urlsafe_key).get()
+        
+        if branch.parent_branch == None and branch.detached_parent_branch is not None:
+            return False, [ 'already_deleted' ]
         
         if len(branch.children()) != 0:
             return False, [ 'not_empty' ]
@@ -171,12 +178,12 @@ class BranchController(BaseController):
         
         if branch.authorname != authorname and tree.moderatorname != authorname:
             return False, [ 'not_author' ]
-        
+                
         branch.detached_parent_branch = branch.parent_branch
         branch.parent_branch = None
         
         branch.put();
-        branch.detached_parent_branch.get().empty_children_cache()
+        branch.detached_parent_branch.get().remove_child(branch)
         
         return True, None
     

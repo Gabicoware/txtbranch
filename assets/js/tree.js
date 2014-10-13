@@ -258,6 +258,43 @@ function editActiveBranch(shouldEdit) {
     }
 }
 
+function deleteActiveBranch() {
+                    
+    if(child_key_cache[active_branch_key] == null || child_key_cache[active_branch_key].length == 0){
+        if(confirm("Are you sure you want to delete this branch?")){
+            
+            var deleted_branch = branch_cache[active_branch_key];
+            
+            var delete_request = $.ajax({
+                url:"/api/v1/branchs?key="+deleted_branch.key,
+                type:"DELETE"
+            });
+            
+            delete_request.done( function(jsondata) {
+                if ( jsondata.status == 'OK' ){
+                    var child_keys = child_key_cache[deleted_branch.parent_branch_key];
+                    if(child_keys){
+                        var deleted_key_index = child_keys.indexOf(deleted_branch.key);
+                        if(deleted_key_index > 0){
+                            child_key_cache[deleted_branch.parent_branch_key] = child_keys.splice( child_keys.indexOf(deleted_branch.key), 1 );
+                        }
+                    }
+                    
+                    if( $("#" + deleted_branch.parent_branch_key + "_branch_div").length > 0 ){
+                        resetToBranch(deleted_branch.parent_branch_key);
+                    }else{
+                        openBranch(deleted_branch.parent_branch_key);
+                    }
+                }
+            });
+            
+        }
+    }else{
+        alert("You can't delete branches with children.");
+    }
+                    
+}
+
 function updateBranchCompleteHandler(data, status, xhr) {
     branchCompleteHandler(data, status, xhr);
     editActiveBranch(false);

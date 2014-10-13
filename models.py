@@ -211,9 +211,27 @@ class Branch(BaseModel):
             if not memcache.replace(key=memcache_key, value=data, time=7200):  # @UndefinedVariable
                 logging.error('append_child - memcache replace failed.')
     
-    def empty_children_cache(self):
+    def remove_child(self,child):
         memcache_key = self.children_key()
-        memcache.replace(key=memcache_key, value=None, time=1)  # @UndefinedVariable
+        
+        data = memcache.get(memcache_key)  # @UndefinedVariable
+        
+        if self._child_count is not None:
+            self._child_count -= 1
+        
+        if data is None:
+            data = self.children()
+        
+        found_child = None
+        
+        for c in data:
+            if c.key == child.key:
+                found_child = c
+            
+        if found_child in data:
+            data.remove(found_child)
+            if not memcache.replace(key=memcache_key, value=data, time=7200):  # @UndefinedVariable
+                logging.error('remove_child - memcache replace failed.')
             
     def update_child(self,child):
         memcache_key = self.children_key()
