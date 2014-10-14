@@ -1,11 +1,9 @@
 
 import webapp2
-from webapp2 import Route
 import json
 import datetime
 
 import base
-from secrets import SESSION_KEY
 from json import JSONEncoder
 
 from controllers import *
@@ -20,12 +18,14 @@ class ModelEncoder(JSONEncoder):
         return str(o);
 
 class APIRequestHandler(base.BaseRequestHandler):
+    
+    def response_writer(self):
+        return self.app.config.get('txtbranch')['response_writer']
+    
     def write_success_response(self, result):
-        self.response.content_type = "text/json"
-        self.response.write(json.dumps({'status':'OK','result':result},cls=ModelEncoder))
+        self.response_writer().write_success_response(self.response,result)
     def write_fail_response(self, result):
-        self.response.content_type = "text/json"
-        self.response.write(json.dumps({'status':'ERROR','result':result}))
+        self.response_writer().write_fail_response(self.response,result)
         
 class LikeHandler(APIRequestHandler):
     
@@ -323,7 +323,7 @@ class TreeHandler(APIRequestHandler):
         
 class NotificationHandler(APIRequestHandler):
     
-    def get_notifications(self):
+    def get(self):
         if self.request.get('from_username'):
             success, result = self.controller(NotificationController).get_notifications(from_username=self.request.get('from_username'))
         elif self.request.get('tree_name'):
@@ -333,46 +333,5 @@ class NotificationHandler(APIRequestHandler):
         if success:
             self.write_success_response(result)
         else:
-            self.write_fail_response(result)
-        
-    def get_unread_count(self):
-        success, result = self.controller(NotificationController).get_unread_count()
-        if success:
-            self.write_success_response(result)
-        else:
-            self.write_fail_response(result)
-        
-    def reset_unread_count(self):
-        success, result = self.controller(NotificationController).reset_unread_count()
-        if success:
-            self.write_success_response(result)
-        else:
-            self.write_fail_response(result)
-            
+            self.write_fail_response(result)            
     
-# webapp2 config
-app_config = {
-  'webapp2_extras.sessions': {
-    'cookie_name': '_simpleauth_sess',
-    'secret_key': SESSION_KEY,
-    'cookie_args':{ "max_age":31536000 }
-  },
-  'webapp2_extras.auth': {
-    'user_attributes': [],
-    "token_max_age":31536000
-  }
-}
-
-
-handlers = [
-    ('/api/v1/likes', LikeHandler),
-    ('/api/v1/branchs', BranchHandler),
-    ('/api/v1/trees', TreeHandler),
-    ('/api/v1/userinfos', UserInfoHandler),
-#    ('/api/v1/transition', TransitionHandler),
-    Route('/api/v1/notifications', handler='api.NotificationHandler:get_notifications', name='get_notifications',methods=['GET']),
-    Route('/api/v1/notifications/unread_count', handler='api.NotificationHandler:get_unread_count', name='get_count',methods=['GET']),
-    Route('/api/v1/notifications/unread_count', handler='api.NotificationHandler:reset_unread_count', name='reset_count',methods=['DELETE']),
-]
-
-application = webapp2.WSGIApplication(handlers, config=app_config, debug=True)
